@@ -1,0 +1,63 @@
+{
+  "name": "knockout-decorators",
+  "version": "0.1.0",
+  "description": "Decorators for use Knockout JS in TypeScript and ESNext environments",
+  "main": "dist/knockout-decorators.js",
+  "typings": "dist/knockout-decorators.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "shx rm -rf dist && npm run build-prod & npm run build-typings",
+    "build-prod": "rollup -c & rollup -c rollup.config.min.js",
+    "build-dev": "rollup -c -w",
+    "build-typings": "tsc -p tsconfig.typings.json && shx cp dist/__typings/knockout-decorators.d.ts dist/knockout-decorators.d.ts && shx rm -rf dist/__typings",
+    "prepublish": "typings install",
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gnaeus/knockout-decorators.git"
+  },
+  "keywords": [
+    "knockoutjs",
+    "knockout",
+    "ko",
+    "decorators"
+  ],
+  "author": "Dmitry Panyushkin",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/gnaeus/knockout-decorators/issues"
+  },
+  "homepage": "https://github.com/gnaeus/knockout-decorators#readme",
+  "devDependencies": {
+    "deepmerge": "^0.2.10",
+    "jest-cli": "^14.0.1",
+    "knockout": "^3.4.0",
+    "rollup": "^0.34.5",
+    "rollup-plugin-commonjs": "^3.3.1",
+    "rollup-plugin-node-resolve": "^2.0.0",
+    "rollup-plugin-typescript": "^0.7.7",
+    "rollup-plugin-uglify": "^1.0.1",
+    "rollup-watch": "^2.5.0",
+    "shx": "^0.1.4",
+    "typescript": "^1.8.10",
+    "typings": "^1.3.2"
+  },
+  "peerDependencies": {
+    "knockout": "^3.4.0"
+  },
+  "jest": {
+    "rootDir": "./src",
+    "scriptPreprocessor": "../jest-preprocessor.js",
+    "testFileExtensions": [
+      "js",
+      "ts"
+    ],
+    "moduleFileExtensions": [
+      "js",
+      "ts"
+    ]
+  }
+}

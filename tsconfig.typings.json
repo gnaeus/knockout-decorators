@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "target": "es6",
+    "declaration": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": false,
+    "noImplicitAny": false,
+    "sourceMap": false,
+    "outDir": "dist/__typings"
+  },
+  "exclude": [
+    "src/__tests__",
+    "node_modules",
+    "dist"
+  ]
+}
