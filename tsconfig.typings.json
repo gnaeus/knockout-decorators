@@ -4,8 +4,6 @@
     "declaration": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": false,
-    "noImplicitAny": false,
-    "sourceMap": false,
     "outDir": "dist/__typings"
   },
   "exclude": [
