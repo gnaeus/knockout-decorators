@@ -38,6 +38,10 @@ export function component(
     styles: string | string[],
     options?: Object
 ): ComponentDecorator;
+
+/**
+ * Register Knockout component by decorating ViewModel class
+ */
 export function component(
     name: string,
     template?: any,

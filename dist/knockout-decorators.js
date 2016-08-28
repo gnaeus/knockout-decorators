@@ -1,10 +1,9 @@
-(function (global, factory) {
-    typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('knockout')) :
-    typeof define === 'function' && define.amd ? define(['exports', 'knockout'], factory) :
-    (factory((global.KnockoutDecorators = global.KnockoutDecorators || {}),global.ko));
-}(this, (function (exports,ko) { 'use strict';
+import * as ko from 'knockout';
 
-var extend = ko.utils.extend;
+const extend = ko.utils.extend;
+/**
+ * Register Knockout component by decorating ViewModel class
+ */
 function component(name, template, styles, options) {
     if (options === void 0) {
         if (styles === void 0) {
@@ -24,8 +23,7 @@ function component(name, template, styles, options) {
     return function (constructor) {
         ko.components.register(name, extend({
             viewModel: constructor.length < 2 ? constructor : {
-                createViewModel: function (params, _a) {
-                    var element = _a.element, templateNodes = _a.templateNodes;
+                createViewModel(params, { element, templateNodes }) {
                     return new constructor(params, element, templateNodes);
                 }
             },
@@ -34,25 +32,25 @@ function component(name, template, styles, options) {
         }, options));
     };
 }
-var defProp = Object.defineProperty.bind(Object);
+const defProp = Object.defineProperty.bind(Object);
 /**
  * Property decorator that creates hidden ko.observable with ES6 getter and setter for it
  */
 function observable(target, key) {
     defProp(target, key, {
-        get: function () {
-            var observable = ko.observable();
+        get() {
+            const observable = ko.observable();
             defProp(this, key, {
-                get: function () { return observable(); },
-                set: function (value) { observable(value); },
+                get() { return observable(); },
+                set(value) { observable(value); },
             });
             return observable();
         },
-        set: function (value) {
-            var observable = ko.observable(value);
+        set(value) {
+            const observable = ko.observable(value);
             defProp(this, key, {
-                get: function () { return observable(); },
-                set: function (value) { observable(value); },
+                get() { return observable(); },
+                set(value) { observable(value); },
             });
         },
     });
@@ -61,13 +59,13 @@ function observable(target, key) {
  * Accessor decorator that wraps ES6 getter and setter to hidden ko.pureComputed
  */
 function computed(target, key) {
-    var _a = Object.getOwnPropertyDescriptor(target, key), get = _a.get, set = _a.set;
+    const { get, set } = Object.getOwnPropertyDescriptor(target, key);
     if (!set) {
         defProp(target, key, {
-            get: function () {
-                var computed = ko.pureComputed(get, this);
+            get() {
+                const computed = ko.pureComputed(get, this);
                 defProp(this, key, {
-                    get: function () { return computed(); }
+                    get() { return computed(); }
                 });
                 return computed();
             }
@@ -75,27 +73,27 @@ function computed(target, key) {
     }
     else {
         defProp(target, key, {
-            get: function () {
-                var computed = ko.pureComputed({
+            get() {
+                const computed = ko.pureComputed({
                     read: get,
                     write: set,
                     owner: this,
                 });
                 defProp(this, key, {
-                    get: function () { return computed(); },
-                    set: function (value) { computed(value); },
+                    get() { return computed(); },
+                    set(value) { computed(value); },
                 });
                 return computed();
             },
-            set: function (value) {
-                var computed = ko.pureComputed({
+            set(value) {
+                const computed = ko.pureComputed({
                     read: get,
                     write: set,
                     owner: this,
                 });
                 defProp(this, key, {
-                    get: function () { return computed(); },
-                    set: function (value) { computed(value); },
+                    get() { return computed(); },
+                    set(value) { computed(value); },
                 });
                 computed(value);
             },
@@ -103,10 +101,5 @@ function computed(target, key) {
     }
 }
 
-exports.component = component;
-exports.observable = observable;
-exports.computed = computed;
-
-Object.defineProperty(exports, '__esModule', { value: true });
-
-})));
+export { component, observable, computed };
+//# sourceMappingURL=knockout-decorators.js.map

@@ -8,9 +8,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "shx rm -rf dist && npm run build-prod & npm run build-typings",
-    "build-prod": "rollup -c & rollup -c rollup.config.min.js",
-    "build-dev": "rollup -c -w",
+    "build": "shx rm -rf dist && rollup -c & npm run build-typings",
     "build-typings": "tsc -p tsconfig.typings.json && shx cp dist/__typings/knockout-decorators.d.ts dist/knockout-decorators.d.ts && shx rm -rf dist/__typings",
     "prepublish": "typings install",
     "test": "jest"
@@ -32,15 +30,10 @@
   },
   "homepage": "https://github.com/gnaeus/knockout-decorators#readme",
   "devDependencies": {
-    "deepmerge": "^0.2.10",
     "jest-cli": "^14.0.1",
     "knockout": "^3.4.0",
     "rollup": "^0.34.5",
-    "rollup-plugin-commonjs": "^3.3.1",
-    "rollup-plugin-node-resolve": "^2.0.0",
     "rollup-plugin-typescript": "^0.7.7",
-    "rollup-plugin-uglify": "^1.0.1",
-    "rollup-watch": "^2.5.0",
     "shx": "^0.1.4",
     "typescript": "^1.8.10",
     "typings": "^1.3.2"
