@@ -101,7 +101,7 @@ ko.components.register("my-component", {
 ```
 
 If ViewModel constructor accepts two or three arguments,
-then it `createViewModel` factory is created and component config
+then `createViewModel:` factory is created and
 `{ element, templateNodes }` are passed as arguments to ViewModel constructor.
 ```ts
 @component("my-component",
