@@ -72,6 +72,7 @@ person.fullName = "  John  Smith  " // [console] ➜ "John Smith"
 @component(name: string, template: any, styles: any, options?: Object);
 ```
 Shorthand for registering Knockout component by decorating ViewModel class
+
 | argument | description                                                        |
 |----------|--------------------------------------------------------------------|
 | name     | Name of component                                                  |
