@@ -3,9 +3,10 @@ __Decorators for use Knockout JS in TypeScript and ESNext environments__
 
 [![Build Status](https://travis-ci.org/gnaeus/knockout-decorators.svg?branch=master)](https://travis-ci.org/gnaeus/knockout-decorators)
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/gnaeus/knockout-decorators/master/LICENSE)
+[![npm version](https://img.shields.io/npm/v/knockout-decorators.svg?style=flat)](https://www.npmjs.com/package/knockout-decorators)
 
 ### Example
-```ts
+```js
 import { observable, computed, component } from "knockout-decorators";
 
 @component("person-view", `
@@ -37,7 +38,7 @@ class PersonView {
 
 #### <a name="knockout-decorators-observable"></a> @observable
 Property decorator that creates hidden `ko.observable` with ES6 getter and setter for it
-```ts
+```js
 class Model {
   @observable field = 123;
 };
@@ -49,7 +50,7 @@ model.field = 456; // [console] ➜ 456
 
 #### <a name="knockout-decorators-computed"></a> @computed
 Accessor decorator that wraps ES6 getter and setter (if defined) to hidden (maybe writeable) `ko.pureComputed`
-```ts
+```js
 class Person {
   @observable firstName = "";
   @observable lastName = "";
@@ -66,7 +67,7 @@ person.fullName = "  John  Smith  " // [console] ➜ "John Smith"
 ```
 
 #### <a name="knockout-decorators-component"></a> @component
-```ts
+```js
 @component(name: string, options?: Object);
 @component(name: string, template: any, options?: Object);
 @component(name: string, template: any, styles: any, options?: Object);
@@ -87,7 +88,7 @@ If template is not specified then it will be replaced by HTML comment `<!---->`
 
 If ViewModel constructor accepts zero or one arguments,
 then it will be registered as `viewModel:` in config object.
-```ts
+```js
 @component("my-component")
 class Component {
     constructor(params: any) {}
@@ -103,7 +104,7 @@ ko.components.register("my-component", {
 If ViewModel constructor accepts two or three arguments,
 then `createViewModel:` factory is created and
 `{ element, templateNodes }` are passed as arguments to ViewModel constructor.
-```ts
+```js
 @component("my-component",
     require("./my-component.html"),
     require("./my-component.css"), {
