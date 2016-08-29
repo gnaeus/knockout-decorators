@@ -2,7 +2,7 @@ jest.unmock("knockout");
 jest.unmock("../knockout-decorators.ts");
 
 import * as ko from "knockout";
-import { component, observable, computed } from "../knockout-decorators.ts"
+import { component, observable, computed, subscribe } from "../knockout-decorators.ts"
 
 describe("@component", () => {
     // mock for require()
@@ -173,5 +173,143 @@ describe("@observable & @computed decorators", () => {
         expect(user.firstName).toBe("John");
         expect(user.lastName).toBe("Smith");
         expect(user.name).toBe("John Smith");
+    });
+});
+
+describe("@subscribe decorator", () => {
+    it("should subscribe given callback to decorated @observable", () => {
+        class ViewModel {
+            plainField: number;
+
+            @subscribe(ViewModel.prototype.onChange)
+            @observable observableField: number = 0;
+
+            onChange(value: number) {
+                this.plainField = value;
+            }
+        }
+
+        let vm = new ViewModel();
+        vm.observableField = 123;
+
+        expect(vm.plainField).toBe(123);
+    });
+
+    it("should subscribe callback to decorated @observable by given callback name", () => {
+        class ViewModel {
+            plainField: number;
+
+            @subscribe("onChange")
+            @observable observableField: number = 0;
+
+            onChange(value: number) {
+                this.plainField = value;
+            }
+        }
+
+        let vm = new ViewModel();
+        vm.observableField = 123;
+
+        expect(vm.plainField).toBe(123);
+    });
+
+    it("should subscribe decorated callback to @observable by given observable name", () => {
+        class ViewModel {
+            plainField: number;
+
+            @observable observableField: number = 0;
+
+            @subscribe("observableField")
+            onChange(value: number) {
+                this.plainField = value;
+            }
+        }
+
+        let vm = new ViewModel();
+        vm.observableField = 123;
+
+        expect(vm.plainField).toBe(123);
+    });
+
+    it("should dispose subscriptions with ViewModel by default", () => {
+        class ViewModel {
+            plain: number = 123;
+
+            @subscribe(ViewModel.prototype.onChange)
+            @observable first: number = 0;
+
+            @subscribe(ViewModel.prototype.onChange)
+            @observable second: number = 0;
+
+            onChange(value: number) {
+                this.plain = value;
+            }
+
+            dispose() {}
+        }
+
+        let vm = new ViewModel();
+        vm.dispose();
+
+        vm.first = 456;
+        vm.second = 789;
+        
+        expect(vm.plain).toBe(123);
+    });
+
+    it("should not dispose subscriptions with ViewModel if 'autoDispose' is false", () => {
+        class ViewModel {
+            plain: number = 123;
+
+            @subscribe(ViewModel.prototype.onChange, false)
+            @observable first: number = 0;
+
+            @subscribe(ViewModel.prototype.onChange, true)
+            @observable second: number = 0;
+
+            onChange(value: number) {
+                this.plain = value;
+            }
+
+            dispose() {}
+        }
+
+        let vm = new ViewModel();
+        vm.dispose();
+
+        vm.first = 456;
+        vm.second = 789;
+        
+        expect(vm.plain).toBe(456);
+    });
+
+    it("should dispose subscriptions from base class", () => {
+        class Base {
+            plainField: number;
+
+            @observable observableField: number = 0;
+
+            @subscribe("observableField")
+            onChange(value: number) {
+                this.plainField = value;
+            }
+        }
+
+        class Derived extends Base {
+            @subscribe("observableField")
+            onChangeDerived(value: number) {
+                this.plainField = value * 2;
+            }
+
+            dispose: Function;
+        }
+
+        let derived = new Derived();
+        derived.observableField = 123;
+        derived.dispose();
+
+        derived.observableField = 456;
+
+        expect(derived.plainField).toBe(246);
     });
 });
