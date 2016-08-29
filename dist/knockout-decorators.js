@@ -41,16 +41,16 @@ function observable(target, key) {
         get() {
             const observable = ko.observable();
             defProp(this, key, {
-                get() { return observable(); },
-                set(value) { observable(value); },
+                get: observable,
+                set: observable,
             });
             return observable();
         },
         set(value) {
             const observable = ko.observable(value);
             defProp(this, key, {
-                get() { return observable(); },
-                set(value) { observable(value); },
+                get: observable,
+                set: observable,
             });
         },
     });
@@ -65,7 +65,7 @@ function computed(target, key) {
             get() {
                 const computed = ko.pureComputed(get, this);
                 defProp(this, key, {
-                    get() { return computed(); }
+                    get: computed,
                 });
                 return computed();
             }
@@ -80,8 +80,8 @@ function computed(target, key) {
                     owner: this,
                 });
                 defProp(this, key, {
-                    get() { return computed(); },
-                    set(value) { computed(value); },
+                    get: computed,
+                    set: computed,
                 });
                 return computed();
             },
@@ -92,8 +92,8 @@ function computed(target, key) {
                     owner: this,
                 });
                 defProp(this, key, {
-                    get() { return computed(); },
-                    set(value) { computed(value); },
+                    get: computed,
+                    set: computed,
                 });
                 computed(value);
             },

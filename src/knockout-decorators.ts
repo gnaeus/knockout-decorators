@@ -87,16 +87,16 @@ export function observable(target: Object, key: string | symbol) {
         get() {
             const observable = ko.observable();
             defProp(this, key, {
-                get() { return observable(); },
-                set(value) { observable(value); },
+                get: observable,
+                set: observable,
             });
             return observable();
         },
         set(value) {
             const observable = ko.observable(value);
             defProp(this, key, {
-                get() { return observable(); },
-                set(value) { observable(value); },
+                get: observable,
+                set: observable,
             });
         },
     });
@@ -112,7 +112,7 @@ export function computed(target: Object, key: string | symbol) {
             get() {
                 const computed = ko.pureComputed(get, this);
                 defProp(this, key, {
-                    get() { return computed(); }
+                    get: computed,
                 });
                 return computed();
             }
@@ -126,8 +126,8 @@ export function computed(target: Object, key: string | symbol) {
                     owner: this,
                 });
                 defProp(this, key, {
-                    get() { return computed(); },
-                    set(value) { computed(value); },
+                    get: computed,
+                    set: computed,
                 });
                 return computed();
             },
@@ -137,9 +137,9 @@ export function computed(target: Object, key: string | symbol) {
                     write: set,
                     owner: this,
                 });
-                defProp(this, key, {
-                    get() { return computed(); },
-                    set(value) { computed(value); },
+                defProp(this, key,  {
+                    get: computed,
+                    set: computed,
                 });
                 computed(value);
             },
