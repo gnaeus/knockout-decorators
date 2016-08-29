@@ -10,6 +10,10 @@ var defProp = Object.defineProperty.bind(Object);
 var getDescriptor = Object.getOwnPropertyDescriptor.bind(Object);
 /**
  * Register Knockout component by decorating ViewModel class
+ * @param name { String } Name of component
+ * @param template { Any } Knockout template definition
+ * @param styles { Any } Ignored parameter (used for `require()` styles by webpack etc.)
+ * @param options { Object } Another options that passed directly to `ko.components.register()`
  */
 function component(name, template, styles, options) {
     if (options === void 0) {

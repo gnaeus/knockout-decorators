@@ -44,6 +44,10 @@ export function component(
 
 /**
  * Register Knockout component by decorating ViewModel class
+ * @param name { String } Name of component
+ * @param template { Any } Knockout template definition
+ * @param styles { Any } Ignored parameter (used for `require()` styles by webpack etc.)
+ * @param options { Object } Another options that passed directly to `ko.components.register()`
  */
 export function component(
     name: string,
@@ -218,6 +222,9 @@ export function computed(prototype: Object, key: string | symbol) {
     }
 }
 
+/**
+ * Subscribe to observable or computed by name or by specifying callback explicitely
+ */
 export function subscribe(callback: (value: any) => void, autoDispose?: boolean): PropertyDecorator;
 export function subscribe(targetOrCallback: string | symbol, autoDispose?: boolean): PropertyDecorator;
 export function subscribe(targetOrCallback: string | symbol, autoDispose?: boolean): MethodDecorator;

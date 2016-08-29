@@ -21,6 +21,9 @@ export declare function observable(prototype: Object, key: string | symbol): voi
  * Accessor decorator that wraps ES6 getter and setter to hidden ko.pureComputed
  */
 export declare function computed(prototype: Object, key: string | symbol): void;
+/**
+ * Subscribe to observable or computed by name or by specifying callback explicitely
+ */
 export declare function subscribe(callback: (value: any) => void, autoDispose?: boolean): PropertyDecorator;
 export declare function subscribe(targetOrCallback: string | symbol, autoDispose?: boolean): PropertyDecorator;
 export declare function subscribe(targetOrCallback: string | symbol, autoDispose?: boolean): MethodDecorator;
