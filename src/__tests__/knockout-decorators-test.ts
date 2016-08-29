@@ -2,7 +2,7 @@ jest.unmock("knockout");
 jest.unmock("../knockout-decorators.ts");
 
 import * as ko from "knockout";
-import { component, observable, computed, subscribe } from "../knockout-decorators.ts"
+import { component, observable, computed, observer, subscribe } from "../knockout-decorators.ts"
 
 describe("@component", () => {
     // mock for require()
@@ -257,7 +257,7 @@ describe("@subscribe decorator", () => {
         expect(vm.plain).toBe(123);
     });
 
-    it("should not dispose subscriptions with ViewModel if 'autoDispose' is false", () => {
+    it("should not dispose subscriptions with ViewModel when 'autoDispose' is false", () => {
         class ViewModel {
             plain: number = 123;
 
@@ -281,6 +281,31 @@ describe("@subscribe decorator", () => {
         vm.second = 789;
         
         expect(vm.plain).toBe(456);
+    });
+
+    it("original dispose() should be called", () => {
+        class ViewModel {
+            disposed: boolean = false;
+            plainField: number = 0;
+
+            @subscribe(ViewModel.prototype.onChange)
+            @observable observableField: number = 0;
+
+            dispose() {
+                this.disposed = true;
+            }
+
+            onChange(value: number) {
+                this.plainField = value;
+            }
+        }
+
+        let vm = new ViewModel();
+        vm.dispose();
+        vm.observableField = 123;
+
+        expect(vm.plainField).toBe(0);
+        expect(vm.disposed).toBe(true);
     });
 
     it("should dispose subscriptions from base class", () => {
@@ -311,5 +336,173 @@ describe("@subscribe decorator", () => {
         derived.observableField = 456;
 
         expect(derived.plainField).toBe(246);
+    });
+});
+
+describe("@observer decorator", () => {
+    it("should observe local fields", () => {
+        class ViewModel {
+            plain: number = 0;
+            @observable observable: number = 0;
+
+            constructor() {
+                this.handleChanges();
+            }
+
+            @observer()
+            handleChanges() {
+                this.plain = this.observable;
+            }
+        }
+
+        let vm = new ViewModel();
+        vm.observable = 123;
+
+        expect(vm.plain).toBe(123);
+    });
+
+    it("should produce observers that returns subscriptions", () => {
+        class ViewModel {
+            plain = 0;
+            @observable observable = 0;
+            
+            dependenciesCount = 0;
+
+            constructor() {
+                let computed = this.handleChanges();
+                this.dependenciesCount = computed.getDependenciesCount();
+                computed.dispose();
+            }
+
+            @observer()
+            handleChanges(): ko.Computed<any> {
+                this.plain = this.observable;
+                return;
+            }
+        }
+
+        let vm = new ViewModel();
+        vm.observable = 123;
+
+        expect(vm.plain).toBe(0);
+        expect(vm.dependenciesCount).toBe(1);
+    });
+
+    it("should dispose observers with ViewModel by default", () => {
+        class ViewModel {
+            plain: number = 0;
+            @observable observable: number = 0;
+
+            constructor() {
+                this.handleChanges();
+            }
+
+            dispose: Function;
+
+            @observer()
+            handleChanges() {
+                this.plain = this.observable;
+            }
+        }
+
+        let vm = new ViewModel();
+        vm.dispose();
+
+        vm.observable = 123;
+
+        expect(vm.plain).toBe(0);
+    });
+
+    it("original dispose() should be called", () => {
+        class ViewModel {
+            disposed: boolean;
+            plain: number = 0;
+            @observable observable: number = 0;
+
+            constructor() {
+                this.handleChanges();
+            }
+
+            dispose() {
+                this.disposed = true;
+            }
+
+            @observer()
+            handleChanges() {
+                this.plain = this.observable;
+            }
+        }
+
+        let vm = new ViewModel();
+        vm.dispose();
+
+        vm.observable = 123;
+
+        expect(vm.plain).toBe(0);
+        expect(vm.disposed).toBe(true);
+    });
+
+    it("should not dispose observers with ViewModel when 'autoDispose' is false", () => {
+        class ViewModel {
+            plain: number = 0;
+            @observable observable: number = 0;
+
+            constructor() {
+                this.handleChanges();
+            }
+
+            dispose() {};
+
+            @observer(false)
+            handleChanges() {
+                this.plain = this.observable;
+            }
+        }
+
+        let vm = new ViewModel();
+        vm.dispose();
+
+        vm.observable = 123;
+
+        expect(vm.plain).toBe(123);
+    });
+
+    it("should work with foreign observables", () => {
+        class ViewModel {
+            url: string;
+
+            constructor(path: ko.Observable<string>, query: ko.Observable<string>) {
+                this.handleRoute(path, query)
+            }
+
+            dispose() {};
+
+            @observer()
+            handleRoute(path: ko.Observable<string>, query: ko.Observable<string>) {
+                this.url = path();
+                if (query()) {
+                    this.url += "?" + query();
+                }
+            }
+        }
+
+        let path = ko.observable("/home");
+        let query = ko.observable("");
+
+        let vm = new ViewModel(path, query);
+
+        expect(vm.url).toBe("/home");
+        expect(path.getSubscriptionsCount()).toBe(1);
+        expect(query.getSubscriptionsCount()).toBe(1);
+
+        path("/users");
+        query("id=123");
+
+        expect(vm.url).toBe("/users?id=123");
+
+        vm.dispose();
+
+        expect(path.getSubscriptionsCount()).toBe(0);
+        expect(query.getSubscriptionsCount()).toBe(0);
     });
 });

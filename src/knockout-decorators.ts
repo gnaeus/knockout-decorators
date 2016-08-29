@@ -223,6 +223,26 @@ export function computed(prototype: Object, key: string | symbol) {
 }
 
 /**
+ * 
+ * @param autoDispose { boolean } if true then subscription will be disposed when entire ViewModel is disposed
+ */
+export function observer(autoDispose = true) {
+    return function (prototype: Object, key: string | symbol) {
+        let original = prototype[key] as Function;
+        prototype[key] = function (...args) {
+            let computed = ko.computed(() => original.apply(this, args));
+            if (autoDispose) {
+                getSubscriptions(this).push(computed);
+            }
+            return computed;
+        }
+        if (autoDispose) {
+            redefineDispose(prototype);
+        }
+    }
+}
+
+/**
  * Subscribe to observable or computed by name or by specifying callback explicitely
  */
 export function subscribe(callback: (value: any) => void, autoDispose?: boolean): PropertyDecorator;

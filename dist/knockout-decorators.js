@@ -155,6 +155,31 @@ function computed(prototype, key) {
     }
 }
 /**
+ *
+ * @param autoDispose { boolean } if true then subscription will be disposed when entire ViewModel is disposed
+ */
+function observer(autoDispose) {
+    if (autoDispose === void 0) { autoDispose = true; }
+    return function (prototype, key) {
+        var original = prototype[key];
+        prototype[key] = function () {
+            var _this = this;
+            var args = [];
+            for (var _i = 0; _i < arguments.length; _i++) {
+                args[_i - 0] = arguments[_i];
+            }
+            var computed = ko.computed(function () { return original.apply(_this, args); });
+            if (autoDispose) {
+                getSubscriptions(this).push(computed);
+            }
+            return computed;
+        };
+        if (autoDispose) {
+            redefineDispose(prototype);
+        }
+    };
+}
+/**
  * Subscribe to observable or computed by name or by specifying callback explicitely
  * @param targetOrCallback { String | Function } name of callback or callback itself
  * when observable is decorated and name of observable property when callback is decorated
@@ -201,6 +226,7 @@ function subscribe(targetOrCallback, autoDispose) {
 exports.component = component;
 exports.observable = observable;
 exports.computed = computed;
+exports.observer = observer;
 exports.subscribe = subscribe;
 
 Object.defineProperty(exports, '__esModule', { value: true });

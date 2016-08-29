@@ -22,6 +22,11 @@ export declare function observable(prototype: Object, key: string | symbol): voi
  */
 export declare function computed(prototype: Object, key: string | symbol): void;
 /**
+ *
+ * @param autoDispose { boolean } if true then subscription will be disposed when entire ViewModel is disposed
+ */
+export declare function observer(autoDispose?: boolean): (prototype: Object, key: string | symbol) => void;
+/**
  * Subscribe to observable or computed by name or by specifying callback explicitely
  */
 export declare function subscribe(callback: (value: any) => void, autoDispose?: boolean): PropertyDecorator;
