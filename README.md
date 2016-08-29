@@ -75,7 +75,7 @@ person.fullName = "  John  Smith  " // [console] ➜ "John Smith"
 Shorthand for registering Knockout component by decorating ViewModel class
 
 | argument | description                                                        |
-|----------|--------------------------------------------------------------------|
+|:---------|:-------------------------------------------------------------------|
 | name     | Name of component                                                  |
 | template | Knockout template definition                                       |
 | styles   | Ignored parameter (used for `require()` styles by webpack etc.)    |
