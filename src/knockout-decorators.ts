@@ -93,6 +93,10 @@ const SUBSCRIPTIONS_KEY = typeof Symbol !== "undefined"
 const DISPOSABLE_KEY = typeof Symbol !== "undefined"
     ? Symbol("ko_decorators_disposable") : "__ko_decorators_disposable_";
 
+export interface Disposable {
+    dispose(): void,
+}
+
 const enum DecoratorType {
     Extend, Subscribe,
 }
@@ -106,10 +110,6 @@ interface Decorator {
 
 interface MetaData {
     [propName: string]: Decorator[],
-}
-
-export interface Disposable {
-    dispose(): void,
 }
 
 function getMetaData(prototype: Object) {
@@ -282,7 +282,7 @@ export interface ObservableArray<T> extends Array<T> {
 
     subscribe(callback: (val: T[]) => void): Disposable;
     subscribe(callback: (val: T[]) => void, callbackTarget: any): Disposable;
-    subscribe(callback: (val: T[]) => void, callbackTarget: any, event: string): Disposable;
+    subscribe(callback: (val: any[]) => void, callbackTarget: any, event: string): Disposable;
 }
 
 /**

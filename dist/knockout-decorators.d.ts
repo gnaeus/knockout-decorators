@@ -36,7 +36,7 @@ export interface ObservableArray<T> extends Array<T> {
     destroyAll(items: T[]): void;
     subscribe(callback: (val: T[]) => void): Disposable;
     subscribe(callback: (val: T[]) => void, callbackTarget: any): Disposable;
-    subscribe(callback: (val: T[]) => void, callbackTarget: any, event: string): Disposable;
+    subscribe(callback: (val: any[]) => void, callbackTarget: any, event: string): Disposable;
 }
 /**
  * Property decorator that creates hidden ko.observableArray with ES6 getter and setter for it
