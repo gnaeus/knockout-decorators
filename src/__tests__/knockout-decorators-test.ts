@@ -4,7 +4,7 @@ jest.unmock("../knockout-decorators.ts");
 import * as ko from "knockout";
 import {
     component, observable, computed, observer,
-    subscribe, observableArray, ObservableArray
+    extend, subscribe, observableArray, ObservableArray
 } from "../knockout-decorators.ts";
 
 describe("@component", () => {
@@ -233,6 +233,30 @@ describe("@subscribe decorator", () => {
 
         expect(vm.plainField).toBe(123);
     });
+
+    // TODO: implement and review test
+    // it("should subscribe given callback to decorated @computed", () => {
+    //     class ViewModel {
+    //         plainField: number;
+
+    //         @observable observableField: number = 0;
+
+    //         @subscribe(ViewModel.prototype.onChange)
+    //         @computed get computedField() {
+    //             return this.observableField;
+    //         }
+
+    //         onChange(value: number) {
+    //             this.plainField = value;
+    //         }
+    //     }
+
+    //     let vm = new ViewModel();
+        
+    //     vm.observableField = 123;
+        
+    //     expect(vm.plainField).toBe(123);
+    // });
 
     it("should support named subscription events", () => {
         class ViewModel {
@@ -584,5 +608,158 @@ describe("@observableArray decorator", () => {
             { status: 'deleted', value: 2, index: 5 },
             { status: 'added', value: 5, index: 2 }
         ]);
+    });
+});
+
+describe("@extend decorator", () => {
+    ko.extenders["reverse"] = (target, options) => {
+        if (options === "read") {
+            return ko.pureComputed({
+                read: () => reverse(target()),
+                write: target,
+            });
+        } else if (options === "write") {
+            return ko.pureComputed({
+                read: target,
+                write: value => target(reverse(value)),
+            });
+        }
+
+        function reverse(value) {
+            return value instanceof Array 
+                ? value.reverse()
+                : String(value).split("").reverse().join("");
+        }
+    };
+
+    ko.extenders["upperCase"] = (target, options) => {
+        if (options === "read") {
+            return ko.pureComputed({
+                read: () => String(target()).toUpperCase(),
+                write: target,
+            });
+        } else if (options === "write") {
+            return ko.pureComputed({
+                read: target,
+                write: value => target(String(value).toUpperCase()),
+            });
+        }
+    }
+
+    it("should extend @observable", () => {
+        class ViewModel {
+            @extend({ reverse: "write" })
+            @observable observable = "abcdef";
+        }
+        
+        let vm = new ViewModel();
+        
+        expect(vm.observable).toBe("fedcba");
+    });
+
+    // TODO: implement and review test
+    // it("should extend @computed", () => {
+    //     class ViewModel {
+    //         @observable observable = "";
+
+    //         @extend({ reverse: "read" })
+    //         @computed get computed() {
+    //             return this.observable.substr(0, 4);
+    //         }
+    //     }
+        
+    //     let vm = new ViewModel();
+    //     let result: string;
+
+    //     ko.computed(() => { result = vm.computed; });
+
+    //     vm.observable = "abcdef";
+
+    //     expect(vm.observable).toBe("abcdef");
+    //     expect(result).toBe("dcba");
+    // });
+
+    // TODO: implement and review test
+    // it("should extend writeable @computed", () => {
+    //     class ViewModel {
+    //         observable = ko.observable("");
+
+    //         @extend({ reverse: "write" })
+    //         @computed
+    //         get computed() {
+    //             return this.observable();
+    //         }
+    //         set computed(value) {
+    //             this.observable(value.substr(0, 4));
+    //         }
+    //     }
+        
+    //     let vm = new ViewModel();
+    //     let result: string;
+
+    //     ko.computed(() => { result = vm.computed; });
+
+    //     vm.computed = "abcdef";
+        
+    //     expect(vm.observable()).toBe("dcba");
+    //     expect(result).toBe("dcba");
+    // });
+
+    it("should extend @observableArray", () => {
+        class ViewModel {
+            @extend({ reverse: "write" })
+            @observable array = [1, 2, 3, 4];
+        }
+        
+        let vm = new ViewModel();
+        
+        expect(vm.array).toEqual([4, 3, 2, 1]);
+    });
+
+    it("should accept extenders factory", () => {
+        class ViewModel {
+            @extend(ViewModel.prototype.getExtender)
+            @observable observable = "abcdef";
+
+            getExtender() {
+                return { reverse: "write" };
+            }
+        }
+        
+        let vm = new ViewModel();
+        
+        expect(vm.observable).toBe("fedcba");
+    });
+
+    it("can be combined with other @extend", () => {
+        class ViewModel {
+            @extend({ upperCase: "write" })
+            @extend({ reverse: "read" })
+            @observable observable = "abcdef";
+        }
+        
+        let vm = new ViewModel();
+        
+        expect(vm.observable).toBe("FEDCBA");
+    });
+
+    it("can be combined with @subscribe", () => {
+        class ViewModel {
+            plain: string;
+
+            @extend({ upperCase: "read" })
+            @subscribe(ViewModel.prototype.onChange)
+            @extend({ reverse: "write" })
+            @observable observable = "abcdef";
+
+            onChange(value) {
+                this.plain = value;
+            }
+        }
+        
+        let vm = new ViewModel();
+        
+        expect(vm.plain).toBe("fedcba");
+        expect(vm.observable).toBe("FEDCBA");
     });
 });

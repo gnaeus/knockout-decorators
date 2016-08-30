@@ -4,7 +4,7 @@
     (factory((global.KnockoutDecorators = global.KnockoutDecorators || {}),global.ko));
 }(this, (function (exports,ko) { 'use strict';
 
-var extend = ko.utils.extend;
+var assign = ko.utils.extend;
 var objectForEach = ko.utils.objectForEach;
 var defProp = Object.defineProperty.bind(Object);
 var getDescriptor = Object.getOwnPropertyDescriptor.bind(Object);
@@ -32,7 +32,7 @@ function component(name, template, styles, options) {
         }
     }
     return function (constructor) {
-        ko.components.register(name, extend({
+        ko.components.register(name, assign({
             viewModel: constructor.length < 2 ? constructor : {
                 createViewModel: function (params, _a) {
                     var element = _a.element, templateNodes = _a.templateNodes;
@@ -58,7 +58,7 @@ var DecoratorType;
 function getMetaData(prototype) {
     var metaData = prototype[DECORATORS_KEY];
     if (!prototype.hasOwnProperty(DECORATORS_KEY)) {
-        prototype[DECORATORS_KEY] = metaData = extend({}, metaData);
+        prototype[DECORATORS_KEY] = metaData = assign({}, metaData);
         objectForEach(metaData, function (key, decorators) {
             metaData[key] = decorators.slice();
         });
@@ -78,8 +78,9 @@ function applyDecorators(instance, key, target) {
         decorators.forEach(function (d) {
             switch (d.type) {
                 case DecoratorType.Extend:
-                    var extender = d.value;
-                    target = target.extend(extender);
+                    var extenders = d.value instanceof Function
+                        ? d.value.call(instance) : d.value;
+                    target = target.extend(extenders);
                     break;
                 case DecoratorType.Subscribe:
                     var subscription = target.subscribe(d.value, instance, d.event);
@@ -130,29 +131,36 @@ function observable(prototype, key) {
  */
 function computed(prototype, key) {
     var _a = getDescriptor(prototype, key), get = _a.get, set = _a.set;
-    if (!set) {
-        defProp(prototype, key, {
-            get: function () {
-                var computed = applyDecorators(this, key, ko.pureComputed(get, this));
-                defProp(this, key, { get: computed });
-                return computed();
-            }
-        });
-    }
-    else {
-        defProp(prototype, key, {
-            get: function () {
-                var computed = applyDecorators(this, key, ko.pureComputed({ read: get, write: set, owner: this }));
-                defProp(this, key, { get: computed, set: computed });
-                return computed();
-            },
-            set: function (value) {
-                var computed = applyDecorators(this, key, ko.pureComputed({ read: get, write: set, owner: this }));
-                defProp(this, key, { get: computed, set: computed });
-                computed(value);
-            },
-        });
-    }
+    defProp(prototype, key, {
+        get: function () {
+            var computed = ko.pureComputed(get, this);
+            defProp(this, key, { get: computed, set: set });
+            return computed();
+        }
+    });
+    // TODO: make @computed extendable (by @extend decorator)
+    // if (!set) {
+    //     defProp(prototype, key, {
+    //         get() {
+    //             const computed = ko.pureComputed(get, this);
+    //             defProp(this, key, { get: computed });
+    //             return computed();
+    //         }
+    //     });
+    // } else {
+    //     defProp(prototype, key, {
+    //         get() {
+    //             const computed = ko.pureComputed({ read: get, write: set, owner: this });
+    //             defProp(this, key, { get: computed, set: computed });
+    //             return computed();
+    //         },
+    //         set(value: any) {
+    //             const computed = ko.pureComputed({ read: get, write: set, owner: this });
+    //             defProp(this, key, { get: computed, set: computed });
+    //             computed(value);
+    //         },
+    //     });
+    // }
 }
 var arrayMethods = ["pop", "push", "reverse", "shift", "sort", "splice", "unshift"];
 var observableArrayMethods = ["remove", "removeAll", "destroy", "destroyAll", "replace", "subscribe"];
@@ -243,6 +251,18 @@ function observer(prototypeOrAutoDispose, key) {
     }
 }
 /**
+ * Apply extenders to decorated observable or computed
+ * @extendersOrFactory { Object | Function } Knockout extenders definition or factory that produces definition
+ */
+function extend(extendersOrFactory) {
+    return function (prototype, key) {
+        getDecorators(getMetaData(prototype), key).push({
+            type: DecoratorType.Extend,
+            value: extendersOrFactory,
+        });
+    };
+}
+/**
  * Subscribe to observable or computed by name or by specifying callback explicitely
  * @param targetOrCallback { String | Function } name of callback or callback itself
  * when observable is decorated and name of observable property when callback is decorated
@@ -253,10 +273,10 @@ function subscribe(targetOrCallback, event, autoDispose) {
     if (autoDispose === void 0) { autoDispose = true; }
     return function (prototype, key) {
         var _a = getDescriptor(prototype, key), value = _a.value, get = _a.get;
-        var target, callback;
+        var targetKey, callback;
         if (typeof value === "function") {
             if (typeof targetOrCallback === "string" || typeof targetOrCallback === "symbol") {
-                target = targetOrCallback; // @subscribe("target")
+                targetKey = targetOrCallback; // @subscribe("target")
                 callback = value; // callback(value) {}    
             }
             else {
@@ -265,18 +285,18 @@ function subscribe(targetOrCallback, event, autoDispose) {
         }
         else if (typeof get === "function") {
             if (typeof targetOrCallback === "function") {
-                target = key; // @subscribe(ViewModel.prototype.callback)
+                targetKey = key; // @subscribe(ViewModel.prototype.callback)
                 callback = targetOrCallback; // @observable target;
             }
             else if (typeof targetOrCallback === "string" || typeof targetOrCallback === "symbol") {
-                target = key; // @subscribe("callback")
+                targetKey = key; // @subscribe("callback")
                 callback = prototype[targetOrCallback]; // @observable target;
             }
             else {
                 throw new Error("Subscription callback should be a function or key in decorated ViewModel");
             }
         }
-        getDecorators(getMetaData(prototype), target).push({
+        getDecorators(getMetaData(prototype), targetKey).push({
             type: DecoratorType.Subscribe,
             value: callback,
             event: event,
@@ -293,6 +313,7 @@ exports.observable = observable;
 exports.computed = computed;
 exports.observableArray = observableArray;
 exports.observer = observer;
+exports.extend = extend;
 exports.subscribe = subscribe;
 
 Object.defineProperty(exports, '__esModule', { value: true });

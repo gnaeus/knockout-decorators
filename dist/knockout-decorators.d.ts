@@ -48,6 +48,11 @@ export declare function observableArray(prototype: Object, key: string | symbol)
 export declare function observer(autoDispose: boolean): MethodDecorator;
 export declare function observer(prototype: Object, key: string | symbol): void;
 /**
+ * Apply extenders to decorated observable or computed
+ */
+export declare function extend(extenders: Object): PropertyDecorator;
+export declare function extend(extendersFactory: () => Object): PropertyDecorator;
+/**
  * Subscribe to observable or computed by name or by specifying callback explicitely
  */
 export declare function subscribe(callback: (value: any) => void, event?: string, autoDispose?: boolean): PropertyDecorator;
