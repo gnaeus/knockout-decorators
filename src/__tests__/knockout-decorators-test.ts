@@ -2,7 +2,10 @@ jest.unmock("knockout");
 jest.unmock("../knockout-decorators.ts");
 
 import * as ko from "knockout";
-import { component, observable, computed, observer, subscribe } from "../knockout-decorators.ts"
+import {
+    component, observable, computed, observer,
+    subscribe, observableArray, ObservableArray
+} from "../knockout-decorators.ts";
 
 describe("@component", () => {
     // mock for require()
@@ -231,6 +234,24 @@ describe("@subscribe decorator", () => {
         expect(vm.plainField).toBe(123);
     });
 
+    it("should support named subscription events", () => {
+        class ViewModel {
+            plainField: number;
+
+            @subscribe(ViewModel.prototype.onChange, "beforeChange")
+            @observable observableField: number = 321;
+
+            onChange(value: number) {
+                this.plainField = value;
+            }
+        }
+
+        let vm = new ViewModel();
+        vm.observableField = 123;
+
+        expect(vm.plainField).toBe(321);
+    });
+
     it("should dispose subscriptions with ViewModel by default", () => {
         class ViewModel {
             plain: number = 123;
@@ -254,17 +275,17 @@ describe("@subscribe decorator", () => {
         vm.first = 456;
         vm.second = 789;
         
-        expect(vm.plain).toBe(123);
+        expect(vm.plain).toBe(0);
     });
 
     it("should not dispose subscriptions with ViewModel when 'autoDispose' is false", () => {
         class ViewModel {
             plain: number = 123;
 
-            @subscribe(ViewModel.prototype.onChange, false)
+            @subscribe(ViewModel.prototype.onChange, null, false)
             @observable first: number = 0;
 
-            @subscribe(ViewModel.prototype.onChange, true)
+            @subscribe(ViewModel.prototype.onChange, null, true)
             @observable second: number = 0;
 
             onChange(value: number) {
@@ -498,5 +519,70 @@ describe("@observer decorator", () => {
 
         expect(path.getSubscriptionsCount()).toBe(0);
         expect(query.getSubscriptionsCount()).toBe(0);
+    });
+});
+
+function delay(msec: number): Promise<void> {
+    return new Promise<void>((resolve) => {
+        setImmediate(() => { resolve(); }, delay);
+    });
+}
+
+describe("@observableArray decorator", () => {
+    it("should work as plain observable", () => {
+        class ViewModel {
+            @observableArray array = [];
+        }
+        
+        let vm = new ViewModel();
+        let syncArr: any[];
+        ko.computed(() => { syncArr = vm.array; });
+        
+        let arr = [1, 2, 3];
+        vm.array = arr;
+
+        expect(syncArr).toBe(arr);
+    });
+
+    it("should observe array changes", () => {
+        class ViewModel {
+            @observableArray array = [];
+        }
+        
+        let vm = new ViewModel();
+
+        let syncArr: any[];
+        ko.computed(() => { syncArr = vm.array; });
+        
+        let arr = [1, 2, 3];
+        vm.array = arr;
+        
+        let removed = vm.array.splice(1, 1);
+
+        expect(syncArr).toBe(arr);
+        expect(removed).toEqual([2]);
+        expect(arr).toEqual([1, 3]);
+    });
+
+    it("should expose knockout-specific methods", () => {
+        class ViewModel {
+            @observableArray array = [1, 2, 3, 4, 3, 2, 1] as ObservableArray<number>;
+        }
+        
+        let vm = new ViewModel();
+        let changes = [];
+
+        vm.array.subscribe(val => { changes.push(...val); }, null, "arrayChange");
+        
+        vm.array.remove(val => val % 2 === 0);
+        vm.array.splice(2, 0, 5);
+
+        expect(vm.array).toEqual([1, 3, 5, 3, 1]);
+        expect(changes).toEqual([
+            { status: 'deleted', value: 2, index: 1 },
+            { status: 'deleted', value: 4, index: 3 },
+            { status: 'deleted', value: 2, index: 5 },
+            { status: 'added', value: 5, index: 2 }
+        ]);
     });
 });

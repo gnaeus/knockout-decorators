@@ -45,11 +45,11 @@ function component(name, template, styles, options) {
     };
 }
 var DECORATORS_KEY = typeof Symbol !== "undefined"
-    ? Symbol("knockout_decorators") : "__knockout_decorators_";
+    ? Symbol("ko_decorators") : "__ko_decorators_";
 var SUBSCRIPTIONS_KEY = typeof Symbol !== "undefined"
-    ? Symbol("knockout_decorators_subscriptions") : "__knockout_decorators_subscriptions_";
+    ? Symbol("ko_decorators_subscriptions") : "__ko_decorators_subscriptions_";
 var DISPOSABLE_KEY = typeof Symbol !== "undefined"
-    ? Symbol("knockout_decorators_disposable") : "__knockout_decorators_disposable_";
+    ? Symbol("ko_decorators_disposable") : "__ko_decorators_disposable_";
 var DecoratorType;
 (function (DecoratorType) {
     DecoratorType[DecoratorType["Extend"] = 0] = "Extend";
@@ -82,8 +82,7 @@ function applyDecorators(instance, key, target) {
                     target = target.extend(extender);
                     break;
                 case DecoratorType.Subscribe:
-                    var callback = d.value;
-                    var subscription = target.subscribe(callback.bind(instance));
+                    var subscription = target.subscribe(d.value, instance, d.event);
                     if (d.dispose) {
                         getSubscriptions(instance).push(subscription);
                     }
@@ -98,8 +97,8 @@ function redefineDispose(prototype) {
         return;
     }
     prototype[DISPOSABLE_KEY] = true;
-    var original = prototype['dispose'];
-    prototype['dispose'] = function dispose() {
+    var original = prototype["dispose"];
+    prototype["dispose"] = function dispose() {
         var disposables = this[SUBSCRIPTIONS_KEY];
         if (disposables) {
             disposables.forEach(function (s) { s.dispose(); });
@@ -120,8 +119,9 @@ function observable(prototype, key) {
             return observable();
         },
         set: function (value) {
-            var observable = applyDecorators(this, key, ko.observable(value));
+            var observable = applyDecorators(this, key, ko.observable());
             defProp(this, key, { get: observable, set: observable });
+            observable(value);
         },
     });
 }
@@ -154,19 +154,71 @@ function computed(prototype, key) {
         });
     }
 }
+var arrayMethods = ["pop", "push", "reverse", "shift", "sort", "splice", "unshift"];
+var observableArrayMethods = ["remove", "removeAll", "destroy", "destroyAll", "replace", "subscribe"];
+function defObservableArray(instance, key) {
+    var obsArray = applyDecorators(instance, key, ko.observableArray());
+    var insideObsArray = false;
+    defProp(instance, key, {
+        get: obsArray,
+        set: function (array) {
+            if (array) {
+                arrayMethods.forEach(function (fnName) { return defProp(array, fnName, {
+                    enumerable: false,
+                    value: function () {
+                        if (insideObsArray) {
+                            return Array.prototype[fnName].apply(array, arguments);
+                        }
+                        insideObsArray = true;
+                        var result = obsArray[fnName].apply(obsArray, arguments);
+                        insideObsArray = false;
+                        return result;
+                    }
+                }); });
+                observableArrayMethods.forEach(function (fnName) { return defProp(array, fnName, {
+                    enumerable: false,
+                    value: function () {
+                        insideObsArray = true;
+                        var result = obsArray[fnName].apply(obsArray, arguments);
+                        insideObsArray = false;
+                        return result;
+                    }
+                }); });
+            }
+            insideObsArray = true;
+            obsArray(array);
+            insideObsArray = false;
+        }
+    });
+}
+/**
+ * Property decorator that creates hidden ko.observableArray with ES6 getter and setter for it
+ */
+function observableArray(prototype, key) {
+    defProp(prototype, key, {
+        get: function () {
+            defObservableArray(this, key);
+            return this[key];
+        },
+        set: function (value) {
+            defObservableArray(this, key);
+            return this[key] = value;
+        },
+    });
+}
 /**
  * Replace original method with factory that produces ko.computed from original method
- * @param autoDispose { boolean } if true then subscription will be disposed when entire ViewModel is disposed
+ * @param autoDispose { Boolean } if true then subscription will be disposed when entire ViewModel is disposed
  */
 function observer(prototypeOrAutoDispose, key) {
     var autoDispose;
     if (typeof prototypeOrAutoDispose === "boolean" && key === void 0) {
-        autoDispose = prototypeOrAutoDispose;
-        return decorator;
+        autoDispose = prototypeOrAutoDispose; // @observer(false)
+        return decorator; // onSomethingChange() {}
     }
     else if (typeof prototypeOrAutoDispose === "object" && key !== void 0) {
-        autoDispose = true;
-        decorator(prototypeOrAutoDispose, key);
+        autoDispose = true; // @observer
+        decorator(prototypeOrAutoDispose, key); // onSomethingChange() {}
     }
     else {
         throw new Error("Can not use @observer decorator this way");
@@ -194,9 +246,10 @@ function observer(prototypeOrAutoDispose, key) {
  * Subscribe to observable or computed by name or by specifying callback explicitely
  * @param targetOrCallback { String | Function } name of callback or callback itself
  * when observable is decorated and name of observable property when callback is decorated
- * @param autoDispose { boolean } if true then subscription will be disposed when entire ViewModel is disposed
+ * @param event { String } Knockout subscription event name
+ * @param autoDispose { Boolean } if true then subscription will be disposed when entire ViewModel is disposed
  */
-function subscribe(targetOrCallback, autoDispose) {
+function subscribe(targetOrCallback, event, autoDispose) {
     if (autoDispose === void 0) { autoDispose = true; }
     return function (prototype, key) {
         var _a = getDescriptor(prototype, key), value = _a.value, get = _a.get;
@@ -226,6 +279,7 @@ function subscribe(targetOrCallback, autoDispose) {
         getDecorators(getMetaData(prototype), target).push({
             type: DecoratorType.Subscribe,
             value: callback,
+            event: event,
             dispose: autoDispose,
         });
         if (autoDispose) {
@@ -237,6 +291,7 @@ function subscribe(targetOrCallback, autoDispose) {
 exports.component = component;
 exports.observable = observable;
 exports.computed = computed;
+exports.observableArray = observableArray;
 exports.observer = observer;
 exports.subscribe = subscribe;
 
