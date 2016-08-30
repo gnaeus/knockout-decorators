@@ -349,8 +349,7 @@ describe("@observer decorator", () => {
                 this.handleChanges();
             }
 
-            @observer()
-            handleChanges() {
+            @observer handleChanges() {
                 this.plain = this.observable;
             }
         }
@@ -374,8 +373,7 @@ describe("@observer decorator", () => {
                 computed.dispose();
             }
 
-            @observer()
-            handleChanges(): ko.Computed<any> {
+            @observer handleChanges(): ko.Computed<any> {
                 this.plain = this.observable;
                 return;
             }
@@ -399,8 +397,7 @@ describe("@observer decorator", () => {
 
             dispose: Function;
 
-            @observer()
-            handleChanges() {
+            @observer handleChanges() {
                 this.plain = this.observable;
             }
         }
@@ -427,8 +424,7 @@ describe("@observer decorator", () => {
                 this.disposed = true;
             }
 
-            @observer()
-            handleChanges() {
+            @observer handleChanges() {
                 this.plain = this.observable;
             }
         }
@@ -453,8 +449,7 @@ describe("@observer decorator", () => {
 
             dispose() {};
 
-            @observer(false)
-            handleChanges() {
+            @observer(false) handleChanges() {
                 this.plain = this.observable;
             }
         }
@@ -477,8 +472,7 @@ describe("@observer decorator", () => {
 
             dispose() {};
 
-            @observer()
-            handleRoute(path: ko.Observable<string>, query: ko.Observable<string>) {
+            @observer handleRoute(path: ko.Observable<string>, query: ko.Observable<string>) {
                 this.url = path();
                 if (query()) {
                     this.url += "?" + query();

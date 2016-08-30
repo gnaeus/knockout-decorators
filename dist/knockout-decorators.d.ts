@@ -22,10 +22,10 @@ export declare function observable(prototype: Object, key: string | symbol): voi
  */
 export declare function computed(prototype: Object, key: string | symbol): void;
 /**
- *
- * @param autoDispose { boolean } if true then subscription will be disposed when entire ViewModel is disposed
+ * Replace original method with factory that produces ko.computed from original method
  */
-export declare function observer(autoDispose?: boolean): (prototype: Object, key: string | symbol) => void;
+export declare function observer(autoDispose: boolean): MethodDecorator;
+export declare function observer(prototype: Object, key: string | symbol): void;
 /**
  * Subscribe to observable or computed by name or by specifying callback explicitely
  */

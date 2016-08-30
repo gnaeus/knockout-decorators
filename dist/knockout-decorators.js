@@ -155,12 +155,23 @@ function computed(prototype, key) {
     }
 }
 /**
- *
+ * Replace original method with factory that produces ko.computed from original method
  * @param autoDispose { boolean } if true then subscription will be disposed when entire ViewModel is disposed
  */
-function observer(autoDispose) {
-    if (autoDispose === void 0) { autoDispose = true; }
-    return function (prototype, key) {
+function observer(prototypeOrAutoDispose, key) {
+    var autoDispose;
+    if (typeof prototypeOrAutoDispose === "boolean" && key === void 0) {
+        autoDispose = prototypeOrAutoDispose;
+        return decorator;
+    }
+    else if (typeof prototypeOrAutoDispose === "object" && key !== void 0) {
+        autoDispose = true;
+        decorator(prototypeOrAutoDispose, key);
+    }
+    else {
+        throw new Error("Can not use @observer decorator this way");
+    }
+    function decorator(prototype, key) {
         var original = prototype[key];
         prototype[key] = function () {
             var _this = this;
@@ -177,7 +188,7 @@ function observer(autoDispose) {
         if (autoDispose) {
             redefineDispose(prototype);
         }
-    };
+    }
 }
 /**
  * Subscribe to observable or computed by name or by specifying callback explicitely

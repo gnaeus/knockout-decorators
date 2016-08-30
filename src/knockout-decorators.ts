@@ -223,11 +223,28 @@ export function computed(prototype: Object, key: string | symbol) {
 }
 
 /**
- * 
+ * Replace original method with factory that produces ko.computed from original method
+ */
+export function observer(autoDispose: boolean): MethodDecorator;
+export function observer(prototype: Object, key: string | symbol): void;
+
+/**
+ * Replace original method with factory that produces ko.computed from original method
  * @param autoDispose { boolean } if true then subscription will be disposed when entire ViewModel is disposed
  */
-export function observer(autoDispose = true) {
-    return function (prototype: Object, key: string | symbol) {
+export function observer(prototypeOrAutoDispose: Object | boolean, key?: string | symbol) {
+    let autoDispose: boolean;
+    if (typeof prototypeOrAutoDispose === "boolean" && key === void 0) {
+        autoDispose = prototypeOrAutoDispose;
+        return decorator;
+    } else if (typeof prototypeOrAutoDispose === "object" && key !== void 0) {
+        autoDispose = true;
+        decorator(prototypeOrAutoDispose, key);
+    } else {
+        throw new Error("Can not use @observer decorator this way");
+    }
+
+    function decorator(prototype: Object, key: string | symbol) {
         let original = prototype[key] as Function;
         prototype[key] = function (...args) {
             let computed = ko.computed(() => original.apply(this, args));
