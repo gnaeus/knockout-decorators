@@ -53,6 +53,7 @@ ko.computed(() => { console.log(model.field); }); // [console] ➜ 123
 model.field = 456;                                // [console] ➜ 456
 ```
 
+<br>
 
 #### <a name="knockout-decorators-observableArray"></a> @observableArray
 Property decorator that creates hidden `ko.observableArray` with ES6 getter and setter for it
@@ -83,6 +84,7 @@ model.array.remove(val => val % 2 === 0); // [console] ➜  [{ status: 'deleted'
                                           //                { status: 'deleted', value: 4, index: 3 }]
 ```
 
+<br>
 
 #### <a name="knockout-decorators-computed"></a> @computed
 Accessor decorator that wraps ES6 getter and setter (if defined) to hidden `ko.pureComputed`
@@ -102,6 +104,7 @@ ko.pureComputed(() => person.fullName).subscribe(console.log.bind(console));
 person.fullName = "  John  Smith  " // [console] ➜ "John Smith"
 ```
 
+<br>
 
 #### <a name="knockout-decorators-observer"></a> @observer
 Replace original method with factory that produces `ko.computed` from original method
@@ -138,6 +141,7 @@ class BlogPage {
 }
 ```
 
+<br>
 
 #### <a name="knockout-decorators-extend"></a> @extend
 Apply extenders to decorated `@observable`
@@ -164,6 +168,7 @@ class ViewModel {
 }
 ```
 
+<br>
 
 #### <a name="knockout-decorators-subscribe"></a> @subscribe
 Subscribe to `@observable` by name or by specifying callback explicitely
@@ -178,6 +183,8 @@ Subscribe to `@observable` by name or by specifying callback explicitely
 | targetOrCallback |         | Name of subscription handler method or name of `@observable` property          |
 | event            | `null`  | Knockout subscription event                                                    |
 | autoDispose      | `true`  | if true then computed will be disposed when entire decorated class is disposed |
+
+<br>
 
 #### <a name="knockout-decorators-component"></a> @component
 Shorthand for registering Knockout component by decorating ViewModel class
