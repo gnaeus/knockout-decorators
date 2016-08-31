@@ -234,7 +234,7 @@ describe("@subscribe decorator", () => {
         expect(vm.plainField).toBe(123);
     });
 
-    // TODO: implement and review test
+    // TODO: make @computed extendable (by @extend decorator)
     // it("should subscribe given callback to decorated @computed", () => {
     //     class ViewModel {
     //         plainField: number;
@@ -657,7 +657,7 @@ describe("@extend decorator", () => {
         expect(vm.observable).toBe("fedcba");
     });
 
-    // TODO: implement and review test
+    // TODO: make @computed extendable (by @extend decorator)
     // it("should extend @computed", () => {
     //     class ViewModel {
     //         @observable observable = "";
@@ -679,7 +679,7 @@ describe("@extend decorator", () => {
     //     expect(result).toBe("dcba");
     // });
 
-    // TODO: implement and review test
+    // TODO: make @computed extendable (by @extend decorator)
     // it("should extend writeable @computed", () => {
     //     class ViewModel {
     //         observable = ko.observable("");

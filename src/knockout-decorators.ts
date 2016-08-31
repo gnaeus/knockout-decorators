@@ -22,6 +22,7 @@ const assign = ko.utils.extend;
 const objectForEach = ko.utils.objectForEach;
 const defProp = Object.defineProperty.bind(Object);
 const getDescriptor = Object.getOwnPropertyDescriptor.bind(Object);
+const slice = Function.prototype.call.bind(Array.prototype.slice);
 
 /**
  * Register Knockout component by decorating ViewModel class
@@ -108,12 +109,12 @@ interface Decorator {
     dispose?: boolean,
 }
 
-interface MetaData {
+interface DecoratorsMetaData {
     [propName: string]: Decorator[],
 }
 
 function getMetaData(prototype: Object) {
-    let metaData: MetaData = prototype[DECORATORS_KEY];
+    let metaData: DecoratorsMetaData = prototype[DECORATORS_KEY];
     if (!prototype.hasOwnProperty(DECORATORS_KEY)) {
         prototype[DECORATORS_KEY] = metaData = assign({}, metaData);
         objectForEach(metaData, (key, decorators) => {
@@ -123,7 +124,7 @@ function getMetaData(prototype: Object) {
     return metaData;
 }
 
-function getDecorators(metaData: MetaData, key: string | symbol) {
+function getDecorators(metaData: DecoratorsMetaData, key: string | symbol) {
     return metaData[key] || (metaData[key] = []);
 }
 
@@ -135,18 +136,18 @@ function applyDecorators(
     instance: Object, key: string | symbol,
     target: ko.Observable<any> | ko.PureComputed<any>
 ) {
-    let metaData: MetaData = instance[DECORATORS_KEY];
-    let decorators = metaData && metaData[key];
+    const metaData: DecoratorsMetaData = instance[DECORATORS_KEY];
+    const decorators = metaData && metaData[key];
     if (decorators) {
         decorators.forEach(d => {
             switch (d.type) {
                 case DecoratorType.Extend:
-                    let extenders = d.value instanceof Function
+                    const extenders = d.value instanceof Function
                         ? d.value.call(instance) : d.value;
                     target = target.extend(extenders);
                     break;
                 case DecoratorType.Subscribe:
-                    let subscription = target.subscribe(d.value, instance, d.event);
+                    const subscription = target.subscribe(d.value, instance, d.event);
                     if (d.dispose) {
                         getSubscriptions(instance).push(subscription);
                     }
@@ -161,9 +162,9 @@ function redefineDispose(prototype: Object) {
     if (prototype[DISPOSABLE_KEY]) { return; }
     prototype[DISPOSABLE_KEY] = true;
 
-    let original = prototype["dispose"];
+    const original = prototype["dispose"];
     prototype["dispose"] = function dispose() {
-        let disposables = this[SUBSCRIPTIONS_KEY] as Disposable[];
+        const disposables = this[SUBSCRIPTIONS_KEY] as Disposable[];
         if (disposables) {
             disposables.forEach(s => { s.dispose(); });
         }
@@ -204,28 +205,6 @@ export function computed(prototype: Object, key: string | symbol) {
         }
     });
     // TODO: make @computed extendable (by @extend decorator)
-    // if (!set) {
-    //     defProp(prototype, key, {
-    //         get() {
-    //             const computed = ko.pureComputed(get, this);
-    //             defProp(this, key, { get: computed });
-    //             return computed();
-    //         }
-    //     });
-    // } else {
-    //     defProp(prototype, key, {
-    //         get() {
-    //             const computed = ko.pureComputed({ read: get, write: set, owner: this });
-    //             defProp(this, key, { get: computed, set: computed });
-    //             return computed();
-    //         },
-    //         set(value: any) {
-    //             const computed = ko.pureComputed({ read: get, write: set, owner: this });
-    //             defProp(this, key, { get: computed, set: computed });
-    //             computed(value);
-    //         },
-    //     });
-    // }
 }
 
 type ObsArray = ko.ObservableArray<any> & { [fnName: string]: Function };
@@ -243,7 +222,7 @@ function defObservableArray(instance: Object, key: string | symbol) {
             if (array) {
                 arrayMethods.forEach(fnName => defProp(array, fnName, {
                     enumerable: false,
-                    value: function () {
+                    value() {
                         if (insideObsArray) {
                             return Array.prototype[fnName].apply(array, arguments);
                         }
@@ -255,7 +234,7 @@ function defObservableArray(instance: Object, key: string | symbol) {
                 }));
                 observableArrayMethods.forEach(fnName => defProp(array, fnName, {
                     enumerable: false,
-                    value: function () {
+                    value() {
                         insideObsArray = true;
                         const result = obsArray[fnName].apply(obsArray, arguments);
                         insideObsArray = false;
@@ -329,9 +308,10 @@ export function observer(prototypeOrAutoDispose: Object | boolean, key?: string 
     }
 
     function decorator(prototype: Object, key: string | symbol) {
-        let original = prototype[key] as Function;
-        prototype[key] = function (...args) {
-            let computed = ko.computed(() => original.apply(this, args));
+        const original = prototype[key] as Function;
+        prototype[key] = function () {
+            const args = slice(arguments);
+            const computed = ko.computed(() => original.apply(this, args));
             if (autoDispose) {
                 getSubscriptions(this).push(computed);
             }
@@ -344,13 +324,13 @@ export function observer(prototypeOrAutoDispose: Object | boolean, key?: string 
 }
 
 /**
- * Apply extenders to decorated observable or computed
+ * Apply extenders to decorated @observable
  */
 export function extend(extenders: Object): PropertyDecorator;
 export function extend(extendersFactory: () => Object): PropertyDecorator;
 
 /**
- * Apply extenders to decorated observable or computed
+ * Apply extenders to decorated @observable
  * @extendersOrFactory { Object | Function } Knockout extenders definition or factory that produces definition
  */
 export function extend(extendersOrFactory: Object | Function) {
@@ -363,14 +343,14 @@ export function extend(extendersOrFactory: Object | Function) {
 }
 
 /**
- * Subscribe to observable or computed by name or by specifying callback explicitely
+ * Subscribe to @observable by name or by specifying callback explicitely
  */
 export function subscribe(callback: (value: any) => void, event?: string, autoDispose?: boolean): PropertyDecorator;
 export function subscribe(targetOrCallback: string | symbol, event?: string, autoDispose?: boolean): PropertyDecorator;
 export function subscribe(targetOrCallback: string | symbol, event?: string, autoDispose?: boolean): MethodDecorator;
 
 /**
- * Subscribe to observable or computed by name or by specifying callback explicitely
+ * Subscribe to @observable by name or by specifying callback explicitely
  * @param targetOrCallback { String | Function } name of callback or callback itself
  * when observable is decorated and name of observable property when callback is decorated
  * @param event { String } Knockout subscription event name
@@ -378,8 +358,9 @@ export function subscribe(targetOrCallback: string | symbol, event?: string, aut
  */
 export function subscribe(targetOrCallback: string | symbol | Function, event?: string, autoDispose = true) {
     return function (prototype: Object, key: string | symbol) {
-        let { value, get } = getDescriptor(prototype, key);
-        let targetKey: string | symbol, callback: Function;
+        const { value, get } = getDescriptor(prototype, key);
+        let targetKey: string | symbol;
+        let callback: Function;
         if (typeof value === "function") {
             if (typeof targetOrCallback === "string" || typeof targetOrCallback === "symbol") {
                 targetKey = targetOrCallback;                   // @subscribe("target")

@@ -8,6 +8,7 @@ var assign = ko.utils.extend;
 var objectForEach = ko.utils.objectForEach;
 var defProp = Object.defineProperty.bind(Object);
 var getDescriptor = Object.getOwnPropertyDescriptor.bind(Object);
+var slice = Function.prototype.call.bind(Array.prototype.slice);
 /**
  * Register Knockout component by decorating ViewModel class
  * @param name { String } Name of component
@@ -139,28 +140,6 @@ function computed(prototype, key) {
         }
     });
     // TODO: make @computed extendable (by @extend decorator)
-    // if (!set) {
-    //     defProp(prototype, key, {
-    //         get() {
-    //             const computed = ko.pureComputed(get, this);
-    //             defProp(this, key, { get: computed });
-    //             return computed();
-    //         }
-    //     });
-    // } else {
-    //     defProp(prototype, key, {
-    //         get() {
-    //             const computed = ko.pureComputed({ read: get, write: set, owner: this });
-    //             defProp(this, key, { get: computed, set: computed });
-    //             return computed();
-    //         },
-    //         set(value: any) {
-    //             const computed = ko.pureComputed({ read: get, write: set, owner: this });
-    //             defProp(this, key, { get: computed, set: computed });
-    //             computed(value);
-    //         },
-    //     });
-    // }
 }
 var arrayMethods = ["pop", "push", "reverse", "shift", "sort", "splice", "unshift"];
 var observableArrayMethods = ["remove", "removeAll", "destroy", "destroyAll", "replace", "subscribe"];
@@ -235,10 +214,7 @@ function observer(prototypeOrAutoDispose, key) {
         var original = prototype[key];
         prototype[key] = function () {
             var _this = this;
-            var args = [];
-            for (var _i = 0; _i < arguments.length; _i++) {
-                args[_i - 0] = arguments[_i];
-            }
+            var args = slice(arguments);
             var computed = ko.computed(function () { return original.apply(_this, args); });
             if (autoDispose) {
                 getSubscriptions(this).push(computed);
@@ -251,7 +227,7 @@ function observer(prototypeOrAutoDispose, key) {
     }
 }
 /**
- * Apply extenders to decorated observable or computed
+ * Apply extenders to decorated @observable
  * @extendersOrFactory { Object | Function } Knockout extenders definition or factory that produces definition
  */
 function extend(extendersOrFactory) {
@@ -263,7 +239,7 @@ function extend(extendersOrFactory) {
     };
 }
 /**
- * Subscribe to observable or computed by name or by specifying callback explicitely
+ * Subscribe to @observable by name or by specifying callback explicitely
  * @param targetOrCallback { String | Function } name of callback or callback itself
  * when observable is decorated and name of observable property when callback is decorated
  * @param event { String } Knockout subscription event name
@@ -273,7 +249,8 @@ function subscribe(targetOrCallback, event, autoDispose) {
     if (autoDispose === void 0) { autoDispose = true; }
     return function (prototype, key) {
         var _a = getDescriptor(prototype, key), value = _a.value, get = _a.get;
-        var targetKey, callback;
+        var targetKey;
+        var callback;
         if (typeof value === "function") {
             if (typeof targetOrCallback === "string" || typeof targetOrCallback === "symbol") {
                 targetKey = targetOrCallback; // @subscribe("target")
