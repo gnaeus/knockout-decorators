@@ -122,7 +122,7 @@ class BlogPage {
   @observable postId = 0;
   @observable pageData: any;
   
-  constructor(blodId: ko.Observable<number>) {
+  constructor(blogId: ko.Observable<number>) {
     const computed = this.onRoute(blogId);
     // subscribe onRoute handler to changes
     // then we can do whatever with created computed
@@ -131,7 +131,7 @@ class BlogPage {
   // 'dispose()' method is redefined such that it disposes hidded 'onRoute' computed
   // if original class already has 'dispose()' method then it would be wrapped by new method
   
-  @observer async onRoute(blodId: ko.Observable<number>) {
+  @observer async onRoute(blogId: ko.Observable<number>) {
     const resp = await fetch(`/blog/${ blogId() }/post/${ this.postId }`);
     this.pageData = await resp.json();
   }
