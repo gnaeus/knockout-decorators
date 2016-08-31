@@ -85,7 +85,7 @@ model.array.remove(val => val % 2 === 0); // [console] ➜  [{ status: 'deleted'
 
 
 #### <a name="knockout-decorators-computed"></a> @computed
-Accessor decorator that wraps ES6 getter and setter (if defined) to hidden (maybe writeable) `ko.pureComputed`
+Accessor decorator that wraps ES6 getter and setter (if defined) to hidden `ko.pureComputed`
 ```js
 class Person {
   @observable firstName = "";
@@ -139,6 +139,45 @@ class BlogPage {
 ```
 
 
+#### <a name="knockout-decorators-extend"></a> @extend
+Apply extenders to decorated `@observable`
+```js
+@extend(extenders: Object)
+@extend(extendersFactory: () => Object)
+```
+
+Extenders can be defined by plain object or by calling method, that returns extenders-object.<br>
+Note that `extendersFactory` invoked with ViewModel instance as `this` argument.
+```js
+class ViewModel {
+  rateLimit: 50;
+  
+  @extend({ notify: "always" })
+  @observable first = "";
+
+  @extend(ViewModel.prototype.getExtender)
+  @observable second = "";
+  
+  getExtender() {
+    return { rateLimit: this.rateLimit };
+  }
+}
+```
+
+
+#### <a name="knockout-decorators-subscribe"></a> @subscribe
+Subscribe to `@observable` by name or by specifying callback explicitely
+```js
+@subscribe(callback: (value: any) => void, event?: string, autoDispose?: boolean)
+@subscribe(targetOrCallback: string | symbol, event?: string, autoDispose?: boolean)
+```
+
+| Argument         | Default | Description                                                                    |
+|:-----------------|:--------|:-------------------------------------------------------------------------------|
+| callback         |         | Subscription handler method                                                    |
+| targetOrCallback |         | Name of subscription handler method or name of `@observable` property          |
+| event            | `null`  | Knockout subscription event                                                    |
+| autoDispose      | `true`  | if true then computed will be disposed when entire decorated class is disposed |
 
 #### <a name="knockout-decorators-component"></a> @component
 Shorthand for registering Knockout component by decorating ViewModel class
