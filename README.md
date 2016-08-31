@@ -33,7 +33,11 @@ class PersonView {
 ---
 ## Documentation
  * [@observable](#knockout-decorators-observable)
+ * [@observableArray](#knockout-decorators-observableArray)
  * [@computed](#knockout-decorators-computed)
+ * [@observer](#knockout-decorators-observer)
+ * [@extend](#knockout-decorators-extend)
+ * [@subscribe](#knockout-decorators-subscribe)
  * [@component](#knockout-decorators-component)
 
 #### <a name="knockout-decorators-observable"></a> @observable
@@ -45,7 +49,34 @@ class Model {
 let model = new Model();
 
 ko.computed(() => { console.log(model.field); }); // [console] ➜ 123
-model.field = 456; // [console] ➜ 456
+model.field = 456;                                // [console] ➜ 456
+```
+
+#### <a name="knockout-decorators-observableArray"></a> @observableArray
+Property decorator that creates hidden `ko.observableArray` with ES6 getter and setter for it
+```js
+class Model {
+  @observableArray array = [1, 2, 3];
+};
+let model = new Model();
+
+ko.computed(() => { console.log(model.field); }); // [console] ➜ [1, 2, 3]
+model.field = [4, 5, 6];                          // [console] ➜ [4, 5, 6]
+```
+Functions from `ko.observableArray`, both Knockout-specific `remove`, `removeAll`, `destroy`, `destroyAll`, `replace`
+and redefined `Array.prototype` functions `pop`, `push`, `reverse`, `shift`, `sort`, `splice`, `unshift`,
+are also presents in decorated poperty. Functions works like if we invoke them on hidden `ko.observableArray`.
+And also decorated array has a `subscribe` function from `ko.subscribable`
+```js
+class Model {
+  @observableArray array = [1, 2, 3];
+};
+let model = new Model();
+model.array.subscribe((changes) => { console.log(changes); }, null, "arrayChange");
+
+model.array.push(4);                      // [console] ➜  [{ status: 'added', value: 4, index: 3 }]
+model.array.remove(val => val % 2 === 0); // [console] ➜  [{ status: 'deleted', value: 2, index: 1 },
+                                          //                { status: 'deleted', value: 4, index: 3 }]
 ```
 
 #### <a name="knockout-decorators-computed"></a> @computed
