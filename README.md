@@ -184,6 +184,40 @@ Subscribe to `@observable` by name or by specifying callback explicitely
 | event            | `null`  | Knockout subscription event                                                    |
 | autoDispose      | `true`  | if true then computed will be disposed when entire decorated class is disposed |
 
+We can define name of handler when we decorate `@observable` or define name of `@observable` when decorate handler.
+Subscriptions will be disposed when entire decorated class is disposed (if we don't set `autoDispose` to `false`)
+```js
+class ViewModel {
+  // specify callback
+  @subscribe("onFirstChanged")
+  @observable first = "";
+  
+  onFirstChanged(value) {}
+  
+  @observable second = "";
+  // specify observable  
+  @subscribe("second")
+  onSecondChanged(value) {}
+}
+```
+
+Also whe can pass subscription handler directly.
+Then it will be invoked with ViewModel instance as `this` argument.
+
+And we can specify subscription `event`
+```js
+class ViewModel {
+  operationLog = [];
+  
+  @subscribe(ViewModel.prototype.onArrayChange, "arrayChange")
+  @observableArray array = [1, 2, 3]
+  
+  onArrayChange(changes) {
+    this.operationLog.push(...changes);
+  }
+}
+```
+
 <br>
 
 #### <a name="knockout-decorators-component"></a> @component
