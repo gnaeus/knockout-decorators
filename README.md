@@ -40,6 +40,7 @@ class PersonView {
  * [@subscribe](#knockout-decorators-subscribe)
  * [@component](#knockout-decorators-component)
 
+
 #### <a name="knockout-decorators-observable"></a> @observable
 Property decorator that creates hidden `ko.observable` with ES6 getter and setter for it
 ```js
@@ -52,6 +53,7 @@ ko.computed(() => { console.log(model.field); }); // [console] ➜ 123
 model.field = 456;                                // [console] ➜ 456
 ```
 
+
 #### <a name="knockout-decorators-observableArray"></a> @observableArray
 Property decorator that creates hidden `ko.observableArray` with ES6 getter and setter for it
 ```js
@@ -63,9 +65,11 @@ let model = new Model();
 ko.computed(() => { console.log(model.field); }); // [console] ➜ [1, 2, 3]
 model.field = [4, 5, 6];                          // [console] ➜ [4, 5, 6]
 ```
-Functions from `ko.observableArray`, both Knockout-specific `remove`, `removeAll`, `destroy`, `destroyAll`, `replace`
-and redefined `Array.prototype` functions `pop`, `push`, `reverse`, `shift`, `sort`, `splice`, `unshift`,
-are also presents in decorated poperty. Functions works like if we invoke them on hidden `ko.observableArray`.
+Functions from `ko.observableArray` (both Knockout-specific `remove`, `removeAll`, `destroy`, `destroyAll`, `replace`
+and redefined `Array.prototype` functions `pop`, `push`, `reverse`, `shift`, `sort`, `splice`, `unshift`)
+are also presents in decorated poperty.
+They works like if we invoke them on hidden `ko.observableArray`.
+
 And also decorated array has a `subscribe` function from `ko.subscribable`
 ```js
 class Model {
@@ -78,6 +82,7 @@ model.array.push(4);                      // [console] ➜  [{ status: 'added', 
 model.array.remove(val => val % 2 === 0); // [console] ➜  [{ status: 'deleted', value: 2, index: 1 },
                                           //                { status: 'deleted', value: 4, index: 3 }]
 ```
+
 
 #### <a name="knockout-decorators-computed"></a> @computed
 Accessor decorator that wraps ES6 getter and setter (if defined) to hidden (maybe writeable) `ko.pureComputed`
@@ -97,20 +102,58 @@ ko.pureComputed(() => person.fullName).subscribe(console.log.bind(console));
 person.fullName = "  John  Smith  " // [console] ➜ "John Smith"
 ```
 
+
+#### <a name="knockout-decorators-observer"></a> @observer
+Replace original method with factory that produces `ko.computed` from original method
+```js
+@observer
+@observer(autoDispose: boolean)
+```
+| Argument    | Default | Description                                                                    |
+|:------------|:--------|:-------------------------------------------------------------------------------|
+| autoDispose | `true`  | if true then computed will be disposed when entire decorated class is disposed |
+
+Method that decorated with `@observer` evaluates once when explicitely invoked (this call creates hidden `ko.computed`)
+and every times when it's observable (or computed) dependencies are changed.
+
+Hidden `ko.computed` will be disposed when entire decorated class is disposed (if we don't set `autoDispose` to `false`)
+```js
+class BlogPage {
+  @observable postId = 0;
+  @observable pageData: any;
+  
+  constructor(blodId: ko.Observable<number>) {
+    const computed = this.onRoute(blogId);
+    // subscribe onRoute handler to changes
+    // then we can do whatever with created computed
+  }
+  
+  // 'dispose()' method is redefined such that it disposes hidded 'onRoute' computed
+  // if original class already has 'dispose()' method then it would be wrapped by new method
+  
+  @observer async onRoute(blodId: ko.Observable<number>) {
+    const resp = await fetch(`/blog/${ blogId() }/post/${ this.postId }`);
+    this.pageData = await resp.json();
+  }
+}
+```
+
+
+
 #### <a name="knockout-decorators-component"></a> @component
+Shorthand for registering Knockout component by decorating ViewModel class
 ```js
 @component(name: string, options?: Object);
 @component(name: string, template: any, options?: Object);
 @component(name: string, template: any, styles: any, options?: Object);
 ```
-Shorthand for registering Knockout component by decorating ViewModel class
 
-| argument | description                                                        |
-|:---------|:-------------------------------------------------------------------|
-| name     | Name of component                                                  |
-| template | Knockout template definition                                       |
-| styles   | Ignored parameter (used for `require()` styles by webpack etc.)    |
-| options  | Another options that passed directly to `ko.components.register()` |
+| Argument | Default                 | Description                                                        |
+|:---------|:------------------------|:-------------------------------------------------------------------|
+| name     |                         | Name of component                                                  |
+| template | `"<!---->"`             | Knockout template definition                                       |
+| styles   |                         | Ignored parameter (used for `require()` styles by webpack etc.)    |
+| options  | `{ synchronous: true }` | Another options that passed directly to `ko.components.register()` |
 
 By default components registered with `synchronous` flag.
 It can be overwritten by passing `{ synchronous: false }` as __options__.
