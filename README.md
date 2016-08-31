@@ -65,9 +65,9 @@ let model = new Model();
 ko.computed(() => { console.log(model.field); }); // [console] ➜ [1, 2, 3]
 model.field = [4, 5, 6];                          // [console] ➜ [4, 5, 6]
 ```
-Functions from `ko.observableArray` (both Knockout-specific `remove`, `removeAll`, `destroy`, `destroyAll`, `replace`
+Functions from `ko.observableArray` (both Knockout-specific `remove`, `removeAll`, `destroy`, `destroyAll`, `replace`<br>
 and redefined `Array.prototype` functions `pop`, `push`, `reverse`, `shift`, `sort`, `splice`, `unshift`)
-are also presents in decorated poperty.
+are also presents in decorated poperty.<br>
 They works like if we invoke them on hidden `ko.observableArray`.
 
 And also decorated array has a `subscribe` function from `ko.subscribable`
@@ -155,7 +155,7 @@ Shorthand for registering Knockout component by decorating ViewModel class
 | styles   |                         | Ignored parameter (used for `require()` styles by webpack etc.)    |
 | options  | `{ synchronous: true }` | Another options that passed directly to `ko.components.register()` |
 
-By default components registered with `synchronous` flag.
+By default components registered with `synchronous` flag.<br>
 It can be overwritten by passing `{ synchronous: false }` as __options__.
 
 If template is not specified then it will be replaced by HTML comment `<!---->`
@@ -176,8 +176,8 @@ ko.components.register("my-component", {
 ```
 
 If ViewModel constructor accepts two or three arguments,
-then `createViewModel:` factory is created and
-`{ element, templateNodes }` are passed as arguments to ViewModel constructor.
+then `createViewModel:` factory is created<br>
+and `{ element, templateNodes }` are passed as arguments to ViewModel constructor.
 ```js
 @component("my-component",
     require("./my-component.html"),
