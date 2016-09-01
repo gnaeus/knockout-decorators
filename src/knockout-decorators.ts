@@ -192,21 +192,6 @@ export function observable(prototype: Object, key: string | symbol) {
     });
 }
 
-/**
- * Accessor decorator that wraps ES6 getter and setter to hidden ko.pureComputed
- */
-export function computed(prototype: Object, key: string | symbol) {
-    const { get, set } = getDescriptor(prototype, key);
-    defProp(prototype, key, {
-        get() {
-            const computed = ko.pureComputed(get, this);
-            defProp(this, key, { get: computed, set: set });
-            return computed();
-        }
-    });
-    // TODO: make @computed extendable (by @extend decorator)
-}
-
 type ObsArray = ko.ObservableArray<any> & { [fnName: string]: Function };
 
 const arrayMethods = ["pop", "push", "reverse", "shift", "sort", "splice", "unshift"];
@@ -249,6 +234,22 @@ function defObservableArray(instance: Object, key: string | symbol) {
     });
 }
 
+/**
+ * Property decorator that creates hidden ko.observableArray with ES6 getter and setter for it
+ */
+export function observableArray(prototype: Object, key: string | symbol) {
+    defProp(prototype, key, {
+        get() {
+            defObservableArray(this, key);
+            return this[key];
+        },
+        set(value: any[]) {
+            defObservableArray(this, key);
+            return this[key] = value;
+        },
+    });
+}
+
 export interface ObservableArray<T> extends Array<T> {
     replace(oldItem: T, newItem: T): void;
 
@@ -270,56 +271,57 @@ export interface ObservableArray<T> extends Array<T> {
 }
 
 /**
- * Property decorator that creates hidden ko.observableArray with ES6 getter and setter for it
+ * Accessor decorator that wraps ES6 getter and setter to hidden ko.pureComputed
  */
-export function observableArray(prototype: Object, key: string | symbol) {
-    defProp(prototype, key, {
-        get() {
-            defObservableArray(this, key);
-            return this[key];
-        },
-        set(value: any[]) {
-            defObservableArray(this, key);
-            return this[key] = value;
-        },
-    });
+export function computed(prototype: Object, key: string | symbol, desc: PropertyDescriptor) {
+    const { get, set } = desc || (desc = getDescriptor(prototype, key));
+    desc.get = function () {
+        const computed = ko.pureComputed(get, this);
+        defProp(this, key, { get: computed, set: set });
+        return computed();
+    };
+    return desc;
+    // TODO: make @computed extendable (by @extend decorator)
 }
 
 /**
  * Replace original method with factory that produces ko.computed from original method
  */
 export function observer(autoDispose: boolean): MethodDecorator;
-export function observer(prototype: Object, key: string | symbol): void;
+export function observer(prototype: Object, key: string | symbol, desc: PropertyDescriptor): PropertyDescriptor;
 
 /**
  * Replace original method with factory that produces ko.computed from original method
  * @param autoDispose { Boolean } if true then subscription will be disposed when entire ViewModel is disposed
  */
-export function observer(prototypeOrAutoDispose: Object | boolean, key?: string | symbol) {
+export function observer(
+    prototypeOrAutoDispose: Object | boolean, key?: string | symbol, desc?: PropertyDescriptor
+) {
     let autoDispose: boolean;
     if (typeof prototypeOrAutoDispose === "boolean" && key === void 0) {
-        autoDispose = prototypeOrAutoDispose;       // @observer(false)
-        return decorator;                           // onSomethingChange() {}
+        autoDispose = prototypeOrAutoDispose;         // @observer(false)
+        return decorator;                             // onSomethingChange() {}
     } else if (typeof prototypeOrAutoDispose === "object" && key !== void 0) {
-        autoDispose = true;                         // @observer
-        decorator(prototypeOrAutoDispose, key);     // onSomethingChange() {}
+        autoDispose = true;                           // @observer
+        decorator(prototypeOrAutoDispose, key, desc); // onSomethingChange() {}
     } else {
         throw new Error("Can not use @observer decorator this way");
     }
 
-    function decorator(prototype: Object, key: string | symbol) {
-        const original = prototype[key] as Function;
-        prototype[key] = function () {
+    function decorator(prototype: Object, key: string | symbol, desc: PropertyDescriptor) {
+        const { value } = desc || (desc = getDescriptor(prototype, key));
+        desc.value = function () {
             const args = slice(arguments);
-            const computed = ko.computed(() => original.apply(this, args));
+            const computed = ko.computed(() => value.apply(this, args));
             if (autoDispose) {
                 getSubscriptions(this).push(computed);
             }
             return computed;
-        }
+        };
         if (autoDispose) {
             redefineDispose(prototype);
         }
+        return desc;
     }
 }
 
@@ -356,9 +358,11 @@ export function subscribe(targetOrCallback: string | symbol, event?: string, aut
  * @param event { String } Knockout subscription event name
  * @param autoDispose { Boolean } if true then subscription will be disposed when entire ViewModel is disposed
  */
-export function subscribe(targetOrCallback: string | symbol | Function, event?: string, autoDispose = true) {
-    return function (prototype: Object, key: string | symbol) {
-        const { value, get } = getDescriptor(prototype, key);
+export function subscribe(
+    targetOrCallback: string | symbol | Function, event?: string, autoDispose = true
+) {
+    return function (prototype: Object, key: string | symbol, desc: PropertyDescriptor) {
+        const { value, get } = desc || (desc = getDescriptor(prototype, key));
         let targetKey: string | symbol;
         let callback: Function;
         if (typeof value === "function") {
@@ -388,5 +392,29 @@ export function subscribe(targetOrCallback: string | symbol | Function, event?: 
         if (autoDispose) {
             redefineDispose(prototype);
         }
+        return desc as any;
     }
+}
+
+/**
+ * Like https://github.com/jayphelps/core-decorators.js @autobind but less smart and complex
+ * Do NOT use with ES6 inheritance!
+ */
+export function autobind(prototype: Object, key: string | symbol, desc: PropertyDescriptor) {
+    const { value, configurable, enumerable } = desc || (desc = getDescriptor(prototype, key));
+    return {
+        configurable: configurable,
+        enumerable: enumerable,
+        get() {
+            if (this === prototype) {
+                return value;
+            }
+            const bound = value.bind(this);
+            defProp(this, key, {
+                enumerable: false,
+                value: bound,
+            });
+            return bound;
+        }
+    } as PropertyDescriptor;
 }

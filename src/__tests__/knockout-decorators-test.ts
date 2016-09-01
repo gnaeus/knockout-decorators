@@ -3,7 +3,7 @@ jest.unmock("../knockout-decorators.ts");
 
 import * as ko from "knockout";
 import {
-    component, observable, computed, observer,
+    component, observable, computed, observer, autobind,
     extend, subscribe, observableArray, ObservableArray
 } from "../knockout-decorators.ts";
 
@@ -708,7 +708,7 @@ describe("@extend decorator", () => {
     it("should extend @observableArray", () => {
         class ViewModel {
             @extend({ reverse: "write" })
-            @observable array = [1, 2, 3, 4];
+            @observableArray array = [1, 2, 3, 4];
         }
         
         let vm = new ViewModel();
@@ -761,5 +761,29 @@ describe("@extend decorator", () => {
         
         expect(vm.plain).toBe("fedcba");
         expect(vm.observable).toBe("FEDCBA");
+    });
+});
+
+describe("@autobind", () => {
+    it("should lazily create instance props", () => {
+        class Test {
+            @autobind method() { return this; }
+        }
+
+        let instance = new Test();
+        let method = instance.method;
+
+        expect(method()).toBe(instance);
+    });
+
+    it("should return original method when it accesses through prototype", () => {
+        class Test {
+            @autobind method() { return this; }
+        }
+
+        let instance = new Test();
+
+        expect(instance.method).not.toBe(Test.prototype.method);
+        expect(Test.prototype.method()).toBe(Test.prototype);
     });
 });

@@ -21,9 +21,9 @@ export interface Disposable {
  */
 export declare function observable(prototype: Object, key: string | symbol): void;
 /**
- * Accessor decorator that wraps ES6 getter and setter to hidden ko.pureComputed
+ * Property decorator that creates hidden ko.observableArray with ES6 getter and setter for it
  */
-export declare function computed(prototype: Object, key: string | symbol): void;
+export declare function observableArray(prototype: Object, key: string | symbol): void;
 export interface ObservableArray<T> extends Array<T> {
     replace(oldItem: T, newItem: T): void;
     remove(item: T): T[];
@@ -39,14 +39,14 @@ export interface ObservableArray<T> extends Array<T> {
     subscribe(callback: (val: any[]) => void, callbackTarget: any, event: string): Disposable;
 }
 /**
- * Property decorator that creates hidden ko.observableArray with ES6 getter and setter for it
+ * Accessor decorator that wraps ES6 getter and setter to hidden ko.pureComputed
  */
-export declare function observableArray(prototype: Object, key: string | symbol): void;
+export declare function computed(prototype: Object, key: string | symbol, desc: PropertyDescriptor): PropertyDescriptor;
 /**
  * Replace original method with factory that produces ko.computed from original method
  */
 export declare function observer(autoDispose: boolean): MethodDecorator;
-export declare function observer(prototype: Object, key: string | symbol): void;
+export declare function observer(prototype: Object, key: string | symbol, desc: PropertyDescriptor): PropertyDescriptor;
 /**
  * Apply extenders to decorated @observable
  */
@@ -58,3 +58,8 @@ export declare function extend(extendersFactory: () => Object): PropertyDecorato
 export declare function subscribe(callback: (value: any) => void, event?: string, autoDispose?: boolean): PropertyDecorator;
 export declare function subscribe(targetOrCallback: string | symbol, event?: string, autoDispose?: boolean): PropertyDecorator;
 export declare function subscribe(targetOrCallback: string | symbol, event?: string, autoDispose?: boolean): MethodDecorator;
+/**
+ * Like https://github.com/jayphelps/core-decorators.js @autobind but less smart and complex
+ * Do NOT use with ES6 inheritance!
+ */
+export declare function autobind(prototype: Object, key: string | symbol, desc: PropertyDescriptor): PropertyDescriptor;

@@ -1,6 +1,6 @@
 {
   "name": "knockout-decorators",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Decorators for use Knockout JS in TypeScript and ESNext environments",
   "main": "dist/knockout-decorators.js",
   "typings": "dist/knockout-decorators.d.ts",
@@ -12,7 +12,7 @@
     "build-dist": "rollup -c & rollup -c rollup.config.min.js",
     "build-typings": "tsc -p tsconfig.typings.json && shx cp dist/__typings/knockout-decorators.d.ts dist/knockout-decorators.d.ts && shx rm -rf dist/__typings",
     "prepublish": "typings install",
-    "test": "jest"
+    "test": "jest --no-cache"
   },
   "repository": {
     "type": "git",

@@ -127,20 +127,6 @@ function observable(prototype, key) {
         },
     });
 }
-/**
- * Accessor decorator that wraps ES6 getter and setter to hidden ko.pureComputed
- */
-function computed(prototype, key) {
-    var _a = getDescriptor(prototype, key), get = _a.get, set = _a.set;
-    defProp(prototype, key, {
-        get: function () {
-            var computed = ko.pureComputed(get, this);
-            defProp(this, key, { get: computed, set: set });
-            return computed();
-        }
-    });
-    // TODO: make @computed extendable (by @extend decorator)
-}
 var arrayMethods = ["pop", "push", "reverse", "shift", "sort", "splice", "unshift"];
 var observableArrayMethods = ["remove", "removeAll", "destroy", "destroyAll", "replace", "subscribe"];
 function defObservableArray(instance, key) {
@@ -194,10 +180,23 @@ function observableArray(prototype, key) {
     });
 }
 /**
+ * Accessor decorator that wraps ES6 getter and setter to hidden ko.pureComputed
+ */
+function computed(prototype, key, desc) {
+    var _a = desc || (desc = getDescriptor(prototype, key)), get = _a.get, set = _a.set;
+    desc.get = function () {
+        var computed = ko.pureComputed(get, this);
+        defProp(this, key, { get: computed, set: set });
+        return computed();
+    };
+    return desc;
+    // TODO: make @computed extendable (by @extend decorator)
+}
+/**
  * Replace original method with factory that produces ko.computed from original method
  * @param autoDispose { Boolean } if true then subscription will be disposed when entire ViewModel is disposed
  */
-function observer(prototypeOrAutoDispose, key) {
+function observer(prototypeOrAutoDispose, key, desc) {
     var autoDispose;
     if (typeof prototypeOrAutoDispose === "boolean" && key === void 0) {
         autoDispose = prototypeOrAutoDispose; // @observer(false)
@@ -205,17 +204,17 @@ function observer(prototypeOrAutoDispose, key) {
     }
     else if (typeof prototypeOrAutoDispose === "object" && key !== void 0) {
         autoDispose = true; // @observer
-        decorator(prototypeOrAutoDispose, key); // onSomethingChange() {}
+        decorator(prototypeOrAutoDispose, key, desc); // onSomethingChange() {}
     }
     else {
         throw new Error("Can not use @observer decorator this way");
     }
-    function decorator(prototype, key) {
-        var original = prototype[key];
-        prototype[key] = function () {
+    function decorator(prototype, key, desc) {
+        var value = (desc || (desc = getDescriptor(prototype, key))).value;
+        desc.value = function () {
             var _this = this;
             var args = slice(arguments);
-            var computed = ko.computed(function () { return original.apply(_this, args); });
+            var computed = ko.computed(function () { return value.apply(_this, args); });
             if (autoDispose) {
                 getSubscriptions(this).push(computed);
             }
@@ -224,6 +223,7 @@ function observer(prototypeOrAutoDispose, key) {
         if (autoDispose) {
             redefineDispose(prototype);
         }
+        return desc;
     }
 }
 /**
@@ -247,8 +247,8 @@ function extend(extendersOrFactory) {
  */
 function subscribe(targetOrCallback, event, autoDispose) {
     if (autoDispose === void 0) { autoDispose = true; }
-    return function (prototype, key) {
-        var _a = getDescriptor(prototype, key), value = _a.value, get = _a.get;
+    return function (prototype, key, desc) {
+        var _a = desc || (desc = getDescriptor(prototype, key)), value = _a.value, get = _a.get;
         var targetKey;
         var callback;
         if (typeof value === "function") {
@@ -282,16 +282,40 @@ function subscribe(targetOrCallback, event, autoDispose) {
         if (autoDispose) {
             redefineDispose(prototype);
         }
+        return desc;
+    };
+}
+/**
+ * Like https://github.com/jayphelps/core-decorators.js @autobind but less smart and complex
+ * Do NOT use with ES6 inheritance!
+ */
+function autobind(prototype, key, desc) {
+    var _a = desc || (desc = getDescriptor(prototype, key)), value = _a.value, configurable = _a.configurable, enumerable = _a.enumerable;
+    return {
+        configurable: configurable,
+        enumerable: enumerable,
+        get: function () {
+            if (this === prototype) {
+                return value;
+            }
+            var bound = value.bind(this);
+            defProp(this, key, {
+                enumerable: false,
+                value: bound,
+            });
+            return bound;
+        }
     };
 }
 
 exports.component = component;
 exports.observable = observable;
-exports.computed = computed;
 exports.observableArray = observableArray;
+exports.computed = computed;
 exports.observer = observer;
 exports.extend = extend;
 exports.subscribe = subscribe;
+exports.autobind = autobind;
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
