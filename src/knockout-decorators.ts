@@ -179,14 +179,15 @@ function redefineDispose(prototype: Object) {
  */
 export function observable(prototype: Object, key: string | symbol) {
     defProp(prototype, key, {
+        configurable: true,
         get() {
             const observable = applyDecorators(this, key, ko.observable());
-            defProp(this, key, { get: observable, set: observable });
+            defProp(this, key, { configurable: true, get: observable, set: observable });
             return observable();
         },
         set(value) {
             const observable = applyDecorators(this, key, ko.observable());
-            defProp(this, key, { get: observable, set: observable });
+            defProp(this, key, { configurable: true, get: observable, set: observable });
             observable(value);
         },
     });
@@ -202,10 +203,12 @@ function defObservableArray(instance: Object, key: string | symbol) {
     
     let insideObsArray = false;
     defProp(instance, key, {
+        configurable: true,
         get: obsArray,
         set(array: any[]) {
             if (array) {
                 arrayMethods.forEach(fnName => defProp(array, fnName, {
+                    configurable: true,
                     enumerable: false,
                     value() {
                         if (insideObsArray) {
@@ -218,6 +221,7 @@ function defObservableArray(instance: Object, key: string | symbol) {
                     }
                 }));
                 observableArrayMethods.forEach(fnName => defProp(array, fnName, {
+                    configurable: true,
                     enumerable: false,
                     value() {
                         insideObsArray = true;
@@ -239,6 +243,7 @@ function defObservableArray(instance: Object, key: string | symbol) {
  */
 export function observableArray(prototype: Object, key: string | symbol) {
     defProp(prototype, key, {
+        configurable: true,
         get() {
             defObservableArray(this, key);
             return this[key];
@@ -277,7 +282,7 @@ export function computed(prototype: Object, key: string | symbol, desc: Property
     const { get, set } = desc || (desc = getDescriptor(prototype, key));
     desc.get = function () {
         const computed = ko.pureComputed(get, this);
-        defProp(this, key, { get: computed, set: set });
+        defProp(this, key, { configurable: true, get: computed, set: set });
         return computed();
     };
     return desc;
@@ -411,6 +416,7 @@ export function autobind(prototype: Object, key: string | symbol, desc: Property
             }
             const bound = value.bind(this);
             defProp(this, key, {
+                configurable: true,
                 enumerable: false,
                 value: bound,
             });
