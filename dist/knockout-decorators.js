@@ -118,12 +118,22 @@ function observable(prototype, key) {
         configurable: true,
         get: function () {
             var observable = applyDecorators(this, key, ko.observable());
-            defProp(this, key, { configurable: true, get: observable, set: observable });
+            defProp(this, key, {
+                configurable: true,
+                enumerable: true,
+                get: observable,
+                set: observable,
+            });
             return observable();
         },
         set: function (value) {
             var observable = applyDecorators(this, key, ko.observable());
-            defProp(this, key, { configurable: true, get: observable, set: observable });
+            defProp(this, key, {
+                configurable: true,
+                enumerable: true,
+                get: observable,
+                set: observable,
+            });
             observable(value);
         },
     });
@@ -135,12 +145,12 @@ function defObservableArray(instance, key) {
     var insideObsArray = false;
     defProp(instance, key, {
         configurable: true,
+        enumerable: true,
         get: obsArray,
         set: function (array) {
             if (array) {
                 arrayMethods.forEach(function (fnName) { return defProp(array, fnName, {
                     configurable: true,
-                    enumerable: false,
                     value: function () {
                         if (insideObsArray) {
                             return Array.prototype[fnName].apply(array, arguments);
@@ -153,7 +163,6 @@ function defObservableArray(instance, key) {
                 }); });
                 observableArrayMethods.forEach(function (fnName) { return defProp(array, fnName, {
                     configurable: true,
-                    enumerable: false,
                     value: function () {
                         insideObsArray = true;
                         var result = obsArray[fnName].apply(obsArray, arguments);
@@ -191,7 +200,11 @@ function computed(prototype, key, desc) {
     var _a = desc || (desc = getDescriptor(prototype, key)), get = _a.get, set = _a.set;
     desc.get = function () {
         var computed = ko.pureComputed(get, this);
-        defProp(this, key, { configurable: true, get: computed, set: set });
+        defProp(this, key, {
+            configurable: true,
+            get: computed,
+            set: set
+        });
         return computed();
     };
     return desc;
@@ -306,7 +319,6 @@ function autobind(prototype, key, desc) {
             var bound = value.bind(this);
             defProp(this, key, {
                 configurable: true,
-                enumerable: false,
                 value: bound,
             });
             return bound;
