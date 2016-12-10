@@ -113,28 +113,28 @@ function redefineDispose(prototype) {
 /**
  * Property decorator that creates hidden ko.observable with ES6 getter and setter for it
  */
-function observable(prototype, key) {
+function observable$1(prototype, key) {
     defProp(prototype, key, {
         configurable: true,
         get: function () {
-            var observable = applyDecorators(this, key, ko.observable());
+            var observable$$1 = applyDecorators(this, key, ko.observable());
             defProp(this, key, {
                 configurable: true,
                 enumerable: true,
-                get: observable,
-                set: observable,
+                get: observable$$1,
+                set: observable$$1,
             });
-            return observable();
+            return observable$$1();
         },
         set: function (value) {
-            var observable = applyDecorators(this, key, ko.observable());
+            var observable$$1 = applyDecorators(this, key, ko.observable());
             defProp(this, key, {
                 configurable: true,
                 enumerable: true,
-                get: observable,
-                set: observable,
+                get: observable$$1,
+                set: observable$$1,
             });
-            observable(value);
+            observable$$1(value);
         },
     });
 }
@@ -180,7 +180,7 @@ function defObservableArray(instance, key) {
 /**
  * Property decorator that creates hidden ko.observableArray with ES6 getter and setter for it
  */
-function observableArray(prototype, key) {
+function observableArray$1(prototype, key) {
     defProp(prototype, key, {
         configurable: true,
         get: function () {
@@ -196,16 +196,16 @@ function observableArray(prototype, key) {
 /**
  * Accessor decorator that wraps ES6 getter and setter to hidden ko.pureComputed
  */
-function computed(prototype, key, desc) {
+function computed$1(prototype, key, desc) {
     var _a = desc || (desc = getDescriptor(prototype, key)), get = _a.get, set = _a.set;
     desc.get = function () {
-        var computed = ko.pureComputed(get, this);
+        var computed$$1 = ko.pureComputed(get, this);
         defProp(this, key, {
             configurable: true,
-            get: computed,
+            get: computed$$1,
             set: set
         });
-        return computed();
+        return computed$$1();
     };
     return desc;
     // TODO: make @computed extendable (by @extend decorator)
@@ -232,11 +232,11 @@ function observer(prototypeOrAutoDispose, key, desc) {
         desc.value = function () {
             var _this = this;
             var args = slice(arguments);
-            var computed = ko.computed(function () { return value.apply(_this, args); });
+            var computed$$1 = ko.computed(function () { return value.apply(_this, args); });
             if (autoDispose) {
-                getSubscriptions(this).push(computed);
+                getSubscriptions(this).push(computed$$1);
             }
-            return computed;
+            return computed$$1;
         };
         if (autoDispose) {
             redefineDispose(prototype);
@@ -327,9 +327,9 @@ function autobind(prototype, key, desc) {
 }
 
 exports.component = component;
-exports.observable = observable;
-exports.observableArray = observableArray;
-exports.computed = computed;
+exports.observable = observable$1;
+exports.observableArray = observableArray$1;
+exports.computed = computed$1;
 exports.observer = observer;
 exports.extend = extend;
 exports.subscribe = subscribe;

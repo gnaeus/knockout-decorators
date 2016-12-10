@@ -1,8 +1,0 @@
-{
-  "dependencies": {
-    "knockout": "registry:npm/knockout#3.4.0+20160516171930"
-  },
-  "globalDevDependencies": {
-    "jest": "registry:dt/jest#0.9.0+20160706021812"
-  }
-}

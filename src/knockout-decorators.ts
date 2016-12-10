@@ -116,7 +116,7 @@ interface DecoratorsMetaData {
 function getMetaData(prototype: Object) {
     let metaData: DecoratorsMetaData = prototype[DECORATORS_KEY];
     if (!prototype.hasOwnProperty(DECORATORS_KEY)) {
-        prototype[DECORATORS_KEY] = metaData = assign({}, metaData);
+        prototype[DECORATORS_KEY] = metaData = assign({}, metaData) as DecoratorsMetaData;
         objectForEach(metaData, (key, decorators) => {
             metaData[key] = [...decorators];
         });
@@ -134,7 +134,7 @@ function getSubscriptions(instance: Object): Disposable[] {
 
 function applyDecorators(
     instance: Object, key: string | symbol,
-    target: ko.Observable<any> | ko.PureComputed<any>
+    target: KnockoutObservable<any> | KnockoutComputed<any>
 ) {
     const metaData: DecoratorsMetaData = instance[DECORATORS_KEY];
     const decorators = metaData && metaData[key];
@@ -203,7 +203,7 @@ export function observable(prototype: Object, key: string | symbol) {
     });
 }
 
-type ObsArray = ko.ObservableArray<any> & { [fnName: string]: Function };
+type ObsArray = KnockoutObservableArray<any> & { [fnName: string]: Function };
 
 const arrayMethods = ["pop", "push", "reverse", "shift", "sort", "splice", "unshift"];
 const observableArrayMethods = ["remove", "removeAll", "destroy", "destroyAll", "replace", "subscribe"];

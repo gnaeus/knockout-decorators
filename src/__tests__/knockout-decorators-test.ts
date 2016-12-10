@@ -1,11 +1,15 @@
 jest.unmock("knockout");
-jest.unmock("../knockout-decorators.ts");
+jest.unmock("../knockout-decorators");
 
 import * as ko from "knockout";
 import {
     component, observable, computed, observer, autobind,
     extend, subscribe, observableArray, ObservableArray
-} from "../knockout-decorators.ts";
+} from "../knockout-decorators";
+
+interface ComponentConfig extends KnockoutComponentTypes.ComponentConfig {
+    synchronous?: boolean;
+}
 
 describe("@component", () => {
     // mock for require()
@@ -22,7 +26,7 @@ describe("@component", () => {
         @component("my-component")
         class MyComponent {}
 
-        ko.components.defaultLoader.getConfig("my-component", ({ synchronous }) => {
+        ko.components.defaultLoader.getConfig("my-component", ({ synchronous }: ComponentConfig) => {
             expect(synchronous).toBe(true);
         });
     });
@@ -62,7 +66,7 @@ describe("@component", () => {
         })
         class MyComponent {}
 
-        ko.components.defaultLoader.getConfig("my-component", ({ template, synchronous }) => {
+        ko.components.defaultLoader.getConfig("my-component", ({ template, synchronous }: ComponentConfig) => {
             expect(template).toBe("<div></div>");
             expect(synchronous).toBe(false);
         });
@@ -81,7 +85,7 @@ describe("@component", () => {
         @component("my-component", { require: "my-template" }, { synchronous: false })
         class MyComponent {}
 
-        ko.components.defaultLoader.getConfig("my-component", ({ template, synchronous }) => {
+        ko.components.defaultLoader.getConfig("my-component", ({ template, synchronous }: ComponentConfig) => {
             expect(template).toEqual({ require: "my-template" });
             expect(synchronous).toBe(false);
         });
@@ -418,7 +422,7 @@ describe("@observer decorator", () => {
                 computed.dispose();
             }
 
-            @observer handleChanges(): ko.Computed<any> {
+            @observer handleChanges(): KnockoutComputed<any> {
                 this.plain = this.observable;
                 return;
             }
@@ -511,13 +515,13 @@ describe("@observer decorator", () => {
         class ViewModel {
             url: string;
 
-            constructor(path: ko.Observable<string>, query: ko.Observable<string>) {
+            constructor(path: KnockoutObservable<string>, query: KnockoutObservable<string>) {
                 this.handleRoute(path, query)
             }
 
             dispose() {};
 
-            @observer handleRoute(path: ko.Observable<string>, query: ko.Observable<string>) {
+            @observer handleRoute(path: KnockoutObservable<string>, query: KnockoutObservable<string>) {
                 this.url = path();
                 if (query()) {
                     this.url += "?" + query();

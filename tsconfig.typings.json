@@ -1,10 +1,13 @@
 {
   "compilerOptions": {
-    "target": "es5",
-    "declaration": true,
     "experimentalDecorators": true,
-    "emitDecoratorMetadata": false,
-    "outDir": "dist/__typings"
+    "declaration": true,
+    "declarationDir": "dist",    
+    "lib": [
+      "dom", "es5", "es6"
+    ],
+    "target": "es5",
+    "outDir": "__temp"
   },
   "exclude": [
     "src/__tests__",

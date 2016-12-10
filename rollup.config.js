@@ -1,4 +1,5 @@
-import typescript from "rollup-plugin-typescript";
+import { default as typescriptPlugin} from "rollup-plugin-typescript";
+import typescript from "typescript";
 
 export default {
     entry: "src/knockout-decorators.ts",
@@ -17,6 +18,8 @@ export default {
     },
 
     plugins: [
-        typescript(),
+        typescriptPlugin({
+            typescript: typescript
+        }),
     ],
 }

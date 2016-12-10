@@ -63,3 +63,4 @@ export declare function subscribe(targetOrCallback: string | symbol, event?: str
  * Do NOT use with ES6 inheritance!
  */
 export declare function autobind(prototype: Object, key: string | symbol, desc: PropertyDescriptor): PropertyDescriptor;
+export as namespace KnockoutDecorators;
