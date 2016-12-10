@@ -284,3 +284,21 @@ ko.components.register("my-component", {
     additionalData: { foo: "bar" } // consider non-standard field
 });
 ```
+
+### Usage without module loaders (in global scope)
+__layout.html__
+```html
+<script src="/{path_to_vendor_scrpts}/knockout.js"></script>
+<script src="/{path_to_vendor_scrpts}/knockout-decorators.js"></script>
+```
+__script.ts__
+```js
+namespace MyTypescriptNamespace {
+  // import from TypeScript namespace (JavaScript global variable)
+  const { observable, computed } = KnockoutDecorators; 
+  
+  export class MyClass {
+    @observable field = "";
+  }
+}
+```
