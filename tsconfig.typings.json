@@ -9,9 +9,7 @@
     "target": "es5",
     "outDir": "__temp"
   },
-  "exclude": [
-    "src/__tests__",
-    "node_modules",
-    "dist"
+  "files": [
+    "src/knockout-decorators.ts"
   ]
 }
