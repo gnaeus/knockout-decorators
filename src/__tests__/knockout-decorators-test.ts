@@ -1,10 +1,14 @@
+/**
+ * Copyright (c) 2016 Dmitry Panyushkin
+ * Available under MIT license
+ */
 jest.unmock("knockout");
 jest.unmock("../knockout-decorators");
 
 import * as ko from "knockout";
 import {
     component, observable, computed, observer, autobind,
-    extend, subscribe, observableArray, ObservableArray
+    extend, subscribe, unwrap, observableArray, ObservableArray
 } from "../knockout-decorators";
 
 interface ComponentConfig extends KnockoutComponentTypes.ComponentConfig {
@@ -791,3 +795,62 @@ describe("@autobind", () => {
         expect(Test.prototype.method()).toBe(Test.prototype);
     });
 });
+
+describe("unwrap", () => {
+    it("should return inner observable", () => {
+        class Test {
+            @observable property = "";
+        }
+
+        let instance = new Test();
+
+        let observableProperty = unwrap<string>(instance, "property");
+
+        expect(ko.isObservable(observableProperty)).toBeTruthy();
+    });
+
+    it("should return same value with decorated property", () => {
+        class Test {
+            @observable property = "";
+        }
+
+        let instance = new Test();
+
+        let observableProperty = unwrap<string>(instance, "property");
+        expect(observableProperty()).toBe("");
+
+        instance.property = "property value";
+        expect(observableProperty()).toBe("property value");
+
+        observableProperty("observable value");
+        expect(instance.property).toBe("observable value");
+    });
+
+    ko.extenders["required"] = (target) => {
+        const extendedObservable = ko.pureComputed({
+            read: target,
+            write: value => {
+                extendedObservable.isValid = !!value;
+                return target(value);
+            },
+        }) as any;
+        return extendedObservable;
+    }
+
+    it("should return extended observable", () => {
+        class Test {
+            @extend({ required: true })
+            @observable property = "";
+
+            unwrap(key: string) {
+                return unwrap(this, key);
+            }
+        }
+
+        let instance = new Test();
+        expect(instance.unwrap("property").isValid).toBe(false);
+
+        instance.property = "foo bar";
+        expect(instance.unwrap("property").isValid).toBe(true);
+    });
+})

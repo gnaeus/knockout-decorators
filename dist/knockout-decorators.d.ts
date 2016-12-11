@@ -1,3 +1,4 @@
+/// <reference types="knockout" />
 export interface ComponentConstructor {
     new (params?: any, element?: Node, templateNodes?: Node[]): any;
 }
@@ -63,4 +64,9 @@ export declare function subscribe(targetOrCallback: string | symbol, event?: str
  * Do NOT use with ES6 inheritance!
  */
 export declare function autobind(prototype: Object, key: string | symbol, desc: PropertyDescriptor): PropertyDescriptor;
+/**
+ * Get internal ko.observable() for object property decodated by @observable
+ */
+export declare function unwrap(instance: Object, key: string | symbol): any;
+export declare function unwrap<T>(instance: Object, key: string | symbol): KnockoutObservable<T>;
 export as namespace KnockoutDecorators;

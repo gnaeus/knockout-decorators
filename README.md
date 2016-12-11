@@ -39,7 +39,11 @@ class PersonView {
  * [@extend](#knockout-decorators-extend)
  * [@subscribe](#knockout-decorators-subscribe)
  * [@component](#knockout-decorators-component)
+ * [unwrap](#knockout-decorators-unwrap)
 
+[Work with KnockoutValidation](#knockout-decorators-validation)
+
+[Usage without module loaders](#knockout-decorators-without-loaders)
 
 #### <a name="knockout-decorators-observable"></a> @observable
 Property decorator that creates hidden `ko.observable` with ES6 getter and setter for it
@@ -285,6 +289,49 @@ ko.components.register("my-component", {
 });
 ```
 
+<br>
+
+#### <a name="knockout-decorators-unwrap"></a> unwrap
+Get internal `ko.observable()` for property decodated by `@observable`
+```js
+unwrap(instance: Object, key: string | symbol): any;
+unwrap<T>(instance: Object, key: string | symbol): KnockoutObservable<T>;
+```
+
+| Argument | Default | Description                    |
+|:---------|:--------|:-------------------------------|
+| instance |         | Decorated class instance       |
+| key      |         | Name of `@observable` property |
+
+<a name="knockout-decorators-validation"></a>
+KnockoutValidation example
+```js
+class MyViewModel {
+  @extend({ required: "MyField is required" })
+  @observable myField = "";
+  
+  checkMyField() {
+    alert("MyField is valid: " + unwrap(this, "myField").isValid());
+  }
+
+  // pass `unwrap` function to data-bindings
+  unwrap(key: string) {
+    return unwrap(this, key);
+  }
+}
+```
+```html
+<div>
+  <input type="text" data-bind="value: myField"/>
+  <button data-bind="click: checkMyField">check</button>
+  <p data-bind="validationMessage: unwrap('myField')"></p>
+</div>
+```
+
+
+<br>
+
+### <a name="knockout-decorators-without-loaders"></a>
 ### Usage without module loaders (in global scope)
 __layout.html__
 ```html

@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) 2016 Dmitry Panyushkin
+ * Available under MIT license
+ */
 import * as ko from "knockout";
 
 export interface ComponentConstructor {
@@ -435,4 +439,13 @@ export function autobind(prototype: Object, key: string | symbol, desc: Property
             return bound;
         }
     } as PropertyDescriptor;
+}
+
+/**
+ * Get internal ko.observable() for object property decodated by @observable
+ */
+export function unwrap(instance: Object, key: string | symbol): any;
+export function unwrap<T>(instance: Object, key: string | symbol): KnockoutObservable<T>;
+export function unwrap(instance: Object, key: string | symbol) {
+    return getDescriptor(instance, key).get;
 }

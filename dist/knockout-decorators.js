@@ -4,6 +4,10 @@
     (factory((global.KnockoutDecorators = global.KnockoutDecorators || {}),global.ko));
 }(this, (function (exports,ko) { 'use strict';
 
+/**
+ * Copyright (c) 2016 Dmitry Panyushkin
+ * Available under MIT license
+ */
 var assign = ko.utils.extend;
 var objectForEach = ko.utils.objectForEach;
 var defProp = Object.defineProperty.bind(Object);
@@ -325,6 +329,9 @@ function autobind(prototype, key, desc) {
         }
     };
 }
+function unwrap(instance, key) {
+    return getDescriptor(instance, key).get;
+}
 
 exports.component = component;
 exports.observable = observable$1;
@@ -334,6 +341,7 @@ exports.observer = observer;
 exports.extend = extend;
 exports.subscribe = subscribe;
 exports.autobind = autobind;
+exports.unwrap = unwrap;
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
