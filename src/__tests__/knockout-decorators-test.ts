@@ -7,7 +7,7 @@ jest.unmock("../knockout-decorators");
 
 import * as ko from "knockout";
 import {
-    component, observable, computed, observer, autobind,
+    component, observable, computed, reaction, autobind,
     extend, subscribe, unwrap, observableArray, ObservableArray
 } from "../knockout-decorators";
 
@@ -392,7 +392,7 @@ describe("@subscribe decorator", () => {
     });
 });
 
-describe("@observer decorator", () => {
+describe("@reaction decorator", () => {
     it("should observe local fields", () => {
         class ViewModel {
             plain: number = 0;
@@ -402,7 +402,7 @@ describe("@observer decorator", () => {
                 this.handleChanges();
             }
 
-            @observer handleChanges() {
+            @reaction handleChanges() {
                 this.plain = this.observable;
             }
         }
@@ -413,7 +413,7 @@ describe("@observer decorator", () => {
         expect(vm.plain).toBe(123);
     });
 
-    it("should produce observers that returns subscriptions", () => {
+    it("should produce reactions that returns subscriptions", () => {
         class ViewModel {
             plain = 0;
             @observable observable = 0;
@@ -426,7 +426,7 @@ describe("@observer decorator", () => {
                 computed.dispose();
             }
 
-            @observer handleChanges(): KnockoutComputed<any> {
+            @reaction handleChanges(): KnockoutComputed<any> {
                 this.plain = this.observable;
                 return;
             }
@@ -439,7 +439,7 @@ describe("@observer decorator", () => {
         expect(vm.dependenciesCount).toBe(1);
     });
 
-    it("should dispose observers with ViewModel by default", () => {
+    it("should dispose reactions with ViewModel by default", () => {
         class ViewModel {
             plain: number = 0;
             @observable observable: number = 0;
@@ -450,7 +450,7 @@ describe("@observer decorator", () => {
 
             dispose: Function;
 
-            @observer handleChanges() {
+            @reaction handleChanges() {
                 this.plain = this.observable;
             }
         }
@@ -477,7 +477,7 @@ describe("@observer decorator", () => {
                 this.disposed = true;
             }
 
-            @observer handleChanges() {
+            @reaction handleChanges() {
                 this.plain = this.observable;
             }
         }
@@ -491,7 +491,7 @@ describe("@observer decorator", () => {
         expect(vm.disposed).toBe(true);
     });
 
-    it("should not dispose observers with ViewModel when 'autoDispose' is false", () => {
+    it("should not dispose reactions with ViewModel when 'autoDispose' is false", () => {
         class ViewModel {
             plain: number = 0;
             @observable observable: number = 0;
@@ -502,7 +502,7 @@ describe("@observer decorator", () => {
 
             dispose() {};
 
-            @observer(false) handleChanges() {
+            @reaction(false) handleChanges() {
                 this.plain = this.observable;
             }
         }
@@ -525,7 +525,7 @@ describe("@observer decorator", () => {
 
             dispose() {};
 
-            @observer handleRoute(path: KnockoutObservable<string>, query: KnockoutObservable<string>) {
+            @reaction handleRoute(path: KnockoutObservable<string>, query: KnockoutObservable<string>) {
                 this.url = path();
                 if (query()) {
                     this.url += "?" + query();

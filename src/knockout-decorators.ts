@@ -309,25 +309,25 @@ export function computed(prototype: Object, key: string | symbol, desc: Property
 /**
  * Replace original method with factory that produces ko.computed from original method
  */
-export function observer(autoDispose: boolean): MethodDecorator;
-export function observer(prototype: Object, key: string | symbol, desc: PropertyDescriptor): PropertyDescriptor;
+export function reaction(autoDispose: boolean): MethodDecorator;
+export function reaction(prototype: Object, key: string | symbol, desc: PropertyDescriptor): PropertyDescriptor;
 
 /**
  * Replace original method with factory that produces ko.computed from original method
  * @param autoDispose { Boolean } if true then subscription will be disposed when entire ViewModel is disposed
  */
-export function observer(
+export function reaction(
     prototypeOrAutoDispose: Object | boolean, key?: string | symbol, desc?: PropertyDescriptor
 ) {
     let autoDispose: boolean;
     if (typeof prototypeOrAutoDispose === "boolean" && key === void 0) {
-        autoDispose = prototypeOrAutoDispose;         // @observer(false)
+        autoDispose = prototypeOrAutoDispose;         // @reaction(false)
         return decorator;                             // onSomethingChange() {}
     } else if (typeof prototypeOrAutoDispose === "object" && key !== void 0) {
-        autoDispose = true;                           // @observer
+        autoDispose = true;                           // @reaction
         decorator(prototypeOrAutoDispose, key, desc); // onSomethingChange() {}
     } else {
-        throw new Error("Can not use @observer decorator this way");
+        throw new Error("Can not use @reaction decorator this way");
     }
 
     function decorator(prototype: Object, key: string | symbol, desc: PropertyDescriptor) {

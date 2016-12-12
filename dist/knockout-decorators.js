@@ -218,18 +218,18 @@ function computed$1(prototype, key, desc) {
  * Replace original method with factory that produces ko.computed from original method
  * @param autoDispose { Boolean } if true then subscription will be disposed when entire ViewModel is disposed
  */
-function observer(prototypeOrAutoDispose, key, desc) {
+function reaction(prototypeOrAutoDispose, key, desc) {
     var autoDispose;
     if (typeof prototypeOrAutoDispose === "boolean" && key === void 0) {
-        autoDispose = prototypeOrAutoDispose; // @observer(false)
+        autoDispose = prototypeOrAutoDispose; // @reaction(false)
         return decorator; // onSomethingChange() {}
     }
     else if (typeof prototypeOrAutoDispose === "object" && key !== void 0) {
-        autoDispose = true; // @observer
+        autoDispose = true; // @reaction
         decorator(prototypeOrAutoDispose, key, desc); // onSomethingChange() {}
     }
     else {
-        throw new Error("Can not use @observer decorator this way");
+        throw new Error("Can not use @reaction decorator this way");
     }
     function decorator(prototype, key, desc) {
         var value = (desc || (desc = getDescriptor(prototype, key))).value;
@@ -337,7 +337,7 @@ exports.component = component;
 exports.observable = observable$1;
 exports.observableArray = observableArray$1;
 exports.computed = computed$1;
-exports.observer = observer;
+exports.reaction = reaction;
 exports.extend = extend;
 exports.subscribe = subscribe;
 exports.autobind = autobind;

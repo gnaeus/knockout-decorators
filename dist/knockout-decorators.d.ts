@@ -46,8 +46,8 @@ export declare function computed(prototype: Object, key: string | symbol, desc: 
 /**
  * Replace original method with factory that produces ko.computed from original method
  */
-export declare function observer(autoDispose: boolean): MethodDecorator;
-export declare function observer(prototype: Object, key: string | symbol, desc: PropertyDescriptor): PropertyDescriptor;
+export declare function reaction(autoDispose: boolean): MethodDecorator;
+export declare function reaction(prototype: Object, key: string | symbol, desc: PropertyDescriptor): PropertyDescriptor;
 /**
  * Apply extenders to decorated @observable
  */

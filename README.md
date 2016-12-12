@@ -35,7 +35,7 @@ class PersonView {
  * [@observable](#knockout-decorators-observable)
  * [@observableArray](#knockout-decorators-observableArray)
  * [@computed](#knockout-decorators-computed)
- * [@observer](#knockout-decorators-observer)
+ * [@reaction](#knockout-decorators-reaction)
  * [@extend](#knockout-decorators-extend)
  * [@subscribe](#knockout-decorators-subscribe)
  * [@component](#knockout-decorators-component)
@@ -110,17 +110,17 @@ person.fullName = "  John  Smith  " // [console] ➜ "John Smith"
 
 <br>
 
-#### <a name="knockout-decorators-observer"></a> @observer
+#### <a name="knockout-decorators-reaction"></a> @reaction
 Replace original method with factory that produces `ko.computed` from original method
 ```js
-@observer
-@observer(autoDispose: boolean)
+@reaction
+@reaction(autoDispose: boolean)
 ```
 | Argument    | Default | Description                                                                    |
 |:------------|:--------|:-------------------------------------------------------------------------------|
 | autoDispose | `true`  | if true then computed will be disposed when entire decorated class is disposed |
 
-Method that decorated with `@observer` evaluates once when explicitely invoked (this call creates hidden `ko.computed`)
+Method that decorated with `@reaction` evaluates once when explicitely invoked (this call creates hidden `ko.computed`)
 and every times when it's observable (or computed) dependencies are changed.
 
 Hidden `ko.computed` will be disposed when entire decorated class is disposed (if we don't set `autoDispose` to `false`)
@@ -138,7 +138,7 @@ class BlogPage {
   // 'dispose()' method is redefined such that it disposes hidded 'onRoute' computed
   // if original class already has 'dispose()' method then it would be wrapped by new method
   
-  @observer async onRoute(blogId: ko.Observable<number>) {
+  @reaction async onRoute(blogId: ko.Observable<number>) {
     const resp = await fetch(`/blog/${ blogId() }/post/${ this.postId }`);
     this.pageData = await resp.json();
   }
