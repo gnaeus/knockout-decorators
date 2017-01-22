@@ -60,6 +60,10 @@ export declare function subscribe(callback: (value: any) => void, event?: string
 export declare function subscribe(targetOrCallback: string | symbol, event?: string, autoDispose?: boolean): PropertyDecorator;
 export declare function subscribe(targetOrCallback: string | symbol, event?: string, autoDispose?: boolean): MethodDecorator;
 /**
+ * Shorthand for ko.pureComputed(dependency).subscribe(callback)
+ */
+export declare function subscribe<T>(dependency: () => T, callback: (value: T) => void): KnockoutSubscription;
+/**
  * Like https://github.com/jayphelps/core-decorators.js @autobind but less smart and complex
  * Do NOT use with ES6 inheritance!
  */

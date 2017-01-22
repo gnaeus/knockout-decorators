@@ -12,6 +12,7 @@ var assign = ko.utils.extend;
 var objectForEach = ko.utils.objectForEach;
 var defProp = Object.defineProperty.bind(Object);
 var getDescriptor = Object.getOwnPropertyDescriptor.bind(Object);
+var hasOwnProperty = Function.prototype.call.bind(Object.prototype.hasOwnProperty);
 var slice = Function.prototype.call.bind(Array.prototype.slice);
 /**
  * Register Knockout component by decorating ViewModel class
@@ -151,35 +152,63 @@ function defObservableArray(instance, key) {
         configurable: true,
         enumerable: true,
         get: obsArray,
-        set: function (array) {
-            if (array) {
-                arrayMethods.forEach(function (fnName) { return defProp(array, fnName, {
-                    configurable: true,
-                    value: function () {
-                        if (insideObsArray) {
-                            return Array.prototype[fnName].apply(array, arguments);
-                        }
-                        insideObsArray = true;
-                        var result = obsArray[fnName].apply(obsArray, arguments);
-                        insideObsArray = false;
-                        return result;
+        set: function (value) {
+            var lastValue = obsArray.peek();
+            // if we got new value
+            if (lastValue !== value) {
+                if (Array.isArray(lastValue)) {
+                    // if lastValue array methods were already patched
+                    if (hasOwnProperty(lastValue, "subscribe")) {
+                        // clear patched array methods on lastValue (see unit tests)
+                        clearArrayMethods(lastValue);
                     }
-                }); });
-                observableArrayMethods.forEach(function (fnName) { return defProp(array, fnName, {
-                    configurable: true,
-                    value: function () {
-                        insideObsArray = true;
-                        var result = obsArray[fnName].apply(obsArray, arguments);
-                        insideObsArray = false;
-                        return result;
+                }
+                if (Array.isArray(value)) {
+                    // if new value array methods were already connected with another @observableArray
+                    if (hasOwnProperty(value, "subscribe")) {
+                        // clone new value to prevent corruption of another @observableArray (see unit tests)
+                        value = slice(value);
                     }
-                }); });
+                    // call ko.observableArray.fn[fnName] instead of Array.prototype[fnName]
+                    patchArrayMethods(value);
+                }
             }
             insideObsArray = true;
-            obsArray(array);
+            obsArray(value);
             insideObsArray = false;
         }
     });
+    function patchArrayMethods(array) {
+        arrayMethods.forEach(function (fnName) { return defProp(array, fnName, {
+            configurable: true,
+            value: function () {
+                if (insideObsArray) {
+                    return Array.prototype[fnName].apply(array, arguments);
+                }
+                insideObsArray = true;
+                var result = obsArray[fnName].apply(obsArray, arguments);
+                insideObsArray = false;
+                return result;
+            }
+        }); });
+        observableArrayMethods.forEach(function (fnName) { return defProp(array, fnName, {
+            configurable: true,
+            value: function () {
+                insideObsArray = true;
+                var result = obsArray[fnName].apply(obsArray, arguments);
+                insideObsArray = false;
+                return result;
+            }
+        }); });
+    }
+    function clearArrayMethods(array) {
+        arrayMethods.forEach(function (fnName) {
+            delete array[fnName];
+        });
+        observableArrayMethods.forEach(function (fnName) {
+            delete array[fnName];
+        });
+    }
 }
 /**
  * Property decorator that creates hidden ko.observableArray with ES6 getter and setter for it
@@ -189,11 +218,12 @@ function observableArray$1(prototype, key) {
         configurable: true,
         get: function () {
             defObservableArray(this, key);
+            this[key] = [];
             return this[key];
         },
         set: function (value) {
             defObservableArray(this, key);
-            return this[key] = value;
+            this[key] = value;
         },
     });
 }
@@ -269,6 +299,10 @@ function extend(extendersOrFactory) {
  */
 function subscribe(targetOrCallback, event, autoDispose) {
     if (autoDispose === void 0) { autoDispose = true; }
+    if (typeof event === "function") {
+        // subscribe(() => this.observableField, (value) => { ... });
+        return ko.pureComputed(targetOrCallback).subscribe(event);
+    }
     return function (prototype, key, desc) {
         var _a = desc || (desc = getDescriptor(prototype, key)), value = _a.value, get = _a.get;
         var targetKey;
