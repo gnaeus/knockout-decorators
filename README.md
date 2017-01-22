@@ -113,7 +113,7 @@ model.array.remove(val => val % 2 === 0); // [console] ➜  [{ status: 'deleted'
 <br>
 
 #### <a name="knockout-decorators-extend"></a> @extend
-Apply extenders to decorated `@observable`
+Apply extenders to decorated `@observable` or `@computed`
 ```js
 @extend(extenders: Object)
 @extend(extendersFactory: () => Object)
@@ -251,8 +251,8 @@ class ViewModel {
 <br>
 
 #### <a name="knockout-decorators-unwrap"></a> unwrap
-Get internal `ko.observable()` for property decodated by `@observable`
-or internal `ko.pureComputed()` for property decodated by `@computed`
+Get hidden `ko.observable()` for property decodated by `@observable`
+or hidden `ko.pureComputed()` for property decodated by `@computed`
 ```js
 unwrap(instance: Object, key: string | symbol): any;
 unwrap<T>(instance: Object, key: string | symbol): KnockoutObservable<T>;
@@ -312,7 +312,7 @@ namespace MyTypescriptNamespace {
 <br>
 
 ### <a name="knockout-decorators-changelog"></a>
-### Breaking changes from v0.7.1 to 0.8.0
+### Breaking changes from v0.7.1 to v0.8.0
 
 1. Removed `@subscribe` decorator
 2. Removed `@reaction` decorator
@@ -335,7 +335,7 @@ class ViewModel {
 }
 ```
 
-So in 0.8.0 instead of `@subscribe` decorator there is shorthand function `subscribe`
+So in v0.8.0 instead of `@subscribe` decorator there is shorthand function `subscribe`
 with some extra functionality like "subscribe once":
 ```js
 class ViewModel {
