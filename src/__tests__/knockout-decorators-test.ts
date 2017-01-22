@@ -15,7 +15,7 @@ interface ComponentConfig extends KnockoutComponentTypes.ComponentConfig {
     synchronous?: boolean;
 }
 
-describe("@component", () => {
+describe("@component decorator", () => {
     // mock for require()
     function reuqire(path: string) { return path; }
 
@@ -159,8 +159,8 @@ describe("@observable & @computed decorators", () => {
         let calc = new Calc();
         let temp = calc.square;
 
-        expect(Object.prototype.hasOwnProperty.call(calc, "number")).toBeTruthy();
-        expect(Object.prototype.hasOwnProperty.call(calc, "square")).toBeTruthy();
+        expect(Object.hasOwnProperty.call(calc, "number")).toBeTruthy();
+        expect(Object.hasOwnProperty.call(calc, "square")).toBeTruthy();
     });
 
     it("should work with writeable computed", () => {
@@ -191,7 +191,7 @@ describe("@subscribe decorator", () => {
     it("should subscribe given callback to decorated @observable", () => {
         class ViewModel {
             plainField: number;
-
+            
             @subscribe(ViewModel.prototype.onChange)
             @observable observableField: number = 0;
 
@@ -617,6 +617,86 @@ describe("@observableArray decorator", () => {
             { status: 'added', value: 5, index: 2 }
         ]);
     });
+
+    it("should clear array methods on previous observableArray value", () => {
+        class ViewModel {
+            @observableArray array = [1, 2, 3];
+        }
+        
+        let vm = new ViewModel();
+        let previous = vm.array;
+        vm.array = [4, 5, 6];
+
+        expect(previous).not.toBe(vm.array);
+        expect(Object.hasOwnProperty.call(previous, "push")).toBeFalsy();
+        expect(Object.hasOwnProperty.call(previous, "subscribe")).toBeFalsy();
+        expect(Object.hasOwnProperty.call(vm.array, "push")).toBeTruthy();
+        expect(Object.hasOwnProperty.call(vm.array, "subscribe")).toBeTruthy();
+    });
+
+    it("should lazily create observableArray on instance", () => {
+        class ViewModel {
+            @observableArray array;
+        }
+        
+        let vm = new ViewModel();
+        let temp = vm.array;
+
+        expect(Object.hasOwnProperty.call(vm, "array")).toBeTruthy();
+        expect(Array.isArray(vm.array));
+    });
+
+    it("should expose knockout-specific methods when lazily created", () => {
+        class ViewModel {
+            @observableArray array: ObservableArray<string>;
+        }
+
+        let vm = new ViewModel();
+        let changes = [];
+
+        vm.array.subscribe(val => { changes.push(...val); }, null, "arrayChange");
+        
+        vm.array.splice(0, 0, "foo", "bar");
+
+        expect(vm.array).toEqual(["foo", "bar"]);
+        expect(changes).toEqual([
+            { status: 'added', value: "foo", index: 0 },
+            { status: 'added', value: "bar", index: 1 },
+        ]);
+    });
+
+    it("should clone array if it is @observableArray from another field", () => {
+        class ViewModel {
+            @observableArray arrayFirst = [1, 2] as ObservableArray<number>;
+            @observableArray arraySecond = [3, 4] as ObservableArray<number>;
+        }
+
+        let vm = new ViewModel();
+        let changesFirst = [];
+        let changesSecond = [];
+
+        vm.arrayFirst.subscribe(val => { changesFirst.push(...val); }, null, "arrayChange");
+        vm.arraySecond.subscribe(val => { changesSecond.push(...val); }, null, "arrayChange");
+
+        // assign pointer to array
+        vm.arrayFirst = vm.arraySecond;
+        vm.arrayFirst.push(5, 6);
+
+        expect(vm.arrayFirst).not.toBe(vm.arraySecond);
+
+        expect(vm.arrayFirst).toEqual([3, 4, 5, 6]);
+        expect(vm.arraySecond).toEqual([3, 4]);
+
+        expect(changesFirst).toEqual([
+            { status: 'added', value: 3, index: 0 },
+            { status: 'deleted', value: 1, index: 0 },
+            { status: 'added', value: 4, index: 1 },
+            { status: 'deleted', value: 2, index: 1 },
+            { status: 'added', value: 5, index: 2 },
+            { status: 'added', value: 6, index: 3 },
+        ]);
+        expect(changesSecond).toEqual([]);
+    })
 });
 
 describe("@extend decorator", () => {
@@ -772,7 +852,7 @@ describe("@extend decorator", () => {
     });
 });
 
-describe("@autobind", () => {
+describe("@autobind decorator", () => {
     it("should lazily create instance props", () => {
         class Test {
             @autobind method() { return this; }
@@ -796,7 +876,63 @@ describe("@autobind", () => {
     });
 });
 
-describe("unwrap", () => {
+describe("subscribe function", () => {
+    it("should subscribe given callback to decorated @observable", () => {
+        class ViewModel {
+            plainField: number;
+            
+            @observable observableField: number = 0;
+
+            constructor() {
+                subscribe(() => this.observableField, (value) => {
+                    this.plainField = value;
+                });
+            }
+        }
+
+        let vm = new ViewModel();
+        vm.observableField = 123;
+
+        expect(vm.plainField).toBe(123);
+    });
+
+    it("should subscribe given callback to decorated @computed", () => {
+        class ViewModel {
+            plainField: number;
+
+            @observable observableField: number = 0;
+
+            @computed get computedField() {
+                return this.observableField;
+            }
+
+            constructor() {
+                subscribe(() => this.computedField, (value) => {
+                    this.plainField = value;
+                });
+            }
+        }
+
+        let vm = new ViewModel();
+        
+        vm.observableField = 123;
+        
+        expect(vm.plainField).toBe(123);
+    });
+
+    it("should return knockout subscription", () => {
+        let observable = ko.observable();
+
+        let givenSubscription = subscribe(() => observable(), () => {});
+        let koSubscription = observable.subscribe(() => {});
+
+        expect(Object.hasOwnProperty.call(givenSubscription, "dispose")).toBeTruthy();
+
+        expect(Object.getPrototypeOf(givenSubscription)).toBe(Object.getPrototypeOf(koSubscription));
+    });
+});
+
+describe("unwrap function", () => {
     it("should return inner observable", () => {
         class Test {
             @observable property = "";
