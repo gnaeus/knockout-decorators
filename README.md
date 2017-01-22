@@ -61,7 +61,8 @@ model.field = 456;                                // [console] ➜ 456
 <br>
 
 #### <a name="knockout-decorators-computed"></a> @computed
-Accessor decorator that wraps ES6 getter and setter (if defined) to hidden `ko.pureComputed`
+Accessor decorator that wraps ES6 getter to hidden `ko.pureComputed`
+Setter is not wrapped to hidden `ko.pureComputed` and stays unchanged
 ```js
 class Person {
   @observable firstName = "";
@@ -129,6 +130,11 @@ class ViewModel {
 
   @extend(ViewModel.prototype.getExtender)
   @observable second = "";
+
+  @extend({ rateLimit: 500 })
+  @computed get both() {
+    return this.first + " " + this.second;
+  }
   
   getExtender() {
     return { rateLimit: this.rateLimit };

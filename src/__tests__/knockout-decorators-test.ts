@@ -416,53 +416,26 @@ describe("@extend decorator", () => {
         expect(vm.observable).toBe("FEDCBA");
     });
 
-    // TODO: make @computed extendable (by @extend decorator)
-    // it("should extend @computed", () => {
-    //     class ViewModel {
-    //         @observable observable = "";
+    it("should extend getter @computed", () => {
+        class ViewModel {
+            @observable observable = "";
 
-    //         @extend({ reverse: "read" })
-    //         @computed get computed() {
-    //             return this.observable.substr(0, 4);
-    //         }
-    //     }
+            @extend({ reverse: "read" })
+            @computed get computed() {
+                return this.observable.substr(0, 4);
+            }
+        }
         
-    //     let vm = new ViewModel();
-    //     let result: string;
+        let vm = new ViewModel();
+        let result: string;
 
-    //     ko.computed(() => { result = vm.computed; });
+        ko.computed(() => { result = vm.computed; });
 
-    //     vm.observable = "abcdef";
+        vm.observable = "abcdef";
 
-    //     expect(vm.observable).toBe("abcdef");
-    //     expect(result).toBe("dcba");
-    // });
-
-    // TODO: make @computed extendable (by @extend decorator)
-    // it("should extend writeable @computed", () => {
-    //     class ViewModel {
-    //         observable = ko.observable("");
-
-    //         @extend({ reverse: "write" })
-    //         @computed
-    //         get computed() {
-    //             return this.observable();
-    //         }
-    //         set computed(value) {
-    //             this.observable(value.substr(0, 4));
-    //         }
-    //     }
-        
-    //     let vm = new ViewModel();
-    //     let result: string;
-
-    //     ko.computed(() => { result = vm.computed; });
-
-    //     vm.computed = "abcdef";
-        
-    //     expect(vm.observable()).toBe("dcba");
-    //     expect(result).toBe("dcba");
-    // });
+        expect(vm.observable).toBe("abcdef");
+        expect(result).toBe("dcba");
+    });
 });
 
 describe("@autobind decorator", () => {

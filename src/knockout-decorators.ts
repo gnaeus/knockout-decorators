@@ -126,12 +126,16 @@ export function observable(prototype: Object, key: string | symbol) {
 /*===========================================================================*/
 
 /**
- * Accessor decorator that wraps ES6 getter and setter to hidden ko.pureComputed
+ * Accessor decorator that wraps ES6 getter to hidden ko.pureComputed
+ * 
+ * Setter is not wrapped to hidden ko.pureComputed and stays unchanged
+ *
+ * But we can still extend getter @computed by extenders like { rateLimit: 500 } 
  */
 export function computed(prototype: Object, key: string | symbol, desc: PropertyDescriptor) {
     const { get, set } = desc || (desc = getDescriptor(prototype, key));
     desc.get = function () {
-        const computed = ko.pureComputed(get, this);
+        const computed = applyExtenders(this, key, ko.pureComputed(get, this));
         defProp(this, key, {
             configurable: true,
             get: computed,
