@@ -340,47 +340,6 @@ export function computed(prototype: Object, key: string | symbol, desc: Property
 }
 
 /**
- * Replace original method with factory that produces ko.computed from original method
- */
-export function reaction(autoDispose: boolean): MethodDecorator;
-export function reaction(prototype: Object, key: string | symbol, desc: PropertyDescriptor): PropertyDescriptor;
-
-/**
- * Replace original method with factory that produces ko.computed from original method
- * @param autoDispose { Boolean } if true then subscription will be disposed when entire ViewModel is disposed
- */
-export function reaction(
-    prototypeOrAutoDispose: Object | boolean, key?: string | symbol, desc?: PropertyDescriptor
-) {
-    let autoDispose: boolean;
-    if (typeof prototypeOrAutoDispose === "boolean" && key === void 0) {
-        autoDispose = prototypeOrAutoDispose;         // @reaction(false)
-        return decorator;                             // onSomethingChange() {}
-    } else if (typeof prototypeOrAutoDispose === "object" && key !== void 0) {
-        autoDispose = true;                           // @reaction
-        decorator(prototypeOrAutoDispose, key, desc); // onSomethingChange() {}
-    } else {
-        throw new Error("Can not use @reaction decorator this way");
-    }
-
-    function decorator(prototype: Object, key: string | symbol, desc: PropertyDescriptor) {
-        const { value } = desc || (desc = getDescriptor(prototype, key));
-        desc.value = function () {
-            const args = slice(arguments);
-            const computed = ko.computed(() => value.apply(this, args));
-            if (autoDispose) {
-                getSubscriptions(this).push(computed);
-            }
-            return computed;
-        };
-        if (autoDispose) {
-            redefineDispose(prototype);
-        }
-        return desc;
-    }
-}
-
-/**
  * Apply extenders to decorated @observable
  */
 export function extend(extenders: Object): PropertyDecorator;
@@ -396,67 +355,6 @@ export function extend(extendersOrFactory: Object | Function) {
             type: DecoratorType.Extend,
             value: extendersOrFactory,
         });
-    }
-}
-
-/**
- * Subscribe to @observable by name or by specifying callback explicitely
- */
-export function subscribe(callback: (value: any) => void, event?: string, autoDispose?: boolean): PropertyDecorator;
-export function subscribe(targetOrCallback: string | symbol, event?: string, autoDispose?: boolean): PropertyDecorator;
-export function subscribe(targetOrCallback: string | symbol, event?: string, autoDispose?: boolean): MethodDecorator;
-
-/**
- * Shorthand for ko.pureComputed(dependency).subscribe(callback)
- */
-export function subscribe<T>(dependency: () => T, callback: (value: T) => void): KnockoutSubscription;
-
-/**
- * Subscribe to @observable by name or by specifying callback explicitely
- * @param targetOrCallback { String | Function } name of callback or callback itself
- * when observable is decorated and name of observable property when callback is decorated
- * @param event { String } Knockout subscription event name
- * @param autoDispose { Boolean } if true then subscription will be disposed when entire ViewModel is disposed
- */
-export function subscribe(
-    targetOrCallback: string | symbol | Function, event?: string | Function, autoDispose = true
-) {
-    if (typeof event === "function") {
-        // subscribe(() => this.observableField, (value) => { ... });
-        return ko.pureComputed(targetOrCallback as any).subscribe(event as any);
-    }
-    return function (prototype: Object, key: string | symbol, desc: PropertyDescriptor) {
-        const { value, get } = desc || (desc = getDescriptor(prototype, key));
-        let targetKey: string | symbol;
-        let callback: Function;
-        if (typeof value === "function") {
-            if (typeof targetOrCallback === "string" || typeof targetOrCallback === "symbol") {
-                targetKey = targetOrCallback;                   // @subscribe("target")
-                callback = value;                               // callback(value) {}    
-            } else {
-                throw new Error("Subscription target should be a key in decorated ViewModel");
-            }
-        } else if (typeof get === "function") {
-            if (typeof targetOrCallback === "function") {
-                targetKey = key;                                // @subscribe(ViewModel.prototype.callback)
-                callback = targetOrCallback;                    // @observable target;
-            } else if (typeof targetOrCallback === "string" || typeof targetOrCallback === "symbol") {
-                targetKey = key;                                // @subscribe("callback")
-                callback = prototype[targetOrCallback];         // @observable target;
-            } else {
-                throw new Error("Subscription callback should be a function or key in decorated ViewModel");
-            }
-        }
-        getDecorators(getMetaData(prototype), targetKey).push({
-            type: DecoratorType.Subscribe,
-            value: callback,
-            event: event,
-            dispose: autoDispose,
-        });
-        if (autoDispose) {
-            redefineDispose(prototype);
-        }
-        return desc as any;
     }
 }
 
@@ -484,10 +382,48 @@ export function autobind(prototype: Object, key: string | symbol, desc: Property
 }
 
 /**
+ * Subscribe callback to dependency changes
+ */
+export function subscribe<T>(
+    getDependency: () => T, 
+    callback: (value: T) => void,
+    options?: { once?: boolean, event?: string }
+): KnockoutSubscription {
+    const once = options && options.once || false;
+    const event = options && options.event || "change";
+
+    const dependency = ko.computed(getDependency);
+    
+    const subscription = dependency.subscribe(callback, null, event);
+    
+    const originalDispose = subscription.dispose;
+    // dispose hidden computed with subscription
+    subscription.dispose = function () {
+        originalDispose.call(this);
+        dependency.dispose();
+    };
+
+    if (once) {
+        dependency.subscribe(() => {
+            subscription.dispose();
+        });
+    }
+    return subscription;
+}
+
+/**
  * Get internal ko.observable() for object property decodated by @observable
  */
 export function unwrap(instance: Object, key: string | symbol): any;
 export function unwrap<T>(instance: Object, key: string | symbol): KnockoutObservable<T>;
+
+/**
+ * Get internal ko.observable() for object property decodated by @observable
+ */
 export function unwrap(instance: Object, key: string | symbol) {
+    if (!hasOwnProperty(instance, key)) {
+        // invoke getter on instance.__proto__ that defines property on instance
+        instance[key];
+    }
     return getDescriptor(instance, key).get;
 }

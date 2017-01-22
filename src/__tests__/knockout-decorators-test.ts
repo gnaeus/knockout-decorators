@@ -7,8 +7,8 @@ jest.unmock("../knockout-decorators");
 
 import * as ko from "knockout";
 import {
-    component, observable, computed, reaction, autobind,
-    extend, subscribe, unwrap, observableArray, ObservableArray
+    component, observable, computed, extend, autobind,
+    subscribe, unwrap, observableArray, ObservableArray
 } from "../knockout-decorators";
 
 interface ComponentConfig extends KnockoutComponentTypes.ComponentConfig {
@@ -184,373 +184,6 @@ describe("@observable & @computed decorators", () => {
         expect(user.firstName).toBe("John");
         expect(user.lastName).toBe("Smith");
         expect(user.name).toBe("John Smith");
-    });
-});
-
-describe("@subscribe decorator", () => {
-    it("should subscribe given callback to decorated @observable", () => {
-        class ViewModel {
-            plainField: number;
-            
-            @subscribe(ViewModel.prototype.onChange)
-            @observable observableField: number = 0;
-
-            onChange(value: number) {
-                this.plainField = value;
-            }
-        }
-
-        let vm = new ViewModel();
-        vm.observableField = 123;
-
-        expect(vm.plainField).toBe(123);
-    });
-
-    it("should subscribe callback to decorated @observable by given callback name", () => {
-        class ViewModel {
-            plainField: number;
-
-            @subscribe("onChange")
-            @observable observableField: number = 0;
-
-            onChange(value: number) {
-                this.plainField = value;
-            }
-        }
-
-        let vm = new ViewModel();
-        vm.observableField = 123;
-
-        expect(vm.plainField).toBe(123);
-    });
-
-    it("should subscribe decorated callback to @observable by given observable name", () => {
-        class ViewModel {
-            plainField: number;
-
-            @observable observableField: number = 0;
-
-            @subscribe("observableField")
-            onChange(value: number) {
-                this.plainField = value;
-            }
-        }
-
-        let vm = new ViewModel();
-        vm.observableField = 123;
-
-        expect(vm.plainField).toBe(123);
-    });
-
-    // TODO: make @computed extendable (by @extend decorator)
-    // it("should subscribe given callback to decorated @computed", () => {
-    //     class ViewModel {
-    //         plainField: number;
-
-    //         @observable observableField: number = 0;
-
-    //         @subscribe(ViewModel.prototype.onChange)
-    //         @computed get computedField() {
-    //             return this.observableField;
-    //         }
-
-    //         onChange(value: number) {
-    //             this.plainField = value;
-    //         }
-    //     }
-
-    //     let vm = new ViewModel();
-        
-    //     vm.observableField = 123;
-        
-    //     expect(vm.plainField).toBe(123);
-    // });
-
-    it("should support named subscription events", () => {
-        class ViewModel {
-            plainField: number;
-
-            @subscribe(ViewModel.prototype.onChange, "beforeChange")
-            @observable observableField: number = 321;
-
-            onChange(value: number) {
-                this.plainField = value;
-            }
-        }
-
-        let vm = new ViewModel();
-        vm.observableField = 123;
-
-        expect(vm.plainField).toBe(321);
-    });
-
-    it("should dispose subscriptions with ViewModel by default", () => {
-        class ViewModel {
-            plain: number = 123;
-
-            @subscribe(ViewModel.prototype.onChange)
-            @observable first: number = 0;
-
-            @subscribe(ViewModel.prototype.onChange)
-            @observable second: number = 0;
-
-            onChange(value: number) {
-                this.plain = value;
-            }
-
-            dispose() {}
-        }
-
-        let vm = new ViewModel();
-        vm.dispose();
-
-        vm.first = 456;
-        vm.second = 789;
-        
-        expect(vm.plain).toBe(0);
-    });
-
-    it("should not dispose subscriptions with ViewModel when 'autoDispose' is false", () => {
-        class ViewModel {
-            plain: number = 123;
-
-            @subscribe(ViewModel.prototype.onChange, null, false)
-            @observable first: number = 0;
-
-            @subscribe(ViewModel.prototype.onChange, null, true)
-            @observable second: number = 0;
-
-            onChange(value: number) {
-                this.plain = value;
-            }
-
-            dispose() {}
-        }
-
-        let vm = new ViewModel();
-        vm.dispose();
-
-        vm.first = 456;
-        vm.second = 789;
-        
-        expect(vm.plain).toBe(456);
-    });
-
-    it("original dispose() should be called", () => {
-        class ViewModel {
-            disposed: boolean = false;
-            plainField: number = 0;
-
-            @subscribe(ViewModel.prototype.onChange)
-            @observable observableField: number = 0;
-
-            dispose() {
-                this.disposed = true;
-            }
-
-            onChange(value: number) {
-                this.plainField = value;
-            }
-        }
-
-        let vm = new ViewModel();
-        vm.dispose();
-        vm.observableField = 123;
-
-        expect(vm.plainField).toBe(0);
-        expect(vm.disposed).toBe(true);
-    });
-
-    it("should dispose subscriptions from base class", () => {
-        class Base {
-            plainField: number;
-
-            @observable observableField: number = 0;
-
-            @subscribe("observableField")
-            onChange(value: number) {
-                this.plainField = value;
-            }
-        }
-
-        class Derived extends Base {
-            @subscribe("observableField")
-            onChangeDerived(value: number) {
-                this.plainField = value * 2;
-            }
-
-            dispose: Function;
-        }
-
-        let derived = new Derived();
-        derived.observableField = 123;
-        derived.dispose();
-
-        derived.observableField = 456;
-
-        expect(derived.plainField).toBe(246);
-    });
-});
-
-describe("@reaction decorator", () => {
-    it("should observe local fields", () => {
-        class ViewModel {
-            plain: number = 0;
-            @observable observable: number = 0;
-
-            constructor() {
-                this.handleChanges();
-            }
-
-            @reaction handleChanges() {
-                this.plain = this.observable;
-            }
-        }
-
-        let vm = new ViewModel();
-        vm.observable = 123;
-
-        expect(vm.plain).toBe(123);
-    });
-
-    it("should produce reactions that returns subscriptions", () => {
-        class ViewModel {
-            plain = 0;
-            @observable observable = 0;
-            
-            dependenciesCount = 0;
-
-            constructor() {
-                let computed = this.handleChanges();
-                this.dependenciesCount = computed.getDependenciesCount();
-                computed.dispose();
-            }
-
-            @reaction handleChanges(): KnockoutComputed<any> {
-                this.plain = this.observable;
-                return;
-            }
-        }
-
-        let vm = new ViewModel();
-        vm.observable = 123;
-
-        expect(vm.plain).toBe(0);
-        expect(vm.dependenciesCount).toBe(1);
-    });
-
-    it("should dispose reactions with ViewModel by default", () => {
-        class ViewModel {
-            plain: number = 0;
-            @observable observable: number = 0;
-
-            constructor() {
-                this.handleChanges();
-            }
-
-            dispose: Function;
-
-            @reaction handleChanges() {
-                this.plain = this.observable;
-            }
-        }
-
-        let vm = new ViewModel();
-        vm.dispose();
-
-        vm.observable = 123;
-
-        expect(vm.plain).toBe(0);
-    });
-
-    it("original dispose() should be called", () => {
-        class ViewModel {
-            disposed: boolean;
-            plain: number = 0;
-            @observable observable: number = 0;
-
-            constructor() {
-                this.handleChanges();
-            }
-
-            dispose() {
-                this.disposed = true;
-            }
-
-            @reaction handleChanges() {
-                this.plain = this.observable;
-            }
-        }
-
-        let vm = new ViewModel();
-        vm.dispose();
-
-        vm.observable = 123;
-
-        expect(vm.plain).toBe(0);
-        expect(vm.disposed).toBe(true);
-    });
-
-    it("should not dispose reactions with ViewModel when 'autoDispose' is false", () => {
-        class ViewModel {
-            plain: number = 0;
-            @observable observable: number = 0;
-
-            constructor() {
-                this.handleChanges();
-            }
-
-            dispose() {};
-
-            @reaction(false) handleChanges() {
-                this.plain = this.observable;
-            }
-        }
-
-        let vm = new ViewModel();
-        vm.dispose();
-
-        vm.observable = 123;
-
-        expect(vm.plain).toBe(123);
-    });
-
-    it("should work with foreign observables", () => {
-        class ViewModel {
-            url: string;
-
-            constructor(path: KnockoutObservable<string>, query: KnockoutObservable<string>) {
-                this.handleRoute(path, query)
-            }
-
-            dispose() {};
-
-            @reaction handleRoute(path: KnockoutObservable<string>, query: KnockoutObservable<string>) {
-                this.url = path();
-                if (query()) {
-                    this.url += "?" + query();
-                }
-            }
-        }
-
-        let path = ko.observable("/home");
-        let query = ko.observable("");
-
-        let vm = new ViewModel(path, query);
-
-        expect(vm.url).toBe("/home");
-        expect(path.getSubscriptionsCount()).toBe(1);
-        expect(query.getSubscriptionsCount()).toBe(1);
-
-        path("/users");
-        query("id=123");
-
-        expect(vm.url).toBe("/users?id=123");
-
-        vm.dispose();
-
-        expect(path.getSubscriptionsCount()).toBe(0);
-        expect(query.getSubscriptionsCount()).toBe(0);
     });
 });
 
@@ -745,6 +378,44 @@ describe("@extend decorator", () => {
         expect(vm.observable).toBe("fedcba");
     });
 
+    it("should extend @observableArray", () => {
+        class ViewModel {
+            @extend({ reverse: "write" })
+            @observableArray array = [1, 2, 3, 4];
+        }
+        
+        let vm = new ViewModel();
+        
+        expect(vm.array).toEqual([4, 3, 2, 1]);
+    });
+
+    it("should accept extenders factory", () => {
+        class ViewModel {
+            @extend(ViewModel.prototype.getExtender)
+            @observable observable = "abcdef";
+
+            getExtender() {
+                return { reverse: "write" };
+            }
+        }
+        
+        let vm = new ViewModel();
+        
+        expect(vm.observable).toBe("fedcba");
+    });
+
+    it("can be combined with other @extend", () => {
+        class ViewModel {
+            @extend({ upperCase: "write" })
+            @extend({ reverse: "read" })
+            @observable observable = "abcdef";
+        }
+        
+        let vm = new ViewModel();
+        
+        expect(vm.observable).toBe("FEDCBA");
+    });
+
     // TODO: make @computed extendable (by @extend decorator)
     // it("should extend @computed", () => {
     //     class ViewModel {
@@ -792,64 +463,6 @@ describe("@extend decorator", () => {
     //     expect(vm.observable()).toBe("dcba");
     //     expect(result).toBe("dcba");
     // });
-
-    it("should extend @observableArray", () => {
-        class ViewModel {
-            @extend({ reverse: "write" })
-            @observableArray array = [1, 2, 3, 4];
-        }
-        
-        let vm = new ViewModel();
-        
-        expect(vm.array).toEqual([4, 3, 2, 1]);
-    });
-
-    it("should accept extenders factory", () => {
-        class ViewModel {
-            @extend(ViewModel.prototype.getExtender)
-            @observable observable = "abcdef";
-
-            getExtender() {
-                return { reverse: "write" };
-            }
-        }
-        
-        let vm = new ViewModel();
-        
-        expect(vm.observable).toBe("fedcba");
-    });
-
-    it("can be combined with other @extend", () => {
-        class ViewModel {
-            @extend({ upperCase: "write" })
-            @extend({ reverse: "read" })
-            @observable observable = "abcdef";
-        }
-        
-        let vm = new ViewModel();
-        
-        expect(vm.observable).toBe("FEDCBA");
-    });
-
-    it("can be combined with @subscribe", () => {
-        class ViewModel {
-            plain: string;
-
-            @extend({ upperCase: "read" })
-            @subscribe(ViewModel.prototype.onChange)
-            @extend({ reverse: "write" })
-            @observable observable = "abcdef";
-
-            onChange(value) {
-                this.plain = value;
-            }
-        }
-        
-        let vm = new ViewModel();
-        
-        expect(vm.plain).toBe("fedcba");
-        expect(vm.observable).toBe("FEDCBA");
-    });
 });
 
 describe("@autobind decorator", () => {
@@ -920,20 +533,76 @@ describe("subscribe function", () => {
         expect(vm.plainField).toBe(123);
     });
 
-    it("should return knockout subscription", () => {
-        let observable = ko.observable();
+    it("should subscribe to decorated @observable with given event", () => {
+        class ViewModel {
+            plainField: number;
+            
+            @observable observableField: number = 0;
 
-        let givenSubscription = subscribe(() => observable(), () => {});
-        let koSubscription = observable.subscribe(() => {});
+            constructor() {
+                subscribe(() => this.observableField, (value) => {
+                    this.plainField = value;
+                }, { event: "beforeChange" });
+            }
+        }
+
+        let vm = new ViewModel();
+        vm.observableField = 123;
+        vm.observableField = 456;
+
+        expect(vm.plainField).toBe(123);
+    });
+
+    it("should run subscription to decorated @observable once", () => {
+        class ViewModel {
+            plainField: number;
+            
+            @observable observableField: number = 0;
+
+            constructor() {
+                subscribe(() => this.observableField, (value) => {
+                    this.plainField = value;
+                }, { once: true });
+            }
+        }
+
+        let vm = new ViewModel();
+        vm.observableField = 123;
+        vm.observableField = 456;
+
+        expect(vm.plainField).toBe(123);
+    });
+
+    it("should return subscription to hidden ko.computed", () => {
+        let koObservable = ko.observable();
+
+        let givenSubscription = subscribe(() => koObservable(), () => {});
+        let koSubscription = koObservable.subscribe(() => {});
 
         expect(Object.hasOwnProperty.call(givenSubscription, "dispose")).toBeTruthy();
 
         expect(Object.getPrototypeOf(givenSubscription)).toBe(Object.getPrototypeOf(koSubscription));
     });
+
+    it("should dispose hidden ko.computed with returned subscription", () => {
+        let koObservable = ko.observable();
+
+        let sideEffectValue;
+
+        let subscription = subscribe(() => {
+            return sideEffectValue = koObservable();
+        }, () => {});
+        
+        koObservable(123);
+        subscription.dispose();
+        koObservable(456);
+
+        expect(sideEffectValue).toBe(123);
+    });
 });
 
 describe("unwrap function", () => {
-    it("should return inner observable", () => {
+    it("should return hidden observable", () => {
         class Test {
             @observable property = "";
         }
@@ -945,7 +614,7 @@ describe("unwrap function", () => {
         expect(ko.isObservable(observableProperty)).toBeTruthy();
     });
 
-    it("should return same value with decorated property", () => {
+    it("should share hidden observable with decorated property", () => {
         class Test {
             @observable property = "";
         }
@@ -973,7 +642,7 @@ describe("unwrap function", () => {
         return extendedObservable;
     }
 
-    it("should return extended observable", () => {
+    it("should return hidden extended observable", () => {
         class Test {
             @extend({ required: true })
             @observable property = "";
@@ -988,5 +657,63 @@ describe("unwrap function", () => {
 
         instance.property = "foo bar";
         expect(instance.unwrap("property").isValid).toBe(true);
+    });
+
+    it("should return hidden uninitialized observable", () => {
+        class Test {
+            @observable property;
+        }
+
+        let instance = new Test();
+
+        let observableProperty = unwrap<string>(instance, "property");
+
+        expect(ko.isObservable(observableProperty)).toBeTruthy();
+    });
+
+    it("should return hidden computed", () => {
+        class Test {
+            @observable observableField = "";
+
+            @computed get computedField() {
+                return this.observableField;
+            }
+        }
+
+        let instance = new Test();
+
+        let computedField = unwrap<string>(instance, "computedField");
+
+        expect(ko.isComputed(computedField)).toBeTruthy();
+    });
+
+    it("should work with class inheritance", () => {
+        class Base {
+            @observable observableField = "";
+
+            @computed get computedField() {
+                return this.observableField;
+            }
+        }
+
+        class Derived extends Base {
+            @observable observableDerivedField = "";
+            
+            @computed get computedDerivedField() {
+                return this.observableDerivedField;
+            }
+        };
+
+        let instance = new Derived();
+
+        let observableField = unwrap<string>(instance, "observableField");
+        let computedField = unwrap<string>(instance, "computedField");
+        let observableDerivedField = unwrap<string>(instance, "observableDerivedField");
+        let computedDerivedField = unwrap<string>(instance, "computedDerivedField");
+
+        expect(ko.isObservable(observableField)).toBeTruthy();
+        expect(ko.isComputed(computedField)).toBeTruthy();
+        expect(ko.isObservable(observableDerivedField)).toBeTruthy();
+        expect(ko.isComputed(computedDerivedField)).toBeTruthy();
     });
 })

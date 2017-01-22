@@ -33,17 +33,18 @@ class PersonView {
 ---
 ## Documentation
  * [@observable](#knockout-decorators-observable)
- * [@observableArray](#knockout-decorators-observableArray)
  * [@computed](#knockout-decorators-computed)
- * [@reaction](#knockout-decorators-reaction)
+ * [@observableArray](#knockout-decorators-observableArray)
  * [@extend](#knockout-decorators-extend)
- * [@subscribe](#knockout-decorators-subscribe)
  * [@component](#knockout-decorators-component)
+ * [subscribe](#knockout-decorators-subscribe)
  * [unwrap](#knockout-decorators-unwrap)
 
 [Work with KnockoutValidation](#knockout-decorators-validation)
 
 [Usage without module loaders](#knockout-decorators-without-loaders)
+
+[Changes from v0.7.1](#knockout-decorators-changelog)
 
 #### <a name="knockout-decorators-observable"></a> @observable
 Property decorator that creates hidden `ko.observable` with ES6 getter and setter for it
@@ -55,6 +56,26 @@ let model = new Model();
 
 ko.computed(() => { console.log(model.field); }); // [console] ➜ 123
 model.field = 456;                                // [console] ➜ 456
+```
+
+<br>
+
+#### <a name="knockout-decorators-computed"></a> @computed
+Accessor decorator that wraps ES6 getter and setter (if defined) to hidden `ko.pureComputed`
+```js
+class Person {
+  @observable firstName = "";
+  @observable lastName = "";
+
+  @computed
+  get fullName() { return this.firstName + " " + this.lastName; }
+  set fullName(value) { [this.firstName, this.lastName] = value.trim().split(/\s+/g); }
+}
+let person = new Person();
+
+ko.pureComputed(() => person.fullName).subscribe(console.log.bind(console));
+
+person.fullName = "  John  Smith  " // [console] ➜ "John Smith"
 ```
 
 <br>
@@ -90,63 +111,6 @@ model.array.remove(val => val % 2 === 0); // [console] ➜  [{ status: 'deleted'
 
 <br>
 
-#### <a name="knockout-decorators-computed"></a> @computed
-Accessor decorator that wraps ES6 getter and setter (if defined) to hidden `ko.pureComputed`
-```js
-class Person {
-  @observable firstName = "";
-  @observable lastName = "";
-
-  @computed
-  get fullName() { return this.firstName + " " + this.lastName; }
-  set fullName(value) { [this.firstName, this.lastName] = value.trim().split(/\s+/g); }
-}
-let person = new Person();
-
-ko.pureComputed(() => person.fullName).subscribe(console.log.bind(console));
-
-person.fullName = "  John  Smith  " // [console] ➜ "John Smith"
-```
-
-<br>
-
-#### <a name="knockout-decorators-reaction"></a> @reaction
-Replace original method with factory that produces `ko.computed` from original method
-```js
-@reaction
-@reaction(autoDispose: boolean)
-```
-| Argument    | Default | Description                                                                    |
-|:------------|:--------|:-------------------------------------------------------------------------------|
-| autoDispose | `true`  | if true then computed will be disposed when entire decorated class is disposed |
-
-Method that decorated with `@reaction` evaluates once when explicitely invoked (this call creates hidden `ko.computed`)
-and every times when it's observable (or computed) dependencies are changed.
-
-Hidden `ko.computed` will be disposed when entire decorated class is disposed (if we don't set `autoDispose` to `false`)
-```js
-class BlogPage {
-  @observable postId = 0;
-  @observable pageData: any;
-  
-  constructor(blogId: ko.Observable<number>) {
-    const computed = this.onRoute(blogId);
-    // subscribe onRoute handler to changes
-    // then we can do whatever with created computed
-  }
-  
-  // 'dispose()' method is redefined such that it disposes hidded 'onRoute' computed
-  // if original class already has 'dispose()' method then it would be wrapped by new method
-  
-  @reaction async onRoute(blogId: ko.Observable<number>) {
-    const resp = await fetch(`/blog/${ blogId() }/post/${ this.postId }`);
-    this.pageData = await resp.json();
-  }
-}
-```
-
-<br>
-
 #### <a name="knockout-decorators-extend"></a> @extend
 Apply extenders to decorated `@observable`
 ```js
@@ -168,56 +132,6 @@ class ViewModel {
   
   getExtender() {
     return { rateLimit: this.rateLimit };
-  }
-}
-```
-
-<br>
-
-#### <a name="knockout-decorators-subscribe"></a> @subscribe
-Subscribe to `@observable` by name or by specifying callback explicitely
-```js
-@subscribe(callback: (value: any) => void, event?: string, autoDispose?: boolean)
-@subscribe(targetOrCallback: string | symbol, event?: string, autoDispose?: boolean)
-```
-
-| Argument         | Default | Description                                                                    |
-|:-----------------|:--------|:-------------------------------------------------------------------------------|
-| callback         |         | Subscription handler method                                                    |
-| targetOrCallback |         | Name of subscription handler method or name of `@observable` property          |
-| event            | `null`  | Knockout subscription event                                                    |
-| autoDispose      | `true`  | if true then computed will be disposed when entire decorated class is disposed |
-
-We can define name of handler when we decorate `@observable` or define name of `@observable` when decorate handler.
-Subscriptions will be disposed when entire decorated class is disposed (if we don't set `autoDispose` to `false`)
-```js
-class ViewModel {
-  // specify callback
-  @subscribe("onFirstChanged")
-  @observable first = "";
-  
-  onFirstChanged(value) {}
-  
-  @observable second = "";
-  // specify observable  
-  @subscribe("second")
-  onSecondChanged(value) {}
-}
-```
-
-Also whe can pass subscription handler directly.
-Then it will be invoked with ViewModel instance as `this` argument.
-
-And we can specify subscription `event`
-```js
-class ViewModel {
-  operationLog = [];
-  
-  @subscribe(ViewModel.prototype.onArrayChange, "arrayChange")
-  @observableArray array = [1, 2, 3]
-  
-  onArrayChange(changes) {
-    this.operationLog.push(...changes);
   }
 }
 ```
@@ -291,8 +205,48 @@ ko.components.register("my-component", {
 
 <br>
 
+#### <a name="knockout-decorators-subscribe"></a> subscribe
+Subscribe to `@observable` or `@computed` dependency with creation of hidden `ko.computed()`
+```js
+subscribe<T>(getDependency: () => T, callback: (value: T) => void, options?: {
+  once?: boolean,
+  event?: string,
+}): KnockoutSubscription
+```
+
+| Argument      | Default    | Description                                                                    |
+|:--------------|:-----------|:--------------------------------------------------------------------|
+| getDependency |            | Function for getting observeble property                            |
+| callback      |            | Callback that handle dependency changes                             |
+| options       | `null`     | Options object                                                      |
+| options.once  | `false`    | If `true` then subscription will be disposed after first invocation |
+| optons.event  | `"change"` | Event for passing to Knockout native `subscribe()`                  |
+
+```js
+class ViewModel {
+  @observable field = "";
+  
+  constructor() {
+    subscribe(() => this.field, (value) => {
+      console.log(value);
+    });
+
+    subscribe(() => this.field, (value) => {
+      console.log(value);
+    }, { once: true });
+
+    subscribe(() => this.field, (value) => {
+      console.log(value);
+    }, { event: "beforeChange" });
+  }  
+}
+```
+
+<br>
+
 #### <a name="knockout-decorators-unwrap"></a> unwrap
 Get internal `ko.observable()` for property decodated by `@observable`
+or internal `ko.pureComputed()` for property decodated by `@computed`
 ```js
 unwrap(instance: Object, key: string | symbol): any;
 unwrap<T>(instance: Object, key: string | symbol): KnockoutObservable<T>;
@@ -328,7 +282,6 @@ class MyViewModel {
 </div>
 ```
 
-
 <br>
 
 ### <a name="knockout-decorators-without-loaders"></a>
@@ -346,6 +299,43 @@ namespace MyTypescriptNamespace {
   
   export class MyClass {
     @observable field = "";
+  }
+}
+```
+
+### <a name="knockout-changelog"></a>
+## Breaking changes from v0.7.1 to 0.8.0
+
+1. Removed `@subscribe` decorator
+2. Removed `@reaction` decorator
+3. Added `subscribe(() => this.observableProp, (value) => { ... })` function
+4. Added `unwrap(this, "observablePropName")` function
+
+Native `ko.computed` with side effects can be used in all places
+where we use `@reaction` decorator.
+
+In v0.7.1 and earlier `@subscribe` decorator can be used only with `@observable` 
+but not with `@computed`. To avoid this restriction we can create `ko.pureComputed`
+and subscribe to it:
+```js
+class ViewModel {
+  @computed get computedProp() { ... }
+
+  constructor() {
+    ko.pureComputed(() => this.computedProp).subscribe((value) => { ... });
+  }
+}
+```
+
+So in 0.8.0 instead of `@subscribe` decorator there is shorthand function `subscribe`
+with some extra functionality like "subscribe once":
+:
+```js
+class ViewModel {
+  @computed get computedProp() { ... }
+
+  constructor() {
+    subscribe(() => this.computedProp, (value) => { ... }, { once: true });
   }
 }
 ```
