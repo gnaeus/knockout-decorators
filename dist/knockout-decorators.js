@@ -50,71 +50,7 @@ function component(name, template, styles, options) {
         }, options));
     };
 }
-var DECORATORS_KEY = typeof Symbol !== "undefined"
-    ? Symbol("ko_decorators") : "__ko_decorators_";
-var SUBSCRIPTIONS_KEY = typeof Symbol !== "undefined"
-    ? Symbol("ko_decorators_subscriptions") : "__ko_decorators_subscriptions_";
-var DISPOSABLE_KEY = typeof Symbol !== "undefined"
-    ? Symbol("ko_decorators_disposable") : "__ko_decorators_disposable_";
-var DecoratorType;
-(function (DecoratorType) {
-    DecoratorType[DecoratorType["Extend"] = 0] = "Extend";
-    DecoratorType[DecoratorType["Subscribe"] = 1] = "Subscribe";
-})(DecoratorType || (DecoratorType = {}));
-function getMetaData(prototype) {
-    var metaData = prototype[DECORATORS_KEY];
-    if (!prototype.hasOwnProperty(DECORATORS_KEY)) {
-        prototype[DECORATORS_KEY] = metaData = assign({}, metaData);
-        objectForEach(metaData, function (key, decorators) {
-            metaData[key] = decorators.slice();
-        });
-    }
-    return metaData;
-}
-function getDecorators(metaData, key) {
-    return metaData[key] || (metaData[key] = []);
-}
-function getSubscriptions(instance) {
-    return instance[SUBSCRIPTIONS_KEY] || (instance[SUBSCRIPTIONS_KEY] = []);
-}
-function applyDecorators(instance, key, target) {
-    var metaData = instance[DECORATORS_KEY];
-    var decorators = metaData && metaData[key];
-    if (decorators) {
-        decorators.forEach(function (d) {
-            switch (d.type) {
-                case DecoratorType.Extend:
-                    var extenders = d.value instanceof Function
-                        ? d.value.call(instance) : d.value;
-                    target = target.extend(extenders);
-                    break;
-                case DecoratorType.Subscribe:
-                    var subscription = target.subscribe(d.value, instance, d.event);
-                    if (d.dispose) {
-                        getSubscriptions(instance).push(subscription);
-                    }
-                    break;
-            }
-        });
-    }
-    return target;
-}
-function redefineDispose(prototype) {
-    if (prototype[DISPOSABLE_KEY]) {
-        return;
-    }
-    prototype[DISPOSABLE_KEY] = true;
-    var original = prototype["dispose"];
-    prototype["dispose"] = function dispose() {
-        var disposables = this[SUBSCRIPTIONS_KEY];
-        if (disposables) {
-            disposables.forEach(function (s) { s.dispose(); });
-        }
-        if (original) {
-            return original.apply(this, arguments);
-        }
-    };
-}
+/*===========================================================================*/
 /**
  * Property decorator that creates hidden ko.observable with ES6 getter and setter for it
  */
@@ -122,7 +58,7 @@ function observable$1(prototype, key) {
     defProp(prototype, key, {
         configurable: true,
         get: function () {
-            var observable$$1 = applyDecorators(this, key, ko.observable());
+            var observable$$1 = applyExtenders(this, key, ko.observable());
             defProp(this, key, {
                 configurable: true,
                 enumerable: true,
@@ -132,7 +68,7 @@ function observable$1(prototype, key) {
             return observable$$1();
         },
         set: function (value) {
-            var observable$$1 = applyDecorators(this, key, ko.observable());
+            var observable$$1 = applyExtenders(this, key, ko.observable());
             defProp(this, key, {
                 configurable: true,
                 enumerable: true,
@@ -143,10 +79,32 @@ function observable$1(prototype, key) {
         },
     });
 }
+/*===========================================================================*/
+/**
+ * Accessor decorator that wraps ES6 getter to hidden ko.pureComputed
+ *
+ * Setter is not wrapped to hidden ko.pureComputed and stays unchanged
+ *
+ * But we can still extend getter @computed by extenders like { rateLimit: 500 }
+ */
+function computed$1(prototype, key, desc) {
+    var _a = desc || (desc = getDescriptor(prototype, key)), get = _a.get, set = _a.set;
+    desc.get = function () {
+        var computed$$1 = applyExtenders(this, key, ko.pureComputed(get, this));
+        defProp(this, key, {
+            configurable: true,
+            get: computed$$1,
+            set: set
+        });
+        return computed$$1();
+    };
+    return desc;
+    // TODO: make @computed extendable (by @extend decorator)
+}
 var arrayMethods = ["pop", "push", "reverse", "shift", "sort", "splice", "unshift"];
 var observableArrayMethods = ["remove", "removeAll", "destroy", "destroyAll", "replace", "subscribe"];
 function defObservableArray(instance, key) {
-    var obsArray = applyDecorators(instance, key, ko.observableArray());
+    var obsArray = applyExtenders(instance, key, ko.observableArray());
     var insideObsArray = false;
     defProp(instance, key, {
         configurable: true,
@@ -201,14 +159,15 @@ function defObservableArray(instance, key) {
             }
         }); });
     }
-    function clearArrayMethods(array) {
-        arrayMethods.forEach(function (fnName) {
-            delete array[fnName];
-        });
-        observableArrayMethods.forEach(function (fnName) {
-            delete array[fnName];
-        });
-    }
+}
+// moved outside of defObservableArray function to prevent creation of unnecessary closure
+function clearArrayMethods(array) {
+    arrayMethods.forEach(function (fnName) {
+        delete array[fnName];
+    });
+    observableArrayMethods.forEach(function (fnName) {
+        delete array[fnName];
+    });
 }
 /**
  * Property decorator that creates hidden ko.observableArray with ES6 getter and setter for it
@@ -227,56 +186,35 @@ function observableArray$1(prototype, key) {
         },
     });
 }
-/**
- * Accessor decorator that wraps ES6 getter and setter to hidden ko.pureComputed
- */
-function computed$1(prototype, key, desc) {
-    var _a = desc || (desc = getDescriptor(prototype, key)), get = _a.get, set = _a.set;
-    desc.get = function () {
-        var computed$$1 = ko.pureComputed(get, this);
-        defProp(this, key, {
-            configurable: true,
-            get: computed$$1,
-            set: set
+/*===========================================================================*/
+var DECORATORS_KEY = typeof Symbol !== "undefined"
+    ? Symbol("ko_decorators") : "__ko_decorators__";
+function getOrCreateMetaData(prototype) {
+    var metaData = prototype[DECORATORS_KEY];
+    if (!prototype.hasOwnProperty(DECORATORS_KEY)) {
+        // clone MetaData from base class prototype
+        prototype[DECORATORS_KEY] = metaData = assign({}, metaData);
+        // clone extenders arrays for each property key
+        objectForEach(metaData, function (key, extenders) {
+            metaData[key] = extenders.slice();
         });
-        return computed$$1();
-    };
-    return desc;
-    // TODO: make @computed extendable (by @extend decorator)
+    }
+    return metaData;
 }
-/**
- * Replace original method with factory that produces ko.computed from original method
- * @param autoDispose { Boolean } if true then subscription will be disposed when entire ViewModel is disposed
- */
-function reaction(prototypeOrAutoDispose, key, desc) {
-    var autoDispose;
-    if (typeof prototypeOrAutoDispose === "boolean" && key === void 0) {
-        autoDispose = prototypeOrAutoDispose; // @reaction(false)
-        return decorator; // onSomethingChange() {}
+function getOrCreateExtenders(metaData, key) {
+    return metaData[key] || (metaData[key] = []);
+}
+function applyExtenders(instance, key, target) {
+    var metaData = instance[DECORATORS_KEY];
+    var extenders = metaData && metaData[key];
+    if (extenders) {
+        extenders.forEach(function (extender) {
+            var koExtender = extender instanceof Function
+                ? extender.call(instance) : extender;
+            target = target.extend(koExtender);
+        });
     }
-    else if (typeof prototypeOrAutoDispose === "object" && key !== void 0) {
-        autoDispose = true; // @reaction
-        decorator(prototypeOrAutoDispose, key, desc); // onSomethingChange() {}
-    }
-    else {
-        throw new Error("Can not use @reaction decorator this way");
-    }
-    function decorator(prototype, key, desc) {
-        var value = (desc || (desc = getDescriptor(prototype, key))).value;
-        desc.value = function () {
-            var _this = this;
-            var args = slice(arguments);
-            var computed$$1 = ko.computed(function () { return value.apply(_this, args); });
-            if (autoDispose) {
-                getSubscriptions(this).push(computed$$1);
-            }
-            return computed$$1;
-        };
-        if (autoDispose) {
-            redefineDispose(prototype);
-        }
-        return desc;
-    }
+    return target;
 }
 /**
  * Apply extenders to decorated @observable
@@ -284,63 +222,12 @@ function reaction(prototypeOrAutoDispose, key, desc) {
  */
 function extend(extendersOrFactory) {
     return function (prototype, key) {
-        getDecorators(getMetaData(prototype), key).push({
-            type: DecoratorType.Extend,
-            value: extendersOrFactory,
-        });
+        var medaData = getOrCreateMetaData(prototype);
+        var extenders = getOrCreateExtenders(medaData, key);
+        extenders.push(extendersOrFactory);
     };
 }
-/**
- * Subscribe to @observable by name or by specifying callback explicitely
- * @param targetOrCallback { String | Function } name of callback or callback itself
- * when observable is decorated and name of observable property when callback is decorated
- * @param event { String } Knockout subscription event name
- * @param autoDispose { Boolean } if true then subscription will be disposed when entire ViewModel is disposed
- */
-function subscribe(targetOrCallback, event, autoDispose) {
-    if (autoDispose === void 0) { autoDispose = true; }
-    if (typeof event === "function") {
-        // subscribe(() => this.observableField, (value) => { ... });
-        return ko.pureComputed(targetOrCallback).subscribe(event);
-    }
-    return function (prototype, key, desc) {
-        var _a = desc || (desc = getDescriptor(prototype, key)), value = _a.value, get = _a.get;
-        var targetKey;
-        var callback;
-        if (typeof value === "function") {
-            if (typeof targetOrCallback === "string" || typeof targetOrCallback === "symbol") {
-                targetKey = targetOrCallback; // @subscribe("target")
-                callback = value; // callback(value) {}    
-            }
-            else {
-                throw new Error("Subscription target should be a key in decorated ViewModel");
-            }
-        }
-        else if (typeof get === "function") {
-            if (typeof targetOrCallback === "function") {
-                targetKey = key; // @subscribe(ViewModel.prototype.callback)
-                callback = targetOrCallback; // @observable target;
-            }
-            else if (typeof targetOrCallback === "string" || typeof targetOrCallback === "symbol") {
-                targetKey = key; // @subscribe("callback")
-                callback = prototype[targetOrCallback]; // @observable target;
-            }
-            else {
-                throw new Error("Subscription callback should be a function or key in decorated ViewModel");
-            }
-        }
-        getDecorators(getMetaData(prototype), targetKey).push({
-            type: DecoratorType.Subscribe,
-            value: callback,
-            event: event,
-            dispose: autoDispose,
-        });
-        if (autoDispose) {
-            redefineDispose(prototype);
-        }
-        return desc;
-    };
-}
+/*===========================================================================*/
 /**
  * Like https://github.com/jayphelps/core-decorators.js @autobind but less smart and complex
  * Do NOT use with ES6 inheritance!
@@ -363,18 +250,46 @@ function autobind(prototype, key, desc) {
         }
     };
 }
+/*===========================================================================*/
+/**
+ * Subscribe callback to dependency changes
+ */
+function subscribe(getDependency, callback, options) {
+    var once = options && options.once || false;
+    var event = options && options.event || "change";
+    var dependency = ko.computed(getDependency);
+    var subscription = dependency.subscribe(callback, null, event);
+    var originalDispose = subscription.dispose;
+    // dispose hidden computed with subscription
+    subscription.dispose = function () {
+        originalDispose.call(this);
+        dependency.dispose();
+    };
+    if (once) {
+        dependency.subscribe(function () {
+            subscription.dispose();
+        });
+    }
+    return subscription;
+}
+/**
+ * Get internal ko.observable() for object property decodated by @observable
+ */
 function unwrap(instance, key) {
+    if (!hasOwnProperty(instance, key)) {
+        // invoke getter on instance.__proto__ that defines property on instance
+        instance[key];
+    }
     return getDescriptor(instance, key).get;
 }
 
 exports.component = component;
 exports.observable = observable$1;
-exports.observableArray = observableArray$1;
 exports.computed = computed$1;
-exports.reaction = reaction;
+exports.observableArray = observableArray$1;
 exports.extend = extend;
-exports.subscribe = subscribe;
 exports.autobind = autobind;
+exports.subscribe = subscribe;
 exports.unwrap = unwrap;
 
 Object.defineProperty(exports, '__esModule', { value: true });

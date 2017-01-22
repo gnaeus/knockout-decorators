@@ -309,6 +309,8 @@ namespace MyTypescriptNamespace {
 }
 ```
 
+<br>
+
 ### <a name="knockout-decorators-changelog"></a>
 ### Breaking changes from v0.7.1 to 0.8.0
 
