@@ -303,8 +303,8 @@ namespace MyTypescriptNamespace {
 }
 ```
 
-### <a name="knockout-changelog"></a>
-## Breaking changes from v0.7.1 to 0.8.0
+### <a name="knockout-decorators-changelog"></a>
+### Breaking changes from v0.7.1 to 0.8.0
 
 1. Removed `@subscribe` decorator
 2. Removed `@reaction` decorator
@@ -329,13 +329,12 @@ class ViewModel {
 
 So in 0.8.0 instead of `@subscribe` decorator there is shorthand function `subscribe`
 with some extra functionality like "subscribe once":
-:
 ```js
 class ViewModel {
   @computed get computedProp() { ... }
 
   constructor() {
-    subscribe(() => this.computedProp, (value) => { ... }, { once: true });
+    subscribe(() => this.computedProp, (value) => { ... });
   }
 }
 ```

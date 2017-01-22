@@ -4,6 +4,15 @@
  */
 import * as ko from "knockout";
 
+const assign = ko.utils.extend;
+const objectForEach = ko.utils.objectForEach;
+const defProp = Object.defineProperty.bind(Object);
+const getDescriptor = Object.getOwnPropertyDescriptor.bind(Object);
+const hasOwnProperty = Function.prototype.call.bind(Object.prototype.hasOwnProperty);
+const slice = Function.prototype.call.bind(Array.prototype.slice);
+
+/*===========================================================================*/
+
 export interface ComponentConstructor {
     new (
         params?: any,
@@ -21,13 +30,6 @@ export type TemplateConfig = (
     | { require: string }
     | { element: string | Node }
 );
-
-const assign = ko.utils.extend;
-const objectForEach = ko.utils.objectForEach;
-const defProp = Object.defineProperty.bind(Object);
-const getDescriptor = Object.getOwnPropertyDescriptor.bind(Object);
-const hasOwnProperty = Function.prototype.call.bind(Object.prototype.hasOwnProperty);
-const slice = Function.prototype.call.bind(Array.prototype.slice);
 
 /**
  * Register Knockout component by decorating ViewModel class
@@ -90,94 +92,7 @@ export function component(
     }
 }
 
-const DECORATORS_KEY = typeof Symbol !== "undefined"
-    ? Symbol("ko_decorators") : "__ko_decorators_";
-
-const SUBSCRIPTIONS_KEY = typeof Symbol !== "undefined"
-    ? Symbol("ko_decorators_subscriptions") : "__ko_decorators_subscriptions_";
-
-const DISPOSABLE_KEY = typeof Symbol !== "undefined"
-    ? Symbol("ko_decorators_disposable") : "__ko_decorators_disposable_";
-
-export interface Disposable {
-    dispose(): void,
-}
-
-const enum DecoratorType {
-    Extend, Subscribe,
-}
-
-interface Decorator {
-    type: DecoratorType,
-    value: any,
-    event?: string,
-    dispose?: boolean,
-}
-
-interface DecoratorsMetaData {
-    [propName: string]: Decorator[],
-}
-
-function getMetaData(prototype: Object) {
-    let metaData: DecoratorsMetaData = prototype[DECORATORS_KEY];
-    if (!prototype.hasOwnProperty(DECORATORS_KEY)) {
-        prototype[DECORATORS_KEY] = metaData = assign({}, metaData) as DecoratorsMetaData;
-        objectForEach(metaData, (key, decorators) => {
-            metaData[key] = [...decorators];
-        });
-    }
-    return metaData;
-}
-
-function getDecorators(metaData: DecoratorsMetaData, key: string | symbol) {
-    return metaData[key] || (metaData[key] = []);
-}
-
-function getSubscriptions(instance: Object): Disposable[] {
-    return instance[SUBSCRIPTIONS_KEY] || (instance[SUBSCRIPTIONS_KEY] = []);
-}
-
-function applyDecorators(
-    instance: Object, key: string | symbol,
-    target: KnockoutObservable<any> | KnockoutComputed<any>
-) {
-    const metaData: DecoratorsMetaData = instance[DECORATORS_KEY];
-    const decorators = metaData && metaData[key];
-    if (decorators) {
-        decorators.forEach(d => {
-            switch (d.type) {
-                case DecoratorType.Extend:
-                    const extenders = d.value instanceof Function
-                        ? d.value.call(instance) : d.value;
-                    target = target.extend(extenders);
-                    break;
-                case DecoratorType.Subscribe:
-                    const subscription = target.subscribe(d.value, instance, d.event);
-                    if (d.dispose) {
-                        getSubscriptions(instance).push(subscription);
-                    }
-                    break;
-            }
-        });
-    }
-    return target;
-}
-
-function redefineDispose(prototype: Object) {
-    if (prototype[DISPOSABLE_KEY]) { return; }
-    prototype[DISPOSABLE_KEY] = true;
-
-    const original = prototype["dispose"];
-    prototype["dispose"] = function dispose() {
-        const disposables = this[SUBSCRIPTIONS_KEY] as Disposable[];
-        if (disposables) {
-            disposables.forEach(s => { s.dispose(); });
-        }
-        if (original) {
-            return original.apply(this, arguments);
-        }
-    }
-}
+/*===========================================================================*/
 
 /**
  * Property decorator that creates hidden ko.observable with ES6 getter and setter for it
@@ -186,7 +101,7 @@ export function observable(prototype: Object, key: string | symbol) {
     defProp(prototype, key, {
         configurable: true,
         get() {
-            const observable = applyDecorators(this, key, ko.observable());
+            const observable = applyExtenders(this, key, ko.observable());
             defProp(this, key, {
                 configurable: true,
                 enumerable: true,
@@ -196,7 +111,7 @@ export function observable(prototype: Object, key: string | symbol) {
             return observable();
         },
         set(value) {
-            const observable = applyDecorators(this, key, ko.observable());
+            const observable = applyExtenders(this, key, ko.observable());
             defProp(this, key, {
                 configurable: true,
                 enumerable: true,
@@ -208,13 +123,35 @@ export function observable(prototype: Object, key: string | symbol) {
     });
 }
 
+/*===========================================================================*/
+
+/**
+ * Accessor decorator that wraps ES6 getter and setter to hidden ko.pureComputed
+ */
+export function computed(prototype: Object, key: string | symbol, desc: PropertyDescriptor) {
+    const { get, set } = desc || (desc = getDescriptor(prototype, key));
+    desc.get = function () {
+        const computed = ko.pureComputed(get, this);
+        defProp(this, key, {
+            configurable: true,
+            get: computed,
+            set: set
+        });
+        return computed();
+    };
+    return desc;
+    // TODO: make @computed extendable (by @extend decorator)
+}
+
+/*===========================================================================*/
+
 type ObsArray = KnockoutObservableArray<any> & { [fnName: string]: Function };
 
 const arrayMethods = ["pop", "push", "reverse", "shift", "sort", "splice", "unshift"];
 const observableArrayMethods = ["remove", "removeAll", "destroy", "destroyAll", "replace", "subscribe"];
 
 function defObservableArray(instance: Object, key: string | symbol) {
-    const obsArray = applyDecorators(instance, key, ko.observableArray()) as ObsArray;
+    const obsArray = applyExtenders(instance, key, ko.observableArray()) as ObsArray;
     
     let insideObsArray = false;
 
@@ -272,15 +209,16 @@ function defObservableArray(instance: Object, key: string | symbol) {
             }
         }));
     }
+}
 
-    function clearArrayMethods(array: any[]) {
-        arrayMethods.forEach(fnName => {
-            delete array[fnName]; 
-        });
-        observableArrayMethods.forEach(fnName => {
-            delete array[fnName]; 
-        });
-    }
+// moved outside of defObservableArray function to prevent creation of unnecessary closure
+function clearArrayMethods(array: any[]) {
+    arrayMethods.forEach(fnName => {
+        delete array[fnName]; 
+    });
+    observableArrayMethods.forEach(fnName => {
+        delete array[fnName]; 
+    });
 }
 
 /**
@@ -316,27 +254,54 @@ export interface ObservableArray<T> extends Array<T> {
     destroyAll(): void;
     destroyAll(items: T[]): void;
 
-    subscribe(callback: (val: T[]) => void): Disposable;
-    subscribe(callback: (val: T[]) => void, callbackTarget: any): Disposable;
-    subscribe(callback: (val: any[]) => void, callbackTarget: any, event: string): Disposable;
+    subscribe(callback: (val: T[]) => void): KnockoutSubscription;
+    subscribe(callback: (val: T[]) => void, callbackTarget: any): KnockoutSubscription;
+    subscribe(callback: (val: any[]) => void, callbackTarget: any, event: string): KnockoutSubscription;
 }
 
-/**
- * Accessor decorator that wraps ES6 getter and setter to hidden ko.pureComputed
- */
-export function computed(prototype: Object, key: string | symbol, desc: PropertyDescriptor) {
-    const { get, set } = desc || (desc = getDescriptor(prototype, key));
-    desc.get = function () {
-        const computed = ko.pureComputed(get, this);
-        defProp(this, key, {
-            configurable: true,
-            get: computed,
-            set: set
+/*===========================================================================*/
+
+const DECORATORS_KEY = typeof Symbol !== "undefined"
+    ? Symbol("ko_decorators") : "__ko_decorators__";
+
+type Extender = Object | Function;
+
+interface MetaData {
+    [propName: string]: Extender[];
+}
+
+function getOrCreateMetaData(prototype: Object) {
+    let metaData: MetaData = prototype[DECORATORS_KEY];
+    if (!prototype.hasOwnProperty(DECORATORS_KEY)) {
+        // clone MetaData from base class prototype
+        prototype[DECORATORS_KEY] = metaData = assign({}, metaData) as MetaData;
+        // clone extenders arrays for each property key
+        objectForEach(metaData, (key, extenders) => {
+            metaData[key] = [...extenders];
         });
-        return computed();
-    };
-    return desc;
-    // TODO: make @computed extendable (by @extend decorator)
+    }
+    return metaData;
+}
+
+function getOrCreateExtenders(metaData: MetaData, key: string | symbol) {
+    return metaData[key] || (metaData[key] = []);
+}
+
+function applyExtenders(
+    instance: Object, key: string | symbol,
+    target: KnockoutObservable<any> | KnockoutComputed<any>
+) {
+    const metaData: MetaData = instance[DECORATORS_KEY];
+    const extenders = metaData && metaData[key];
+    if (extenders) {
+        extenders.forEach(extender => {
+            const koExtender = extender instanceof Function
+                ? extender.call(instance) : extender;
+
+            target = target.extend(koExtender);
+        });
+    }
+    return target;
 }
 
 /**
@@ -351,12 +316,13 @@ export function extend(extendersFactory: () => Object): PropertyDecorator;
  */
 export function extend(extendersOrFactory: Object | Function) {
     return function (prototype: Object, key: string | symbol) {
-        getDecorators(getMetaData(prototype), key).push({
-            type: DecoratorType.Extend,
-            value: extendersOrFactory,
-        });
+        const medaData = getOrCreateMetaData(prototype);
+        const extenders = getOrCreateExtenders(medaData, key);
+        extenders.push(extendersOrFactory);
     }
 }
+
+/*===========================================================================*/
 
 /**
  * Like https://github.com/jayphelps/core-decorators.js @autobind but less smart and complex
@@ -380,6 +346,8 @@ export function autobind(prototype: Object, key: string | symbol, desc: Property
         }
     } as PropertyDescriptor;
 }
+
+/*===========================================================================*/
 
 /**
  * Subscribe callback to dependency changes
@@ -410,6 +378,8 @@ export function subscribe<T>(
     }
     return subscription;
 }
+
+/*===========================================================================*/
 
 /**
  * Get internal ko.observable() for object property decodated by @observable
