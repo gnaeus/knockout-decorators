@@ -1,9 +1,11 @@
 /**
  * Copyright (c) 2016 Dmitry Panyushkin
  * Available under MIT license
- * Version: 0.8.0
+ * Version: 0.9.0-dev
  */
 import * as ko from "knockout";
+import { defineObservableProperty as defineDeepObservable } from "./deep-observable";
+import { prepareObservableObject, ObservableArray } from "./deep-observable";
 
 const assign = ko.utils.extend;
 const objectForEach = ko.utils.objectForEach;
@@ -14,91 +16,27 @@ const slice = Function.prototype.call.bind(Array.prototype.slice);
 
 /*===========================================================================*/
 
-export interface ComponentConstructor {
-    new (
-        params?: any,
-        element?: Node,
-        templateNodes?: Node[]
-    ): any;
-}
-
-export type ComponentDecorator = (constructor: ComponentConstructor) => void;
-
-export type TemplateConfig = (
-    string
-    | Node[] 
-    | DocumentFragment 
-    | { require: string }
-    | { element: string | Node }
-);
-
 /**
- * Register Knockout component by decorating ViewModel class
+ * Property decorator that creates hidden (shallow) ko.observable with ES6 getter and setter for it
  */
-export function component(
-    name: string,
-    options?: Object
-): ComponentDecorator;
-export function component(
-    name: string,
-    template: TemplateConfig,
-    options?: Object
-): ComponentDecorator;
-export function component(
-    name: string,
-    template: TemplateConfig,
-    styles: string | string[],
-    options?: Object
-): ComponentDecorator;
-
+export function observable(prototype: Object, key: string | symbol): void;
 /**
- * Register Knockout component by decorating ViewModel class
- * @param name { String } Name of component
- * @param template { Any } Knockout template definition
- * @param styles { Any } Ignored parameter (used for `require()` styles by webpack etc.)
- * @param options { Object } Another options that passed directly to `ko.components.register()`
+ * Property decorator that creates hidden (deep) ko.observable with ES6 getter and setter for it
  */
-export function component(
-    name: string,
-    template?: any,
-    styles?: any,
-    options?: Object
-) {
-    if (options === void 0) {
-        if (styles === void 0) {
-            if (typeof template === "object"
-                && template.constructor === Object
-                && !("require" in template)
-                && !("element" in template)
-            ) {
-                options = template;
-                template = void 0;
-            }
-        } else if (typeof styles === "object") {
-            options = styles;
-            styles = void 0;
-        }
-    }
-
-    return function (constructor: ComponentConstructor) {
-        ko.components.register(name, assign({
-            viewModel: constructor.length < 2 ? constructor : {
-                createViewModel(params, { element, templateNodes }) {
-                    return new constructor(params, element, templateNodes);
-                }
-            },
-            template: template || "<!---->",
-            synchronous: true,
-        }, options));
-    }
-}
-
-/*===========================================================================*/
+export function observable(options: { deep: boolean }): PropertyDecorator;
 
 /**
  * Property decorator that creates hidden ko.observable with ES6 getter and setter for it
  */
-export function observable(prototype: Object, key: string | symbol) {
+export function observable(prototypeOrOptions: any, key?: string | symbol) {
+    if (key === void 0) {
+        return prototypeOrOptions.deep ? defineDeepObservable : defineShallowObservable;
+    } else {
+        defineShallowObservable(prototypeOrOptions, key);
+    }
+}
+
+function defineShallowObservable(prototype: Object, key: string | symbol) {
     defineProperty(prototype, key, {
         configurable: true,
         get() {
@@ -127,6 +65,36 @@ export function observable(prototype: Object, key: string | symbol) {
 /*===========================================================================*/
 
 /**
+ * Utility function that makes all properties of target object "deep observable"
+ */
+export function reactive<T extends Object>(target: T): T;
+/**
+ * Property decorator that creates hidden (deep) ko.observable with ES6 getter and setter for it
+ */
+export function reactive(prototype: Object, key: string | symbol): void;
+
+/**
+ * Property decorator or utility function for making "deep observable" property or object
+ */
+export function reactive(prototypeOrInstance: Object, key?: string | symbol) {
+    if (key === void 0) {
+        if (typeof prototypeOrInstance === "object" && prototypeOrInstance !== null) {
+            if (Array.isArray(prototypeOrInstance)) {
+                return new ObservableArray(prototypeOrInstance);
+            } else {
+                return prepareObservableObject(prototypeOrInstance);
+            }
+        } else {
+            throw new Error("Only Arrays and Objects can be reactive");
+        }
+    } else {
+        defineDeepObservable(prototypeOrInstance, key);
+    }
+}
+
+/*===========================================================================*/
+
+/**
  * Accessor decorator that wraps ES6 getter to hidden ko.pureComputed
  * 
  * Setter is not wrapped to hidden ko.pureComputed and stays unchanged
@@ -145,7 +113,6 @@ export function computed(prototype: Object, key: string | symbol, desc: Property
         return computed();
     };
     return desc;
-    // TODO: make @computed extendable (by @extend decorator)
 }
 
 /*===========================================================================*/
@@ -323,6 +290,87 @@ export function extend(extendersOrFactory: Object | Function) {
 
 /*===========================================================================*/
 
+export interface ComponentConstructor {
+    new (
+        params?: any,
+        element?: Node,
+        templateNodes?: Node[]
+    ): any;
+}
+
+export type ComponentDecorator = (constructor: ComponentConstructor) => void;
+
+export type TemplateConfig = (
+    string
+    | Node[] 
+    | DocumentFragment 
+    | { require: string }
+    | { element: string | Node }
+);
+
+/**
+ * Register Knockout component by decorating ViewModel class
+ */
+export function component(
+    name: string,
+    options?: Object
+): ComponentDecorator;
+export function component(
+    name: string,
+    template: TemplateConfig,
+    options?: Object
+): ComponentDecorator;
+export function component(
+    name: string,
+    template: TemplateConfig,
+    styles: string | string[],
+    options?: Object
+): ComponentDecorator;
+
+/**
+ * Register Knockout component by decorating ViewModel class
+ * @param name { String } Name of component
+ * @param template { Any } Knockout template definition
+ * @param styles { Any } Ignored parameter (used for `require()` styles by webpack etc.)
+ * @param options { Object } Another options that passed directly to `ko.components.register()`
+ */
+export function component(
+    name: string,
+    template?: any,
+    styles?: any,
+    options?: Object
+) {
+    if (options === void 0) {
+        if (styles === void 0) {
+            if (typeof template === "object"
+                && template.constructor === Object
+                && !("require" in template)
+                && !("element" in template)
+            ) {
+                options = template;
+                template = void 0;
+            }
+        } else if (typeof styles === "object") {
+            options = styles;
+            styles = void 0;
+        }
+    }
+
+    return function (constructor: ComponentConstructor) {
+        ko.components.register(name, assign({
+            viewModel: constructor.length < 2 ? constructor : {
+                createViewModel(params, { element, templateNodes }) {
+                    return new constructor(params, element, templateNodes);
+                }
+            },
+            template: template || "<!---->",
+            synchronous: true,
+        }, options));
+    }
+}
+
+/*===========================================================================*/
+
 /**
  * Like https://github.com/jayphelps/core-decorators.js @autobind but less smart and complex
  * Do NOT use with ES6 inheritance!
@@ -394,5 +442,6 @@ export function unwrap(instance: Object, key: string | symbol) {
         // invoke getter on instance.__proto__ that defines property on instance
         instance[key];
     }
+    // TODO: unwrap also "deep observable" and deep ObservableArray
     return getOwnPropertyDescriptor(instance, key).get;
 }

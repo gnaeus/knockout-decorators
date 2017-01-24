@@ -462,7 +462,7 @@ describe("@autobind decorator", () => {
     });
 });
 
-describe("subscribe function", () => {
+describe("subscribe utility function", () => {
     it("should subscribe given callback to decorated @observable", () => {
         class ViewModel {
             plainField: number;
@@ -574,7 +574,7 @@ describe("subscribe function", () => {
     });
 });
 
-describe("unwrap function", () => {
+describe("unwrap utility function", () => {
     it("should return hidden observable", () => {
         class Test {
             @observable property = "";
