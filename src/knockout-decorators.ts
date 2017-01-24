@@ -1,13 +1,14 @@
 /**
  * Copyright (c) 2016 Dmitry Panyushkin
  * Available under MIT license
+ * Version: 0.8.0
  */
 import * as ko from "knockout";
 
 const assign = ko.utils.extend;
 const objectForEach = ko.utils.objectForEach;
-const defProp = Object.defineProperty.bind(Object);
-const getDescriptor = Object.getOwnPropertyDescriptor.bind(Object);
+const defineProperty = Object.defineProperty.bind(Object);
+const getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor.bind(Object);
 const hasOwnProperty = Function.prototype.call.bind(Object.prototype.hasOwnProperty);
 const slice = Function.prototype.call.bind(Array.prototype.slice);
 
@@ -98,11 +99,11 @@ export function component(
  * Property decorator that creates hidden ko.observable with ES6 getter and setter for it
  */
 export function observable(prototype: Object, key: string | symbol) {
-    defProp(prototype, key, {
+    defineProperty(prototype, key, {
         configurable: true,
         get() {
             const observable = applyExtenders(this, key, ko.observable());
-            defProp(this, key, {
+            defineProperty(this, key, {
                 configurable: true,
                 enumerable: true,
                 get: observable,
@@ -112,7 +113,7 @@ export function observable(prototype: Object, key: string | symbol) {
         },
         set(value) {
             const observable = applyExtenders(this, key, ko.observable());
-            defProp(this, key, {
+            defineProperty(this, key, {
                 configurable: true,
                 enumerable: true,
                 get: observable,
@@ -133,10 +134,10 @@ export function observable(prototype: Object, key: string | symbol) {
  * But we can still extend getter @computed by extenders like { rateLimit: 500 } 
  */
 export function computed(prototype: Object, key: string | symbol, desc: PropertyDescriptor) {
-    const { get, set } = desc || (desc = getDescriptor(prototype, key));
+    const { get, set } = desc || (desc = getOwnPropertyDescriptor(prototype, key));
     desc.get = function () {
         const computed = applyExtenders(this, key, ko.pureComputed(get, this));
-        defProp(this, key, {
+        defineProperty(this, key, {
             configurable: true,
             get: computed,
             set: set
@@ -159,7 +160,7 @@ function defObservableArray(instance: Object, key: string | symbol) {
     
     let insideObsArray = false;
 
-    defProp(instance, key, {
+    defineProperty(instance, key, {
         configurable: true,
         enumerable: true,
         get: obsArray,
@@ -191,7 +192,7 @@ function defObservableArray(instance: Object, key: string | symbol) {
     });
 
     function patchArrayMethods(array: any[]) {
-        arrayMethods.forEach(fnName => defProp(array, fnName, {
+        arrayMethods.forEach(fnName => defineProperty(array, fnName, {
             configurable: true,
             value() {
                 if (insideObsArray) {
@@ -203,7 +204,7 @@ function defObservableArray(instance: Object, key: string | symbol) {
                 return result;
             }
         }));
-        observableArrayMethods.forEach(fnName => defProp(array, fnName, {
+        observableArrayMethods.forEach(fnName => defineProperty(array, fnName, {
             configurable: true,
             value() {
                 insideObsArray = true;
@@ -229,7 +230,7 @@ function clearArrayMethods(array: any[]) {
  * Property decorator that creates hidden ko.observableArray with ES6 getter and setter for it
  */
 export function observableArray(prototype: Object, key: string | symbol) {
-    defProp(prototype, key, {
+    defineProperty(prototype, key, {
         configurable: true,
         get() {
             defObservableArray(this, key);
@@ -333,7 +334,7 @@ export function extend(extendersOrFactory: Object | Function) {
  * Do NOT use with ES6 inheritance!
  */
 export function autobind(prototype: Object, key: string | symbol, desc: PropertyDescriptor) {
-    const { value, configurable, enumerable } = desc || (desc = getDescriptor(prototype, key));
+    const { value, configurable, enumerable } = desc || (desc = getOwnPropertyDescriptor(prototype, key));
     return {
         configurable: configurable,
         enumerable: enumerable,
@@ -342,7 +343,7 @@ export function autobind(prototype: Object, key: string | symbol, desc: Property
                 return value;
             }
             const bound = value.bind(this);
-            defProp(this, key, {
+            defineProperty(this, key, {
                 configurable: true,
                 value: bound,
             });
@@ -399,5 +400,5 @@ export function unwrap(instance: Object, key: string | symbol) {
         // invoke getter on instance.__proto__ that defines property on instance
         instance[key];
     }
-    return getDescriptor(instance, key).get;
+    return getOwnPropertyDescriptor(instance, key).get;
 }
