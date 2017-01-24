@@ -155,7 +155,7 @@ type ObsArray = KnockoutObservableArray<any> & { [fnName: string]: Function };
 const arrayMethods = ["pop", "push", "reverse", "shift", "sort", "splice", "unshift"];
 const observableArrayMethods = ["remove", "removeAll", "destroy", "destroyAll", "replace", "subscribe"];
 
-function defObservableArray(instance: Object, key: string | symbol) {
+function defineObservableArray(instance: Object, key: string | symbol) {
     const obsArray = applyExtenders(instance, key, ko.observableArray()) as ObsArray;
     
     let insideObsArray = false;
@@ -216,7 +216,7 @@ function defObservableArray(instance: Object, key: string | symbol) {
     }
 }
 
-// moved outside of defObservableArray function to prevent creation of unnecessary closure
+// moved outside of defineObservableArray function to prevent creation of unnecessary closure
 function clearArrayMethods(array: any[]) {
     arrayMethods.forEach(fnName => {
         delete array[fnName]; 
@@ -233,12 +233,12 @@ export function observableArray(prototype: Object, key: string | symbol) {
     defineProperty(prototype, key, {
         configurable: true,
         get() {
-            defObservableArray(this, key);
+            defineObservableArray(this, key);
             this[key] = [];
             return this[key];
         },
         set(value: any[]) {
-            defObservableArray(this, key);
+            defineObservableArray(this, key);
             this[key] = value;
         },
     });
@@ -266,38 +266,21 @@ export interface ObservableArray<T> extends Array<T> {
 
 /*===========================================================================*/
 
-const DECORATORS_KEY = typeof Symbol !== "undefined"
-    ? Symbol("ko_decorators") : "__ko_decorators__";
+const EXTENDERS_KEY = typeof Symbol !== "undefined"
+    ? Symbol("ko_decorators_extenders") : "__ko_decorators_extenders__";
 
 type Extender = Object | Function;
 
-interface MetaData {
+interface ExtendersDictionary {
     [propName: string]: Extender[];
-}
-
-function getOrCreateMetaData(prototype: Object) {
-    let metaData: MetaData = prototype[DECORATORS_KEY];
-    if (!prototype.hasOwnProperty(DECORATORS_KEY)) {
-        // clone MetaData from base class prototype
-        prototype[DECORATORS_KEY] = metaData = assign({}, metaData) as MetaData;
-        // clone extenders arrays for each property key
-        objectForEach(metaData, (key, extenders) => {
-            metaData[key] = [...extenders];
-        });
-    }
-    return metaData;
-}
-
-function getOrCreateExtenders(metaData: MetaData, key: string | symbol) {
-    return metaData[key] || (metaData[key] = []);
 }
 
 function applyExtenders(
     instance: Object, key: string | symbol,
     target: KnockoutObservable<any> | KnockoutComputed<any>
 ) {
-    const metaData: MetaData = instance[DECORATORS_KEY];
-    const extenders = metaData && metaData[key];
+    const dictionary = instance[EXTENDERS_KEY] as ExtendersDictionary;
+    const extenders = dictionary && dictionary[key];
     if (extenders) {
         extenders.forEach(extender => {
             const koExtender = extender instanceof Function
@@ -321,8 +304,19 @@ export function extend(extendersFactory: () => Object): PropertyDecorator;
  */
 export function extend(extendersOrFactory: Object | Function) {
     return function (prototype: Object, key: string | symbol) {
-        const medaData = getOrCreateMetaData(prototype);
-        const extenders = getOrCreateExtenders(medaData, key);
+        let dictionary = prototype[EXTENDERS_KEY] as ExtendersDictionary;
+        // if there is no ExtendersDictionary or ExtendersDictionary lives in base class prototype
+        if (!hasOwnProperty(prototype, EXTENDERS_KEY)) {
+            // clone ExtendersDictionary from base class prototype or create new ExtendersDictionary
+            prototype[EXTENDERS_KEY] = dictionary = assign({}, dictionary) as ExtendersDictionary;
+            // clone Extenders arrays for each property key
+            objectForEach(dictionary, (key, extenders) => {
+                dictionary[key] = [...extenders];
+            });
+        }
+        // get existing Extenders array or create new array
+        const extenders = dictionary[key] || (dictionary[key] = []);
+        // add new Extender
         extenders.push(extendersOrFactory);
     }
 }
