@@ -172,6 +172,7 @@ function defineObservableArray(instance: Object, key: string | symbol) {
     function patchArrayMethods(array: any[]) {
         arrayMethods.forEach(fnName => defineProperty(array, fnName, {
             configurable: true,
+            enumerable: false,
             value() {
                 if (insideObsArray) {
                     return Array.prototype[fnName].apply(array, arguments);
@@ -184,6 +185,7 @@ function defineObservableArray(instance: Object, key: string | symbol) {
         }));
         observableArrayMethods.forEach(fnName => defineProperty(array, fnName, {
             configurable: true,
+            enumerable: false,
             value() {
                 insideObsArray = true;
                 const result = obsArray[fnName].apply(obsArray, arguments);
@@ -191,6 +193,16 @@ function defineObservableArray(instance: Object, key: string | symbol) {
                 return result;
             }
         }));
+        // mutation wrapper
+        defineProperty(array, "mutate", {
+            configurable: true,
+            enumerable: false,
+            value(mutator: (array?: any[]) => void) {
+                obsArray.valueWillMutate();
+                mutator(obsArray.peek());
+                obsArray.valueHasMutated();
+            }
+        });
     }
 }
 
@@ -200,8 +212,9 @@ function clearArrayMethods(array: any[]) {
         delete array[fnName]; 
     });
     observableArrayMethods.forEach(fnName => {
-        delete array[fnName]; 
+        delete array[fnName];
     });
+    delete array["mutate"];
 }
 
 /**
@@ -240,6 +253,8 @@ export interface ObservableArray<T> extends Array<T> {
     subscribe(callback: (val: T[]) => void): KnockoutSubscription;
     subscribe(callback: (val: T[]) => void, callbackTarget: any): KnockoutSubscription;
     subscribe(callback: (val: any[]) => void, callbackTarget: any, event: string): KnockoutSubscription;
+
+    mutate(mutator: (arrayValue: T[]) => void): void;
 }
 
 /*===========================================================================*/
@@ -469,4 +484,18 @@ export function unwrap(instance: Object, key: string | symbol) {
     } else {
         return observable;
     }
+}
+
+/*===========================================================================*/
+
+/**
+ * Run mutator function that can write to array at some index (`array[index] = value;`)
+ * Then notify about observableArray changes
+ */
+export function mutate<T>(
+    getObservableAray: () => T[],
+    mutator: (arrayValue?: T[]) => void
+) {
+    const array = getObservableAray() as ObservableArray<T>;
+    array.mutate(mutator);
 }

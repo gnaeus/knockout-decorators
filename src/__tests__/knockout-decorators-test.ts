@@ -7,7 +7,7 @@ jest.unmock("../knockout-decorators");
 
 import * as ko from "knockout";
 import {
-    component, observable, computed, extend, autobind,
+    component, observable, computed, extend, autobind, mutate,
     subscribe, reactive, unwrap, observableArray, ObservableArray
 } from "../knockout-decorators";
 
@@ -329,7 +329,7 @@ describe("@observableArray decorator", () => {
             { status: 'added', value: 6, index: 3 },
         ]);
         expect(changesSecond).toEqual([]);
-    })
+    });
 });
 
 describe("@extend decorator", () => {
@@ -723,4 +723,30 @@ describe("unwrap utility function", () => {
         expect(ko.isObservable(obsArray)).toBeTruthy();
         expect(Object.getPrototypeOf(obsArray)).toBe(ko.observableArray.fn);
     });
-})
+});
+
+describe("mutate utility function", () => {
+    it("should track @observableArray changes from numeric index setters", () => {
+        class ViewModel {
+            @observableArray array = [1, 2, 3] as ObservableArray<any>;
+        }
+
+        let vm = new ViewModel();
+        let changes = [];
+
+        vm.array.subscribe(val => { changes.push(...val); }, null, "arrayChange");
+
+        mutate(() => vm.array, (array) => {
+            array[1] = 4;
+            array[2] = 5;
+        });
+
+        expect(vm.array).toEqual([1, 4, 5]);
+        expect(changes).toEqual([
+            { status: 'added', value: 4, index: 1 },
+            { status: 'deleted', value: 2, index: 1 },
+            { status: 'added', value: 5, index: 2 },
+            { status: 'deleted', value: 3, index: 2 },
+        ]);
+    });
+});
