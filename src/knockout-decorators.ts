@@ -418,8 +418,17 @@ export function subscribe<T>(
     const once = options && options.once || false;
     const event = options && options.event || "change";
 
-    const dependency = ko.computed(getDependency);
+    let dependency = ko.computed(getDependency);
     
+    // unwrap ReactiveArray
+    if (dependency.peek() instanceof ReactiveArray) {
+        dependency.dispose();
+        dependency = ko.computed(() => {
+            const array = getDependency();
+            return array && array["unwrap"]();
+        });
+    }
+
     const subscription = dependency.subscribe(callback, null, event);
     
     const originalDispose = subscription.dispose;

@@ -572,6 +572,27 @@ describe("subscribe utility function", () => {
 
         expect(sideEffectValue).toBe(123);
     });
+
+    it("should subscribe to ReactiveArray changes", () => {
+        class ViewModel {
+            @reactive array = [];
+        }
+
+        let vm = new ViewModel();
+
+        let changesCount = 0;
+        let currentValue = null;
+        subscribe(() => vm.array, (array) => {
+            changesCount++;
+            currentValue = array;
+        });
+
+        vm.array.push(1, 2, 3);
+        vm.array[1] = 100;
+
+        expect(changesCount).toBe(2);
+        expect(currentValue).toEqual([1, 100, 3]);
+    });
 });
 
 describe("unwrap utility function", () => {
