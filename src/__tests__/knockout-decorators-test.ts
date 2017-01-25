@@ -8,7 +8,7 @@ jest.unmock("../knockout-decorators");
 import * as ko from "knockout";
 import {
     component, observable, computed, extend, autobind,
-    subscribe, unwrap, observableArray, ObservableArray
+    subscribe, reactive, unwrap, observableArray, ObservableArray
 } from "../knockout-decorators";
 
 interface ComponentConfig extends KnockoutComponentTypes.ComponentConfig {
@@ -688,5 +688,18 @@ describe("unwrap utility function", () => {
         expect(ko.isComputed(computedField)).toBeTruthy();
         expect(ko.isObservable(observableDerivedField)).toBeTruthy();
         expect(ko.isComputed(computedDerivedField)).toBeTruthy();
+    });
+
+    it("should unwrap ReactiveArray", () => {
+        class ViewModel {
+            @reactive array = [];
+        }
+
+        let vm = new ViewModel();
+
+        let obsArray = unwrap(vm, "array");
+
+        expect(ko.isObservable(obsArray)).toBeTruthy();
+        expect(Object.getPrototypeOf(obsArray)).toBe(ko.observableArray.fn);
     });
 })

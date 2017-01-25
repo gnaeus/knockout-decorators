@@ -11,13 +11,13 @@ const hasOwnProperty = Function.prototype.call.bind(Object.prototype.hasOwnPrope
 const slice = Function.prototype.call.bind(Array.prototype.slice);
 
 export function defineReactiveProperty(instance: Object, key: string | symbol, value?: any) {
-    const observable = ko.observable(prepareReactiveleValue(value));
+    const observable = ko.observable(prepareReactiveValue(value));
     defineProperty(instance, key, {
         configurable: true,
         enumerable: true,
         get: observable,
         set(value) {
-            observable(prepareReactiveleValue(value));
+            observable(prepareReactiveValue(value));
         },
     });
     if (value === void 0) {
@@ -25,7 +25,7 @@ export function defineReactiveProperty(instance: Object, key: string | symbol, v
     }
 }
 
-function prepareReactiveleValue(value: any) {
+function prepareReactiveValue(value: any) {
     if (typeof value === "object" && value !== null) {
         if (Array.isArray(value)) {
             return new ReactiveArray(value);
@@ -66,7 +66,7 @@ export class ReactiveArray {
     
     constructor(value: any[]) {
         for (let i = 0; i < value.length; ++i) {
-            value[i] = prepareReactiveleValue(value[i]);
+            value[i] = prepareReactiveValue(value[i]);
         }
 
         this._defineArrayIndexAccessors(value.length);
@@ -82,7 +82,7 @@ export class ReactiveArray {
     push() {
         const args = slice(arguments);
         for (let i = 0; i < args.length; ++i) {
-            args[i] = prepareReactiveleValue(args[i]);
+            args[i] = prepareReactiveValue(args[i]);
         }
         this._defineArrayIndexAccessors(this._observableArray.length + args.length);
         return this._observableArray.push.apply(this._observableArray, args);
@@ -92,7 +92,7 @@ export class ReactiveArray {
     unshift() {
         const args = slice(arguments);
         for (let i = 0; i < args.length; ++i) {
-            args[i] = prepareReactiveleValue(args[i]);
+            args[i] = prepareReactiveValue(args[i]);
         }
         this._defineArrayIndexAccessors(this._observableArray.length + args.length);
         return this._observableArray.unshift.apply(this._observableArray, args);
@@ -102,7 +102,7 @@ export class ReactiveArray {
     splice(start: number, remove: number) {
         const args = slice(arguments);
         for (let i = 2; i < args.length; ++i) {
-            args[i] = prepareReactiveleValue(args[i]);
+            args[i] = prepareReactiveValue(args[i]);
         }
 
         const append = Math.max(args.length - 2, 0);
@@ -129,7 +129,7 @@ export class ReactiveArray {
 
     /** ko.observableArray.fn.replace() */
     replace(oldItem: any, newItem: any) {
-        return this._observableArray.replace(oldItem, prepareReactiveleValue(newItem));
+        return this._observableArray.replace(oldItem, prepareReactiveValue(newItem));
     }
 
     /** 
@@ -164,7 +164,7 @@ export class ReactiveArray {
                         return this._observableArray()[i];
                     },
                     set: function (value: any) {
-                        this._observableArray.splice(i, 1, prepareReactiveleValue(value));
+                        this._observableArray.splice(i, 1, prepareReactiveValue(value));
                     },
                 });
             }

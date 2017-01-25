@@ -453,6 +453,11 @@ export function unwrap(instance: Object, key: string | symbol) {
         // invoke getter on instance.__proto__ that defines property on instance
         instance[key];
     }
-    // TODO: unwrap also "deep observable" and deep ObservableArray
-    return getOwnPropertyDescriptor(instance, key).get;
+    const observable = getOwnPropertyDescriptor(instance, key).get as KnockoutObservable<any>;
+    if (observable.peek() instanceof ReactiveArray) {
+        const array = observable() as ReactiveArray;
+        return array._observableArray;
+    } else {
+        return observable;
+    }
 }
