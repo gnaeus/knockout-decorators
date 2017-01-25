@@ -10,47 +10,32 @@ const getPrototypeOf = Object.getPrototypeOf.bind(Object);
 const hasOwnProperty = Function.prototype.call.bind(Object.prototype.hasOwnProperty);
 const slice = Function.prototype.call.bind(Array.prototype.slice);
 
-export function defineObservableProperty(instance: Object, key: string | symbol) {
+export function defineReactiveProperty(instance: Object, key: string | symbol, value?: any) {
+    const observable = ko.observable(prepareReactiveleValue(value));
     defineProperty(instance, key, {
         configurable: true,
-        get() {
-            const observable = ko.observable();
-            defineProperty(this, key, {
-                configurable: true,
-                enumerable: true,
-                get: observable,
-                set(value: any) {
-                    observable(prepareObservableValue(value));
-                },
-            });
-            return observable();
-        },
+        enumerable: true,
+        get: observable,
         set(value) {
-            const observable = ko.observable();
-            defineProperty(this, key, {
-                configurable: true,
-                enumerable: true,
-                get: observable,
-                set(value: any) {
-                    observable(prepareObservableValue(value));
-                },
-            });
-            this[key] = value;
+            observable(prepareReactiveleValue(value));
         },
     });
+    if (value === void 0) {
+        return observable();
+    }
 }
 
-function prepareObservableValue(value: any) {
+function prepareReactiveleValue(value: any) {
     if (typeof value === "object" && value !== null) {
         if (Array.isArray(value)) {
-            return new ObservableArray(value);
+            return new ReactiveArray(value);
         } else if (value.constructor === Object) {
-            return prepareObservableObject(value);
+            return prepareReactiveObject(value);
         } else if (hasOwnProperty(value, "constructor")) {
             const prototype = getPrototypeOf(value);
             // if value is plain object
             if (prototype === Object.prototype || prototype === null) {
-                return prepareObservableObject(value);
+                return prepareReactiveObject(value);
             }
         }
     }
@@ -60,48 +45,64 @@ function prepareObservableValue(value: any) {
 const REACTIVE_KEY = typeof Symbol !== "undefined"
     ? Symbol("ko_decorators_reactive") : "__ko_decorators_reactive__";
 
-export function prepareObservableObject(instance: Object) {
+export function prepareReactiveObject(instance: Object) {
     if (!hasOwnProperty(instance, REACTIVE_KEY)) {
         objectForEach(instance, (key, value) => {
-            defineObservableProperty(instance, key);
-            instance[key] = value;
+            defineReactiveProperty(instance, key, value);
         });
         // mark instance as ObservableObject
-        instance[REACTIVE_KEY] = void 0;
+        defineProperty(instance, REACTIVE_KEY, {
+            configurable: true,
+            enumerable: false,
+            value: void 0
+        });
     }
     return instance;
 }
 
-export class ObservableArray {
+export class ReactiveArray {
+    /** @private */
     _observableArray: KnockoutObservableArray<any>;
     
     constructor(value: any[]) {
+        for (let i = 0; i < value.length; ++i) {
+            value[i] = prepareReactiveleValue(value[i]);
+        }
+
         this._defineArrayIndexAccessors(value.length);
-        this._observableArray = ko.observableArray(value);
+
+        defineProperty(this, "_observableArray", {
+            configurable: true,
+            enumerable: false,
+            value: ko.observableArray(value)
+        });
     }
 
+    /** Array.prototype.push() */
     push() {
         const args = slice(arguments);
         for (let i = 0; i < args.length; ++i) {
-            args[i] = prepareObservableValue(args[i]);
+            args[i] = prepareReactiveleValue(args[i]);
         }
         this._defineArrayIndexAccessors(this._observableArray.length + args.length);
-        this._observableArray.push.apply(this._observableArray, args);
+        return this._observableArray.push.apply(this._observableArray, args);
     }
 
+    /** Array.prototype.unshift() */
     unshift() {
         const args = slice(arguments);
         for (let i = 0; i < args.length; ++i) {
-            args[i] = prepareObservableValue(args[i]);
+            args[i] = prepareReactiveleValue(args[i]);
         }
         this._defineArrayIndexAccessors(this._observableArray.length + args.length);
-        this._observableArray.unshift.apply(this._observableArray, args);
+        return this._observableArray.unshift.apply(this._observableArray, args);
     }
 
+    /** Array.prototype.splice() */
     splice(start: number, remove: number) {
         const args = slice(arguments);
         for (let i = 2; i < args.length; ++i) {
-            args[i] = prepareObservableValue(args[i]);
+            args[i] = prepareReactiveleValue(args[i]);
         }
 
         const append = Math.max(args.length - 2, 0);
@@ -123,45 +124,62 @@ export class ObservableArray {
         }
         
         this._defineArrayIndexAccessors(length - remove + append);
-        this._observableArray.splice.apply(this._observableArray, args);
+        return this._observableArray.splice.apply(this._observableArray, args);
     }
 
-    // ko.observableArray.fn
+    /** ko.observableArray.fn.replace() */
     replace(oldItem: any, newItem: any) {
-        this._observableArray.replace(oldItem, prepareObservableValue(newItem));
+        return this._observableArray.replace(oldItem, prepareReactiveleValue(newItem));
     }
 
+    /** 
+     * ko.observable.fn.peek()
+     * 
+     * Get native array instance. If called from ko.computed() then dependency will not be registered.
+     */
+    peek() {
+        return this._observableArray.peek();
+    }
+
+    /**
+     * Get native array instance. If called from ko.computed() then dependency will be registered.
+     */
+    unwrap() {
+        return this._observableArray();
+    }
+
+    /** Object.prototype.toJSON() */
     toJSON() {
         return this._observableArray();
     }
 
+    /** @private */
     _defineArrayIndexAccessors(length: number) {
-        if (ObservableArray._maxLength < length) {
-            const from = ObservableArray._maxLength;
-
-            for (let i = from; i < length; i++) {
-                defineProperty(ObservableArray.prototype, i.toString(), {
+        if (ReactiveArray._maxLength < length) {
+            for (let i = ReactiveArray._maxLength; i < length; i++) {
+                defineProperty(ReactiveArray.prototype, i.toString(), {
                     configurable: true,
                     enumerable: true,
                     get: function () {
                         return this._observableArray()[i];
                     },
                     set: function (value: any) {
-                        this._observableArray.splice(i, 1, prepareObservableValue(value));
+                        this._observableArray.splice(i, 1, prepareReactiveleValue(value));
                     },
                 });
             }
-            ObservableArray._maxLength = length;
+            ReactiveArray._maxLength = length;
         }
     }
 
+    /** @private */
     static _maxLength = 0;
 }
 
-defineProperty(ObservableArray.prototype, "length", {
+defineProperty(ReactiveArray.prototype, "length", {
     configurable: true,
     enumerable: false,
-    get(this: ObservableArray) {
+    get(this: ReactiveArray) {
         return this._observableArray().length;
     },
 });
@@ -172,17 +190,20 @@ defineProperty(ObservableArray.prototype, "length", {
     "unshift",
     "splice",
     "replace",
+    "peek",
+    "unwrap",
     "toJSON",
     "_defineArrayIndexAccessors",
 ].forEach(key => {
-    defineProperty(ObservableArray.prototype, key, {
+    defineProperty(ReactiveArray.prototype, key, {
         configurable: true,
         enumerable: false,
-        value: ObservableArray.prototype[key],
+        value: ReactiveArray.prototype[key],
     }); 
 });
 
 [
+    // Array.prototype[fnName]
 	"concat",
     "every",
     "filter",
@@ -202,35 +223,35 @@ defineProperty(ObservableArray.prototype, "length", {
     "toLocaleString",
     "toString",
 ].forEach(fnName => {
-    defineProperty(ObservableArray.prototype, fnName, {
+    defineProperty(ReactiveArray.prototype, fnName, {
         configurable: true,
         enumerable: false,
-        value(this: ObservableArray) {
+        value(this: ReactiveArray) {
             const nativeArray = this._observableArray();
-            nativeArray[fnName].apply(nativeArray, arguments);
+            return nativeArray[fnName].apply(nativeArray, arguments);
         }
     });
 });
 
 [
-    // redefined Array methods
+    // Array.prototype[fnName]
     "pop",
     "reverse",
     "shift",
     "sort",
-    // observableArray methods
+    // ko.observableArray.fn[fnName]
     "remove",
     "removeAll",
     "destroy",
     "destroyAll",
     "subscribe"
 ].forEach(fnName => {
-    defineProperty(ObservableArray.prototype, fnName, {
+    defineProperty(ReactiveArray.prototype, fnName, {
         configurable: true,
         enumerable: false,
-        value(this: ObservableArray) {
+        value(this: ReactiveArray) {
             const observableArray = this._observableArray as any;
-            observableArray[fnName].apply(observableArray, arguments);
+            return observableArray[fnName].apply(observableArray, arguments);
         }
     });
 });

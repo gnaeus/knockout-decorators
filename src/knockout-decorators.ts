@@ -4,8 +4,7 @@
  * Version: 0.9.0-dev
  */
 import * as ko from "knockout";
-import { defineObservableProperty as defineDeepObservable } from "./deep-observable";
-import { prepareObservableObject, ObservableArray } from "./deep-observable";
+import { defineReactiveProperty, prepareReactiveObject, ReactiveArray } from "./deep-observable";
 
 const assign = ko.utils.extend;
 const objectForEach = ko.utils.objectForEach;
@@ -62,6 +61,18 @@ function defineShallowObservable(prototype: Object, key: string | symbol) {
     });
 }
 
+function defineDeepObservable(prototype: Object, key: string | symbol) {
+    defineProperty(prototype, key, {
+        configurable: true,
+        get() {
+            return defineReactiveProperty(this, key);
+        },
+        set(value) {
+            defineReactiveProperty(this, key, value);
+        },
+    });
+}
+
 /*===========================================================================*/
 
 /**
@@ -80,9 +91,9 @@ export function reactive(prototypeOrInstance: Object, key?: string | symbol) {
     if (key === void 0) {
         if (typeof prototypeOrInstance === "object" && prototypeOrInstance !== null) {
             if (Array.isArray(prototypeOrInstance)) {
-                return new ObservableArray(prototypeOrInstance);
+                return new ReactiveArray(prototypeOrInstance);
             } else {
-                return prepareObservableObject(prototypeOrInstance);
+                return prepareReactiveObject(prototypeOrInstance);
             }
         } else {
             throw new Error("Only Arrays and Objects can be reactive");
