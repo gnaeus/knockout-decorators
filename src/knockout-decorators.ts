@@ -148,14 +148,14 @@ function defineObservableArray(instance: Object, key: string | symbol) {
             if (lastValue !== value) {
                 if (Array.isArray(lastValue)) {
                     // if lastValue array methods were already patched
-                    if (hasOwnProperty(lastValue, "subscribe")) {
+                    if (hasOwnProperty(lastValue, "mutate")) {
                         // clear patched array methods on lastValue (see unit tests)
                         clearArrayMethods(lastValue);
                     }
                 }
                 if (Array.isArray(value)) {
                     // if new value array methods were already connected with another @observableArray
-                    if (hasOwnProperty(value, "subscribe")) {
+                    if (hasOwnProperty(value, "mutate")) {
                         // clone new value to prevent corruption of another @observableArray (see unit tests)
                         value = slice(value);
                     }
@@ -172,7 +172,6 @@ function defineObservableArray(instance: Object, key: string | symbol) {
     function patchArrayMethods(array: any[]) {
         arrayMethods.forEach(fnName => defineProperty(array, fnName, {
             configurable: true,
-            enumerable: false,
             value() {
                 if (insideObsArray) {
                     return Array.prototype[fnName].apply(array, arguments);
@@ -183,9 +182,9 @@ function defineObservableArray(instance: Object, key: string | symbol) {
                 return result;
             }
         }));
+        
         observableArrayMethods.forEach(fnName => defineProperty(array, fnName, {
             configurable: true,
-            enumerable: false,
             value() {
                 insideObsArray = true;
                 const result = obsArray[fnName].apply(obsArray, arguments);
@@ -193,14 +192,20 @@ function defineObservableArray(instance: Object, key: string | symbol) {
                 return result;
             }
         }));
-        // mutation wrapper
+
         defineProperty(array, "mutate", {
             configurable: true,
-            enumerable: false,
             value(mutator: (array?: any[]) => void) {
                 obsArray.valueWillMutate();
                 mutator(obsArray.peek());
                 obsArray.valueHasMutated();
+            }
+        });
+
+        defineProperty(array, "set", {
+            configurable: true,
+            value<T>(index: number, value: T) {
+                return obsArray.splice(index, 1, value)[0];
             }
         });
     }
@@ -215,6 +220,7 @@ function clearArrayMethods(array: any[]) {
         delete array[fnName];
     });
     delete array["mutate"];
+    delete array["set"];
 }
 
 /**
@@ -254,7 +260,16 @@ export interface ObservableArray<T> extends Array<T> {
     subscribe(callback: (val: T[]) => void, callbackTarget: any): KnockoutSubscription;
     subscribe(callback: (val: any[]) => void, callbackTarget: any, event: string): KnockoutSubscription;
 
+    /**
+     * Run mutator function that can write to array at some index (`array[index] = value;`)
+     * Then notify about observableArray changes
+     */
     mutate(mutator: (arrayValue: T[]) => void): void;
+
+    /**
+     * Replace value at some index and return old value
+     */
+    set(index: number, value: T): T;
 }
 
 /*===========================================================================*/

@@ -53,8 +53,7 @@ export function prepareReactiveObject(instance: Object) {
         // mark instance as ObservableObject
         defineProperty(instance, REACTIVE_KEY, {
             configurable: true,
-            enumerable: false,
-            value: void 0
+            value: void 0,
         });
     }
     return instance;
@@ -73,8 +72,7 @@ export class ReactiveArray {
 
         defineProperty(this, "_observableArray", {
             configurable: true,
-            enumerable: false,
-            value: ko.observableArray(value)
+            value: ko.observableArray(value),
         });
     }
 
@@ -178,7 +176,6 @@ export class ReactiveArray {
 
 defineProperty(ReactiveArray.prototype, "length", {
     configurable: true,
-    enumerable: false,
     get(this: ReactiveArray) {
         return this._observableArray().length;
     },
@@ -197,7 +194,6 @@ defineProperty(ReactiveArray.prototype, "length", {
 ].forEach(key => {
     defineProperty(ReactiveArray.prototype, key, {
         configurable: true,
-        enumerable: false,
         value: ReactiveArray.prototype[key],
     }); 
 });
@@ -225,11 +221,10 @@ defineProperty(ReactiveArray.prototype, "length", {
 ].forEach(fnName => {
     defineProperty(ReactiveArray.prototype, fnName, {
         configurable: true,
-        enumerable: false,
         value(this: ReactiveArray) {
             const nativeArray = this._observableArray();
             return nativeArray[fnName].apply(nativeArray, arguments);
-        }
+        },
     });
 });
 
@@ -248,10 +243,9 @@ defineProperty(ReactiveArray.prototype, "length", {
 ].forEach(fnName => {
     defineProperty(ReactiveArray.prototype, fnName, {
         configurable: true,
-        enumerable: false,
         value(this: ReactiveArray) {
             const observableArray = this._observableArray as any;
             return observableArray[fnName].apply(observableArray, arguments);
-        }
+        },
     });
 });

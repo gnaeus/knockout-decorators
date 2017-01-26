@@ -263,8 +263,12 @@ describe("@observableArray decorator", () => {
         expect(previous).not.toBe(vm.array);
         expect(Object.hasOwnProperty.call(previous, "push")).toBeFalsy();
         expect(Object.hasOwnProperty.call(previous, "subscribe")).toBeFalsy();
+        expect(Object.hasOwnProperty.call(previous, "mutate")).toBeFalsy();
+        expect(Object.hasOwnProperty.call(previous, "set")).toBeFalsy();
         expect(Object.hasOwnProperty.call(vm.array, "push")).toBeTruthy();
         expect(Object.hasOwnProperty.call(vm.array, "subscribe")).toBeTruthy();
+        expect(Object.hasOwnProperty.call(vm.array, "mutate")).toBeTruthy();
+        expect(Object.hasOwnProperty.call(vm.array, "set")).toBeTruthy();
     });
 
     it("should lazily create observableArray on instance", () => {
@@ -329,6 +333,47 @@ describe("@observableArray decorator", () => {
             { status: 'added', value: 6, index: 3 },
         ]);
         expect(changesSecond).toEqual([]);
+    });
+
+    it("should have 'mutate' method", () => {
+        class ViewModel {
+            @observableArray array = [1, 2, 3] as ObservableArray<any>;
+        }
+
+        let vm = new ViewModel();
+        let changes = [];
+
+        vm.array.subscribe(val => { changes.push(...val); }, null, "arrayChange");
+
+        vm.array.mutate((array) => {
+            array[1] = 4;
+        });
+
+        expect(vm.array).toEqual([1, 4, 3]);
+        expect(changes).toEqual([
+            { status: 'added', value: 4, index: 1 },
+            { status: 'deleted', value: 2, index: 1 },
+        ]);
+    });
+
+    it("should have 'set' method", () => {
+        class ViewModel {
+            @observableArray array = [1, 2, 3] as ObservableArray<any>;
+        }
+
+        let vm = new ViewModel();
+        let changes = [];
+
+        vm.array.subscribe(val => { changes.push(...val); }, null, "arrayChange");
+
+        let oldValue = vm.array.set(1, 4);
+
+        expect(oldValue).toBe(2);
+        expect(vm.array).toEqual([1, 4, 3]);
+        expect(changes).toEqual([
+            { status: 'deleted', value: 2, index: 1 },
+            { status: 'added', value: 4, index: 1 },
+        ]);
     });
 });
 
