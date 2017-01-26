@@ -2,7 +2,6 @@
   "compilerOptions": {
     "experimentalDecorators": true,
     "declaration": true,
-    "declarationDir": "dist",    
     "lib": [
       "dom", "es5", "es6"
     ],
