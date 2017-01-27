@@ -12,7 +12,7 @@
     "build-dist": "rollup -c & rollup -c rollup.config.min.js",
     "build-typings": "tsc -p tsconfig.typings.json && npm run move-typings && npm run fix-typings",
     "move-typings": "shx cp __temp/knockout-decorators.d.ts dist/knockout-decorators.d.ts && shx rm -rf __temp",
-    "fix-typings": "shx cat src/knockout-decorators.d.ts.tmpl >> dist/knockout-decorators.d.ts",
+    "fix-typings": "shx echo \"export as namespace KnockoutDecorators;\" >> dist/knockout-decorators.d.ts",
     "test": "jest --no-cache"
   },
   "repository": {
