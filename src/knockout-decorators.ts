@@ -4,106 +4,54 @@
  * Version: 0.9.0-dev
  */
 import * as ko from "knockout";
-import { defineReactiveProperty, prepareReactiveObject, ReactiveArray } from "./deep-observable";
-
-const assign = ko.utils.extend;
-const objectForEach = ko.utils.objectForEach;
-const defineProperty = Object.defineProperty.bind(Object);
-const getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor.bind(Object);
-const hasOwnProperty = Function.prototype.call.bind(Object.prototype.hasOwnProperty);
-const slice = Function.prototype.call.bind(Array.prototype.slice);
-
-/*===========================================================================*/
+import { extendObject, defineProperty, hasOwnProperty, getOwnPropertyDescriptor } from "./common-functions";
+import { defineExtenders, applyExtenders } from "./property-extenders";
+import { defineObservableProperty, prepareReactiveObject } from "./observable-property";
+import { defineObservableArray } from "./observable-array";
 
 /**
  * Property decorator that creates hidden (shallow) ko.observable with ES6 getter and setter for it
+ * If initialized by array TODO
  */
-export function observable(prototype: Object, key: string | symbol): void;
-/**
- * Property decorator that creates hidden (deep) ko.observable with ES6 getter and setter for it
- */
-export function observable(options: { deep: boolean }): PropertyDecorator;
-
-/**
- * Property decorator that creates hidden ko.observable with ES6 getter and setter for it
- */
-export function observable(prototypeOrOptions: any, key?: string | symbol) {
-    if (key === void 0) {
-        return prototypeOrOptions.deep ? defineDeepObservable : defineShallowObservable;
-    } else {
-        defineShallowObservable(prototypeOrOptions, key);
-    }
-}
-
-function defineShallowObservable(prototype: Object, key: string | symbol) {
+export function observable(prototype: Object, key: string | symbol) {
     defineProperty(prototype, key, {
         configurable: true,
         get() {
-            const observable = applyExtenders(this, key, ko.observable());
-            defineProperty(this, key, {
-                configurable: true,
-                enumerable: true,
-                get: observable,
-                set: observable,
-            });
-            return observable();
+            throw new Error("@observable property " + key.toString() + " was not initialized");
         },
-        set(value) {
-            const observable = applyExtenders(this, key, ko.observable());
-            defineProperty(this, key, {
-                configurable: true,
-                enumerable: true,
-                get: observable,
-                set: observable,
-            });
-            observable(value);
-        },
-    });
-}
-
-function defineDeepObservable(prototype: Object, key: string | symbol) {
-    defineProperty(prototype, key, {
-        configurable: true,
-        get() {
-            return defineReactiveProperty(this, key);
-        },
-        set(value) {
-            defineReactiveProperty(this, key, value);
-        },
-    });
-}
-
-/*===========================================================================*/
-
-/**
- * Utility function that makes all properties of target object "deep observable"
- */
-export function reactive<T extends Object>(target: T): T;
-/**
- * Property decorator that creates hidden (deep) ko.observable with ES6 getter and setter for it
- */
-export function reactive(prototype: Object, key: string | symbol): void;
-
-/**
- * Property decorator or utility function for making "deep observable" property or object
- */
-export function reactive(prototypeOrInstance: Object, key?: string | symbol) {
-    if (key === void 0) {
-        if (typeof prototypeOrInstance === "object" && prototypeOrInstance !== null) {
-            if (Array.isArray(prototypeOrInstance)) {
-                return new ReactiveArray(prototypeOrInstance);
+        set(value: any) {
+            if (Array.isArray(value)) {
+                defineObservableArray(this, key, value, false);
             } else {
-                return prepareReactiveObject(prototypeOrInstance);
+                defineObservableProperty(this, key, value, false);
             }
-        } else {
-            throw new Error("Only Arrays and Objects can be reactive");
-        }
-    } else {
-        defineDeepObservable(prototypeOrInstance, key);
-    }
+        },
+    });
 }
 
-/*===========================================================================*/
+/*---------------------------------------------------------------------------*/
+
+/**
+ * Property decorator that creates hidden (deep) ko.observable with ES6 getter and setter for it
+ * If initialized by array TODO
+ */
+export function reactive(prototype: Object, key: string | symbol) {
+    defineProperty(prototype, key, {
+        configurable: true,
+        get() {
+            throw new Error("@reactive property " + key.toString() + " was not initialized");
+        },
+        set(value: any) {
+            if (Array.isArray(value)) {
+                defineObservableArray(this, key, value, true);
+            } else {
+                defineObservableProperty(this, key, value, true);
+            }
+        },
+    });
+}
+
+/*---------------------------------------------------------------------------*/
 
 /**
  * Accessor decorator that wraps ES6 getter to hidden ko.pureComputed
@@ -126,117 +74,19 @@ export function computed(prototype: Object, key: string | symbol, desc: Property
     return desc;
 }
 
-/*===========================================================================*/
-
-type ObsArray = KnockoutObservableArray<any> & { [fnName: string]: Function };
-
-const arrayMethods = ["pop", "push", "reverse", "shift", "sort", "splice", "unshift"];
-const observableArrayMethods = ["remove", "removeAll", "destroy", "destroyAll", "replace", "subscribe"];
-
-function defineObservableArray(instance: Object, key: string | symbol) {
-    const obsArray = applyExtenders(instance, key, ko.observableArray()) as ObsArray;
-    
-    let insideObsArray = false;
-
-    defineProperty(instance, key, {
-        configurable: true,
-        enumerable: true,
-        get: obsArray,
-        set(value: any[]) {
-            const lastValue = obsArray.peek();
-            // if we got new value
-            if (lastValue !== value) {
-                if (Array.isArray(lastValue)) {
-                    // if lastValue array methods were already patched
-                    if (hasOwnProperty(lastValue, "mutate")) {
-                        // clear patched array methods on lastValue (see unit tests)
-                        clearArrayMethods(lastValue);
-                    }
-                }
-                if (Array.isArray(value)) {
-                    // if new value array methods were already connected with another @observableArray
-                    if (hasOwnProperty(value, "mutate")) {
-                        // clone new value to prevent corruption of another @observableArray (see unit tests)
-                        value = slice(value);
-                    }
-                    // call ko.observableArray.fn[fnName] instead of Array.prototype[fnName]
-                    patchArrayMethods(value);
-                }
-            }
-            insideObsArray = true;
-            obsArray(value);
-            insideObsArray = false;
-        }
-    });
-
-    function patchArrayMethods(array: any[]) {
-        arrayMethods.forEach(fnName => defineProperty(array, fnName, {
-            configurable: true,
-            value() {
-                if (insideObsArray) {
-                    return Array.prototype[fnName].apply(array, arguments);
-                }
-                insideObsArray = true;
-                const result = obsArray[fnName].apply(obsArray, arguments);
-                insideObsArray = false;
-                return result;
-            }
-        }));
-        
-        observableArrayMethods.forEach(fnName => defineProperty(array, fnName, {
-            configurable: true,
-            value() {
-                insideObsArray = true;
-                const result = obsArray[fnName].apply(obsArray, arguments);
-                insideObsArray = false;
-                return result;
-            }
-        }));
-
-        defineProperty(array, "mutate", {
-            configurable: true,
-            value(mutator: (array?: any[]) => void) {
-                obsArray.valueWillMutate();
-                mutator(obsArray.peek());
-                obsArray.valueHasMutated();
-            }
-        });
-
-        defineProperty(array, "set", {
-            configurable: true,
-            value<T>(index: number, value: T) {
-                return obsArray.splice(index, 1, value)[0];
-            }
-        });
-    }
-}
-
-// moved outside of defineObservableArray function to prevent creation of unnecessary closure
-function clearArrayMethods(array: any[]) {
-    arrayMethods.forEach(fnName => {
-        delete array[fnName]; 
-    });
-    observableArrayMethods.forEach(fnName => {
-        delete array[fnName];
-    });
-    delete array["mutate"];
-    delete array["set"];
-}
+/*---------------------------------------------------------------------------*/
 
 /**
- * Property decorator that creates hidden ko.observableArray with ES6 getter and setter for it
+ * Property decorator that creates hidden (shallow) ko.observableArray with ES6 getter and setter for it
  */
 export function observableArray(prototype: Object, key: string | symbol) {
     defineProperty(prototype, key, {
         configurable: true,
         get() {
-            defineObservableArray(this, key);
-            this[key] = [];
-            return this[key];
+            throw new Error("@observableArray property " + key.toString() + " was not initialized");
         },
         set(value: any[]) {
-            defineObservableArray(this, key);
-            this[key] = value;
+            defineObservableArray(this, key, value, false);
         },
     });
 }
@@ -272,64 +122,25 @@ export interface ObservableArray<T> extends Array<T> {
     set(index: number, value: T): T;
 }
 
-/*===========================================================================*/
-
-const EXTENDERS_KEY = typeof Symbol !== "undefined"
-    ? Symbol("ko_decorators_extenders") : "__ko_decorators_extenders__";
-
-type Extender = Object | Function;
-
-interface ExtendersDictionary {
-    [propName: string]: Extender[];
-}
-
-function applyExtenders(
-    instance: Object, key: string | symbol,
-    target: KnockoutObservable<any> | KnockoutComputed<any>
-) {
-    const dictionary = instance[EXTENDERS_KEY] as ExtendersDictionary;
-    const extenders = dictionary && dictionary[key];
-    if (extenders) {
-        extenders.forEach(extender => {
-            const koExtender = extender instanceof Function
-                ? extender.call(instance) : extender;
-
-            target = target.extend(koExtender);
-        });
-    }
-    return target;
-}
+/*---------------------------------------------------------------------------*/
 
 /**
  * Apply extenders to decorated @observable
  */
 export function extend(extenders: Object): PropertyDecorator;
+/**
+ * Apply extenders to decorated @observable
+ */
 export function extend(extendersFactory: () => Object): PropertyDecorator;
-
 /**
  * Apply extenders to decorated @observable
  * @extendersOrFactory { Object | Function } Knockout extenders definition or factory that produces definition
  */
 export function extend(extendersOrFactory: Object | Function) {
-    return function (prototype: Object, key: string | symbol) {
-        let dictionary = prototype[EXTENDERS_KEY] as ExtendersDictionary;
-        // if there is no ExtendersDictionary or ExtendersDictionary lives in base class prototype
-        if (!hasOwnProperty(prototype, EXTENDERS_KEY)) {
-            // clone ExtendersDictionary from base class prototype or create new ExtendersDictionary
-            prototype[EXTENDERS_KEY] = dictionary = assign({}, dictionary) as ExtendersDictionary;
-            // clone Extenders arrays for each property key
-            objectForEach(dictionary, (key, extenders) => {
-                dictionary[key] = [...extenders];
-            });
-        }
-        // get existing Extenders array or create new array
-        const extenders = dictionary[key] || (dictionary[key] = []);
-        // add new Extender
-        extenders.push(extendersOrFactory);
-    }
+    return defineExtenders;
 }
 
-/*===========================================================================*/
+/*---------------------------------------------------------------------------*/
 
 export interface ComponentConstructor {
     new (
@@ -356,18 +167,23 @@ export function component(
     name: string,
     options?: Object
 ): ComponentDecorator;
+/**
+ * Register Knockout component by decorating ViewModel class
+ */
 export function component(
     name: string,
     template: TemplateConfig,
     options?: Object
 ): ComponentDecorator;
+/**
+ * Register Knockout component by decorating ViewModel class
+ */
 export function component(
     name: string,
     template: TemplateConfig,
     styles: string | string[],
     options?: Object
 ): ComponentDecorator;
-
 /**
  * Register Knockout component by decorating ViewModel class
  * @param name { String } Name of component
@@ -398,7 +214,7 @@ export function component(
     }
 
     return function (constructor: ComponentConstructor) {
-        ko.components.register(name, assign({
+        ko.components.register(name, extendObject({
             viewModel: constructor.length < 2 ? constructor : {
                 createViewModel(params, { element, templateNodes }) {
                     return new constructor(params, element, templateNodes);
@@ -410,7 +226,7 @@ export function component(
     }
 }
 
-/*===========================================================================*/
+/*---------------------------------------------------------------------------*/
 
 /**
  * Like https://github.com/jayphelps/core-decorators.js @autobind but less smart and complex
@@ -435,7 +251,7 @@ export function autobind(prototype: Object, key: string | symbol, desc: Property
     } as PropertyDescriptor;
 }
 
-/*===========================================================================*/
+/*---------------------------------------------------------------------------*/
 
 /**
  * Subscribe callback to dependency changes
@@ -450,14 +266,14 @@ export function subscribe<T>(
 
     let dependency = ko.computed(getDependency);
     
-    // unwrap ReactiveArray
-    if (dependency.peek() instanceof ReactiveArray) {
-        dependency.dispose();
-        dependency = ko.computed(() => {
-            const array = getDependency();
-            return array && array["unwrap"]();
-        });
-    }
+    // TODO: unwrap ObservableArrayProxy
+    // if (dependency.peek() instanceof ObservableArrayProxy) {
+    //     dependency.dispose();
+    //     dependency = ko.computed(() => {
+    //         const array = getDependency() as ObservableArrayProxy;
+    //         return array && array.unwrap();
+    //     });
+    // }
 
     const subscription = dependency.subscribe(callback, null, event);
     
@@ -476,14 +292,16 @@ export function subscribe<T>(
     return subscription;
 }
 
-/*===========================================================================*/
+/*---------------------------------------------------------------------------*/
 
 /**
  * Get internal ko.observable() for object property decodated by @observable
  */
 export function unwrap(instance: Object, key: string | symbol): any;
+/**
+ * Get internal ko.observable() for object property decodated by @observable
+ */
 export function unwrap<T>(instance: Object, key: string | symbol): KnockoutObservable<T>;
-
 /**
  * Get internal ko.observable() for object property decodated by @observable
  */
@@ -493,15 +311,15 @@ export function unwrap(instance: Object, key: string | symbol) {
         instance[key];
     }
     const observable = getOwnPropertyDescriptor(instance, key).get as KnockoutObservable<any>;
-    if (observable.peek() instanceof ReactiveArray) {
-        const array = observable() as ReactiveArray;
-        return array._observableArray;
-    } else {
-        return observable;
-    }
+    // TODO: unwrap ObservableArrayProxy
+    // if (observable.peek() instanceof ObservableArrayProxy) {
+    //     const array = observable() as ObservableArrayProxy;
+    //     return array._observableArray;
+    // }
+    return observable;
 }
 
-/*===========================================================================*/
+/*---------------------------------------------------------------------------*/
 
 /**
  * Run mutator function that can write to array at some index (`array[index] = value;`)
