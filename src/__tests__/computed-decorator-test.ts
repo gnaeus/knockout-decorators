@@ -17,7 +17,7 @@ describe("@computed decorator", () => {
 
     it("should decorate porperties and getters", () => {
         class Calc {
-            @observable number: number;
+            @observable number: number = 0;
 
             @computed get square() {
                 return this.number * this.number;
@@ -38,7 +38,7 @@ describe("@computed decorator", () => {
 
     it("should lazily create properties on instance", () => {
         class Calc {
-            @observable number: number;
+            @observable number: number = 0;
 
             @computed get square() {
                 return this.number * this.number;
@@ -54,8 +54,8 @@ describe("@computed decorator", () => {
 
     it("should work with writeable computed", () => {
         class User {
-            @observable firstName;
-            @observable lastName;
+            @observable firstName = "";
+            @observable lastName = "";
 
             @computed
             get name() { return this.firstName + " " + this.lastName; }

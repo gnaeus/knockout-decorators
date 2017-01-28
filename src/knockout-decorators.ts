@@ -11,13 +11,13 @@ import { defineObservableArray } from "./observable-array";
 
 /**
  * Property decorator that creates hidden (shallow) ko.observable with ES6 getter and setter for it
- * If initialized by array TODO
+ * If initialized by Array then hidden (shallow) ko.observableArray will be created
  */
 export function observable(prototype: Object, key: string | symbol) {
     defineProperty(prototype, key, {
         configurable: true,
         get() {
-            throw new Error("@observable property " + key.toString() + " was not initialized");
+            throw new Error("@observable property '" + key.toString() + "' was not initialized");
         },
         set(value: any) {
             if (Array.isArray(value)) {
@@ -33,13 +33,13 @@ export function observable(prototype: Object, key: string | symbol) {
 
 /**
  * Property decorator that creates hidden (deep) ko.observable with ES6 getter and setter for it
- * If initialized by array TODO
+ * If initialized by Array then hidden (deep) ko.observableArray will be created
  */
 export function reactive(prototype: Object, key: string | symbol) {
     defineProperty(prototype, key, {
         configurable: true,
         get() {
-            throw new Error("@reactive property " + key.toString() + " was not initialized");
+            throw new Error("@reactive property '" + key.toString() + "' was not initialized");
         },
         set(value: any) {
             if (Array.isArray(value)) {
@@ -83,7 +83,7 @@ export function observableArray(prototype: Object, key: string | symbol) {
     defineProperty(prototype, key, {
         configurable: true,
         get() {
-            throw new Error("@observableArray property " + key.toString() + " was not initialized");
+            throw new Error("@observableArray property '" + key.toString() + "' was not initialized");
         },
         set(value: any[]) {
             defineObservableArray(this, key, value, false);
