@@ -10,12 +10,27 @@ jest.unmock("../observable-property");
 jest.unmock("../property-extenders");
 
 import * as ko from "knockout";
-import { observable, computed } from "../knockout-decorators";
+import { observable, reactive, observableArray, computed } from "../knockout-decorators";
 
 describe("@computed decorator", () => {
     ko.options.deferUpdates = false;
 
-    it("should decorate porperties and getters", () => {
+    it("should lazily create properties on instance", () => {
+        class Calc {
+            @observable number: number = 0;
+
+            @computed get square() {
+                return this.number * this.number;
+            }
+        }
+        
+        let calc = new Calc();
+        let temp = calc.square;
+
+        expect(Object.hasOwnProperty.call(calc, "square")).toBeTruthy();
+    });
+
+    it("should track @observable changes", () => {
         class Calc {
             @observable number: number = 0;
 
@@ -36,20 +51,48 @@ describe("@computed decorator", () => {
         expect(result).toBe(225);
     });
 
-    it("should lazily create properties on instance", () => {
+    it("should track @observableArray changes", () => {
         class Calc {
-            @observable number: number = 0;
+            @observableArray numbers = [];
 
-            @computed get square() {
-                return this.number * this.number;
+            @computed get squares() {
+                return this.numbers.map(x => x * x);
             }
         }
         
         let calc = new Calc();
-        let temp = calc.square;
+        let result: number[];
 
-        expect(Object.hasOwnProperty.call(calc, "number")).toBeTruthy();
-        expect(Object.hasOwnProperty.call(calc, "square")).toBeTruthy();
+        // subscribe to .squares changes
+        ko.computed(() => { result = calc.squares; });
+
+        // change observableArray
+        calc.numbers.push(7, 8, 9);
+
+        expect(result).toEqual([49, 64, 81]);
+    });
+
+    it("should track @reactive (deep observable) changes", () => {
+        class Calc {
+            @reactive object = {
+                number: 0,
+            };
+
+            @computed get square() {
+                return this.object.number * this.object.number;
+            }
+        }
+        
+        let calc = new Calc();
+        let result: number;
+
+        // subscribe to .square changes
+        ko.computed(() => { result = calc.square; });
+
+        // change observable
+        calc.object.number = 15;
+
+        expect(result).toBe(225);
     });
 
     it("should work with writeable computed", () => {

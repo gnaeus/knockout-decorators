@@ -101,6 +101,9 @@ export function defineObservableArray(
             defineProperty(array, "push", {
                 configurable: true,
                 value() {
+                    if (insideObsArray) {
+                        return Array.prototype.push.apply(array, arguments);
+                    }
                     let args = arraySlice(arguments);
                     for (let i = 0; i < args.length; ++i) {
                         args[i] = prepareReactiveValue(args[i]);
@@ -115,6 +118,9 @@ export function defineObservableArray(
             defineProperty(array, "unshift", {
                 configurable: true,
                 value() {
+                    if (insideObsArray) {
+                        return Array.prototype.unshift.apply(array, arguments);
+                    }
                     let args = arraySlice(arguments);
                     for (let i = 0; i < args.length; ++i) {
                         args[i] = prepareReactiveValue(args[i]);
@@ -129,6 +135,10 @@ export function defineObservableArray(
             defineProperty(array, "splice", {
                 configurable: true,
                 value() {
+                    if (insideObsArray) {
+                        return Array.prototype.splice.apply(array, arguments);
+                    }
+
                     let result: any[];
                     
                     insideObsArray = true;
