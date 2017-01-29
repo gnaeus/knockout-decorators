@@ -65,6 +65,26 @@ describe("@reactive decorator", () => {
         expect(ko.isObservable(unwrap(vm.deepObservable.object.reference, "firstName"))).toBeTruthy();
         expect(ko.isObservable(unwrap(vm.deepObservable.object.reference, "lastName"))).toBeTruthy();
     });
+
+    it("should be serializable to JSON", () => {
+        class ViewModel {
+            @reactive object = {
+                property: "test",
+                reference: {
+                    nested: 123,
+                },
+                array: [
+                    { x: 0, y: 0 },
+                ],
+            };
+        }
+
+        let vm = new ViewModel();
+
+        let json = JSON.stringify(vm);
+
+        expect(json).toBe('{"object":{"property":\"test\","reference":{"nested":123},"array":[{"x":0,"y":0}]}}');
+    });
 });
 
 describe("@reactive decorator: initialized by object", () => {

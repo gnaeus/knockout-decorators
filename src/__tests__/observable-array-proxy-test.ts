@@ -85,5 +85,5 @@ describe("deep ObservableArray", () => {
         let json = JSON.stringify(arr);
 
         expect(json).toBe("[1,2,3]");
-    })
+    });
 });

@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2016-2017 Dmitry Panyushkin
  * Available under MIT license
- * Version: 0.9.0-dev
+ * Version: 0.9.0
  */
 import * as ko from "knockout";
 import { extendObject, defineProperty, hasOwnProperty, getOwnPropertyDescriptor, arraySlice } from "./common-functions";
