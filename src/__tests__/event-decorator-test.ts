@@ -138,4 +138,30 @@ describe("@event decorator", () => {
 
         expect(subscriber.runningCount).toBe(1);
     });
+
+    it("should define event without signature", () => {
+        class Publisher {
+            @event untypedEvent;
+        }
+
+        class Subscriber {
+            runningCount = 0;
+
+            @autobind
+            onUntypedEvent() {
+                this.runningCount++;
+            }
+        }
+
+        let publisher = new Publisher();
+        let subscriber = new Subscriber();
+
+        subscribe(publisher.untypedEvent, subscriber.onUntypedEvent);
+
+        publisher.untypedEvent();
+        publisher.untypedEvent(123);
+        publisher.untypedEvent("test");
+
+        expect(subscriber.runningCount).toBe(3);
+    });
 });

@@ -258,8 +258,15 @@ export function autobind(prototype: Object, key: string | symbol, desc: Property
 /**
  * Define hidden ko.subscribable, that notifies subscribers when decorated method is invoked
  */
-export function event(prototype: Object, key: string | symbol, desc: PropertyDescriptor) {
-    const { value } = desc || (desc = getOwnPropertyDescriptor(prototype, key));
+export function event(prototype: Object, key: string | symbol): void;
+/**
+ * Define hidden ko.subscribable, that notifies subscribers when decorated method is invoked
+ */
+export function event(prototype: Object, key: string | symbol, desc: PropertyDescriptor): PropertyDescriptor;
+/**
+ * Define hidden ko.subscribable, that notifies subscribers when decorated method is invoked
+ */
+export function event(prototype: Object, key: string | symbol, desc?: PropertyDescriptor) {
     return {
         configurable: false,
         get() {
