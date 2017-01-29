@@ -340,27 +340,43 @@ export function subscribe<T>(
     options?: { once?: boolean, event?: string }
 ): KnockoutSubscription {
     const once = options && options.once || false;
-    const event = options && options.event || "change";
-
+    
     if (hasOwnProperty(dependencyOrEvent, "subscribable")) {
         // subscribe to @event
         const subscribable = dependencyOrEvent["subscribable"] as KnockoutSubscribable<any[]>;
 
-        const subscription = subscribable.subscribe(eventArgs => {
-            callback.apply(null, eventArgs);
-        });
-
+        let handler: (value: any[]) => void;
         if (once) {
-            subscribable.subscribe(() => {
+            handler = function (eventArgs: any[]) {
+                callback.apply(null, eventArgs);
                 subscription.dispose();
-            });
+            };
+        } else {
+            handler = function (eventArgs: any[]) {
+                callback.apply(null, eventArgs);
+            };
         }
+
+        const subscription = subscribable.subscribe(handler);
+
         return subscription;
     } else {
         // subscribe to @observable, @reactive or @computed
+        const event = options && options.event || "change";
+
         const computed = ko.computed(dependencyOrEvent as () => T);
         
-        const subscription = computed.subscribe(callback, null, event);
+        let handler: (value: T) => void;
+        if (once) {
+            handler = function () {
+                callback.apply(null, arguments);
+                subscription.dispose();
+            };
+        } else {
+            handler = callback;
+        }
+
+        const subscription = computed.subscribe(handler, null, event);
         
         const originalDispose = subscription.dispose;
         // dispose hidden computed with subscription
@@ -369,11 +385,6 @@ export function subscribe<T>(
             computed.dispose();
         };
 
-        if (once) {
-            computed.subscribe(() => {
-                subscription.dispose();
-            });
-        }
         return subscription;
     }
 }
