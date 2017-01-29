@@ -4,7 +4,7 @@
  * Version: 0.9.0-dev
  */
 import * as ko from "knockout";
-import { extendObject, defineProperty, hasOwnProperty, getOwnPropertyDescriptor } from "./common-functions";
+import { extendObject, defineProperty, hasOwnProperty, getOwnPropertyDescriptor, arraySlice } from "./common-functions";
 import { defineExtenders, applyExtenders } from "./property-extenders";
 import { defineObservableProperty, prepareReactiveObject } from "./observable-property";
 import { defineObservableArray } from "./observable-array";
@@ -256,32 +256,119 @@ export function autobind(prototype: Object, key: string | symbol, desc: Property
 /*---------------------------------------------------------------------------*/
 
 /**
+ * Define hidden ko.subscribable, that notifies subscribers when decorated method is invoked
+ */
+export function event(prototype: Object, key: string | symbol, desc: PropertyDescriptor) {
+    const { value } = desc || (desc = getOwnPropertyDescriptor(prototype, key));
+    return {
+        configurable: false,
+        get() {
+            const subscribable = new ko.subscribable();
+            
+            function eventNotifier () {
+                const eventArgs = arraySlice(arguments);
+                subscribable.notifySubscribers(eventArgs);
+            }
+
+            eventNotifier["subscribable"] = subscribable;
+
+            defineProperty(this, key, {
+                configurable: true,
+                value: eventNotifier,
+            });
+
+            return eventNotifier;
+        }
+    } as PropertyDescriptor;
+}
+
+/*---------------------------------------------------------------------------*/
+
+/**
  * Subscribe callback to dependency changes
  */
 export function subscribe<T>(
     getDependency: () => T, 
     callback: (value: T) => void,
     options?: { once?: boolean, event?: string }
+): KnockoutSubscription;
+/**
+ * Subscribe callback to  some `@event`
+ */
+export function subscribe(
+    event: () => void, 
+    callback: () => void,
+    options?: { once?: boolean }
+): KnockoutSubscription;
+/**
+ * Subscribe callback to  some `@event`
+ */
+export function subscribe<T>(
+    event: (arg: T) => void, 
+    callback: (arg: T) => void,
+    options?: { once?: boolean }
+): KnockoutSubscription;
+/**
+ * Subscribe callback to  some `@event`
+ */
+export function subscribe<T1, T2>(
+    event: (arg1: T1, arg2: T2) => void, 
+    callback: (arg1: T1, arg2: T2) => void,
+    options?: { once?: boolean }
+): KnockoutSubscription;
+/**
+ * Subscribe callback to  some `@event`
+ */
+export function subscribe<T1, T2>(
+    event: (arg1: T1, arg2: T2, ...args: any[]) => void, 
+    callback: (arg1: T1, arg2: T2, ...args: any[]) => void,
+    options?: { once?: boolean }
+): KnockoutSubscription;
+/**
+ * Subscribe callback to dependency changes
+ */
+export function subscribe<T>(
+    dependencyOrEvent: Function,
+    callback: (...args: any[]) => void,
+    options?: { once?: boolean, event?: string }
 ): KnockoutSubscription {
     const once = options && options.once || false;
     const event = options && options.event || "change";
 
-    let dependency = ko.computed(getDependency);
-    const subscription = dependency.subscribe(callback, null, event);
-    
-    const originalDispose = subscription.dispose;
-    // dispose hidden computed with subscription
-    subscription.dispose = function () {
-        originalDispose.call(this);
-        dependency.dispose();
-    };
+    if (hasOwnProperty(dependencyOrEvent, "subscribable")) {
+        // subscribe to @event
+        const subscribable = dependencyOrEvent["subscribable"] as KnockoutSubscribable<any[]>;
 
-    if (once) {
-        dependency.subscribe(() => {
-            subscription.dispose();
+        const subscription = subscribable.subscribe(eventArgs => {
+            callback.apply(null, eventArgs);
         });
+
+        if (once) {
+            subscribable.subscribe(() => {
+                subscription.dispose();
+            });
+        }
+        return subscription;
+    } else {
+        // subscribe to @observable, @reactive or @computed
+        const computed = ko.computed(dependencyOrEvent as () => T);
+        
+        const subscription = computed.subscribe(callback, null, event);
+        
+        const originalDispose = subscription.dispose;
+        // dispose hidden computed with subscription
+        subscription.dispose = function () {
+            originalDispose.call(this);
+            computed.dispose();
+        };
+
+        if (once) {
+            computed.subscribe(() => {
+                subscription.dispose();
+            });
+        }
+        return subscription;
     }
-    return subscription;
 }
 
 /*---------------------------------------------------------------------------*/
