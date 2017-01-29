@@ -164,4 +164,14 @@ describe("@event decorator", () => {
 
         expect(subscriber.runningCount).toBe(3);
     });
+
+    it("should throw when trying to redefine @event property", () => {
+        class Publisher {
+            @event untypedEvent;
+        }
+
+        let publisher = new Publisher();
+        
+        expect(() => { publisher.untypedEvent = null; }).toThrow();
+    });
 });

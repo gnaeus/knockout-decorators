@@ -30,6 +30,23 @@ describe("@computed decorator", () => {
         expect(Object.hasOwnProperty.call(calc, "square")).toBeTruthy();
     });
 
+    it("should throw when trying to redefine @computed without setter", () => {
+        class Calc {
+            @observable number: number = 0;
+
+            @computed get square() {
+                return this.number * this.number;
+            }
+        }
+        
+        let calc: any = new Calc();
+        // get @computed property
+        calc.square;
+
+        // get @computed property
+        expect(() => { calc.square = 123; }).toThrow();
+    });
+
     it("should track @observable changes", () => {
         class Calc {
             @observable number: number = 0;

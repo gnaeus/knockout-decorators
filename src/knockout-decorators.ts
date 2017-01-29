@@ -67,7 +67,7 @@ export function computed(prototype: Object, key: string | symbol, desc: Property
         defineProperty(this, key, {
             configurable: true,
             get: computed,
-            set: set
+            set: set,
         });
         return computed();
     };
@@ -285,7 +285,7 @@ export function event(prototype: Object, key: string | symbol, desc?: PropertyDe
             });
 
             return eventNotifier;
-        }
+        },
     } as PropertyDescriptor;
 }
 
