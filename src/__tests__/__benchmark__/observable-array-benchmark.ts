@@ -3,15 +3,15 @@
  * Available under MIT license
  */
 jest.unmock("knockout");
-jest.unmock("../knockout-decorators");
-jest.unmock("../observable-array");
-jest.unmock("../observable-array-proxy");
-jest.unmock("../observable-property");
-jest.unmock("../property-extenders");
+jest.unmock("../../knockout-decorators");
+jest.unmock("../../observable-array");
+jest.unmock("../../observable-array-proxy");
+jest.unmock("../../observable-property");
+jest.unmock("../../property-extenders");
 
 import * as ko from "knockout";
-import { observableArray } from "../knockout-decorators";
-import { ObservableArrayProxy } from "../observable-array-proxy";
+import { observableArray } from "../../knockout-decorators";
+import { ObservableArrayProxy } from "../../observable-array-proxy";
 
 describe("Observable Array Benchmark", () => {
      function benchNative(count: number) {
