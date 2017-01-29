@@ -137,7 +137,9 @@ export function extend(extendersFactory: () => Object): PropertyDecorator;
  * @extendersOrFactory { Object | Function } Knockout extenders definition or factory that produces definition
  */
 export function extend(extendersOrFactory: Object | Function) {
-    return defineExtenders;
+    return function (prototype: Object, key: string | symbol) {
+        defineExtenders(prototype, key, extendersOrFactory);
+    }
 }
 
 /*---------------------------------------------------------------------------*/

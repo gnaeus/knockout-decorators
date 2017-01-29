@@ -10,7 +10,7 @@ jest.unmock("../observable-property");
 jest.unmock("../property-extenders");
 
 import * as ko from "knockout";
-import { observable, computed, extend, observableArray } from "../knockout-decorators";
+import { observable, reactive, computed, extend, observableArray } from "../knockout-decorators";
 
 describe("@extend decorator", () => {
     ko.extenders["reverse"] = (target, options) => {
@@ -58,6 +58,17 @@ describe("@extend decorator", () => {
         expect(vm.observable).toBe("fedcba");
     });
 
+    it("should extend @reactive", () => {
+        class ViewModel {
+            @extend({ reverse: "write" })
+            @reactive observable = "abcdef";
+        }
+        
+        let vm = new ViewModel();
+        
+        expect(vm.observable).toBe("fedcba");
+    });
+
     it("should extend @observableArray", () => {
         class ViewModel {
             @extend({ reverse: "write" })
@@ -84,7 +95,7 @@ describe("@extend decorator", () => {
         expect(vm.observable).toBe("fedcba");
     });
 
-    it("can be combined with other @extend", () => {
+    it("should be combinable with other @extend", () => {
         class ViewModel {
             @extend({ upperCase: "write" })
             @extend({ reverse: "read" })
@@ -94,6 +105,23 @@ describe("@extend decorator", () => {
         let vm = new ViewModel();
         
         expect(vm.observable).toBe("FEDCBA");
+    });
+
+    it("should extend base class properties", () => {
+        class Base {
+            @extend({ reverse: "read" })
+            @observable base = "abcdef";
+        }
+
+        class Derived extends Base {
+            @extend({ upperCase: "read" })
+            @observable derived = "abcdef";
+        }
+        
+        let vm = new Derived();
+        
+        expect(vm.base).toBe("fedcba");
+        expect(vm.derived).toBe("ABCDEF");
     });
 
     it("should extend getter @computed", () => {
