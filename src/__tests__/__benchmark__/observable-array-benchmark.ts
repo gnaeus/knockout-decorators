@@ -32,11 +32,11 @@ describe("Observable Array Benchmark", () => {
 
     it("benchmark Native Array", () => {
         let res = benchNative(10);
-        console.time("Native Array [size: 100, mutations: 100x100, runs: 20]");
-        for (let i = 0; i < 20; ++i) {
+        console.time("Native Array [size: 100, mutations: 100x100, runs: 10]");
+        for (let i = 0; i < 10; ++i) {
             res = benchNative(100);
         }
-        console.timeEnd("Native Array [size: 100, mutations: 100x100, runs: 20]");
+        console.timeEnd("Native Array [size: 100, mutations: 100x100, runs: 10]");
     });
 
     function benchKnockout(count: number) {
@@ -57,11 +57,11 @@ describe("Observable Array Benchmark", () => {
 
     it("benchmark Knockout Observable Array", () => {
         let res = benchKnockout(10);
-        console.time("Knockout Observable Array [size: 100, mutations: 100x100, runs: 20]");
-        for (let i = 0; i < 20; ++i) {
+        console.time("Knockout Observable Array [size: 100, mutations: 100x100, runs: 10]");
+        for (let i = 0; i < 10; ++i) {
             res = benchKnockout(100);
         }
-        console.timeEnd("Knockout Observable Array [size: 100, mutations: 100x100, runs: 20]");
+        console.timeEnd("Knockout Observable Array [size: 100, mutations: 100x100, runs: 10]");
     });
 
     function benchDecorator(count: number) {
@@ -85,11 +85,11 @@ describe("Observable Array Benchmark", () => {
 
     it("benchmark Observable Array Decorator", () => {
         let res = benchDecorator(10);
-        console.time("Observable Array Decorator [size: 100, mutations: 100x100, runs: 20]");
-        for (let i = 0; i < 20; ++i) {
+        console.time("Observable Array Decorator [size: 100, mutations: 100x100, runs: 10]");
+        for (let i = 0; i < 10; ++i) {
             res = benchDecorator(100);
         }
-        console.timeEnd("Observable Array Decorator [size: 100, mutations: 100x100, runs: 20]");
+        console.timeEnd("Observable Array Decorator [size: 100, mutations: 100x100, runs: 10]");
     });
 
     function benchProxy(count: number) {
@@ -114,10 +114,10 @@ describe("Observable Array Benchmark", () => {
 
     it("benchmark Observable Array Proxy", () => {
         let res = benchProxy(10);
-        console.time("Observable Array Proxy [size: 100, mutations: 100x100, runs: 20]");
-        for (let i = 0; i < 20; ++i) {
+        console.time("Observable Array Proxy [size: 100, mutations: 100x100, runs: 10]");
+        for (let i = 0; i < 10; ++i) {
             res = benchProxy(100);
         }
-        console.timeEnd("Observable Array Proxy [size: 100, mutations: 100x100, runs: 20]");
+        console.timeEnd("Observable Array Proxy [size: 100, mutations: 100x100, runs: 10]");
     });
 });

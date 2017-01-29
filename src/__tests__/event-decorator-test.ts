@@ -12,14 +12,12 @@ jest.unmock("../property-extenders");
 import * as ko from "knockout";
 import { subscribe } from "../knockout-decorators";
 
-// describe("@event decorator", () => {
-//     it("should ", () => {
-//         class ViewModel {
+describe("@event decorator", () => {
+    it("should ", () => {
+        class ViewModel {
             
-//         }
+        }
 
-//         let vm = new ViewModel();
-
-//         throw new Error("Not Implemented");
-//     });
-// });
+        let vm = new ViewModel();
+    });
+});

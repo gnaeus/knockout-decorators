@@ -10,7 +10,7 @@ jest.unmock("../observable-property");
 jest.unmock("../property-extenders");
 
 import * as ko from "knockout";
-import { component, observable, computed, extend, unwrap } from "../knockout-decorators";
+import { observable, reactive, observableArray, computed, extend, unwrap } from "../knockout-decorators";
 
 describe("unwrap utility function", () => {
     it("should return hidden observable", () => {
@@ -22,6 +22,53 @@ describe("unwrap utility function", () => {
 
         let observableProperty = unwrap<string>(instance, "property");
 
+        expect(ko.isObservable(observableProperty)).toBeTruthy();
+    });
+
+    it("should return hidden deep observable", () => {
+        class Test {
+            @reactive object = {
+                property: "test test test",
+            };
+        }
+
+        let instance = new Test();
+
+        let observableObject = unwrap<Object>(instance, "object");
+        let observableProperty = unwrap<string>(instance.object, "property");
+
+        expect(ko.isObservable(observableObject)).toBeTruthy();
+        expect(ko.isObservable(observableProperty)).toBeTruthy();
+    });
+
+    it("should return hidden observableArray", () => {
+        class ViewModel {
+            @observableArray array = [];
+        }
+
+        let vm = new ViewModel();
+
+        let obsArray = unwrap(vm, "array");
+
+        expect(ko.isObservable(obsArray)).toBeTruthy();
+        expect(Object.getPrototypeOf(obsArray)).toBe(ko.observableArray.fn);
+    });
+
+    it("should return hidden deep observableArray", () => {
+        class ViewModel {
+            @reactive array = [{
+                property: "test test test",
+            }];
+        }
+
+        let vm = new ViewModel();
+
+        let obsArray = unwrap(vm, "array");
+        let observableProperty = unwrap<string>(vm.array[0], "property");
+
+        expect(ko.isObservable(obsArray)).toBeTruthy();
+        expect(Object.getPrototypeOf(obsArray)).toBe(ko.observableArray.fn);
+        
         expect(ko.isObservable(observableProperty)).toBeTruthy();
     });
 
@@ -70,18 +117,6 @@ describe("unwrap utility function", () => {
         expect(instance.unwrap("property").isValid).toBe(true);
     });
 
-    it("should return hidden uninitialized observable", () => {
-        class Test {
-            @observable property;
-        }
-
-        let instance = new Test();
-
-        let observableProperty = unwrap<string>(instance, "property");
-
-        expect(ko.isObservable(observableProperty)).toBeTruthy();
-    });
-
     it("should return hidden computed", () => {
         class Test {
             @observable observableField = "";
@@ -127,17 +162,4 @@ describe("unwrap utility function", () => {
         expect(ko.isObservable(observableDerivedField)).toBeTruthy();
         expect(ko.isComputed(computedDerivedField)).toBeTruthy();
     });
-
-    // it("should unwrap ReactiveArray", () => {
-    //     class ViewModel {
-    //         @reactive array = [];
-    //     }
-
-    //     let vm = new ViewModel();
-
-    //     let obsArray = unwrap(vm, "array");
-
-    //     expect(ko.isObservable(obsArray)).toBeTruthy();
-    //     expect(Object.getPrototypeOf(obsArray)).toBe(ko.observableArray.fn);
-    // });
 });
