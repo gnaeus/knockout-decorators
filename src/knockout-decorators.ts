@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2016 Dmitry Panyushkin
+ * Copyright (c) 2016-2017 Dmitry Panyushkin
  * Available under MIT license
  * Version: 0.9.0-dev
  */
@@ -265,16 +265,6 @@ export function subscribe<T>(
     const event = options && options.event || "change";
 
     let dependency = ko.computed(getDependency);
-    
-    // TODO: unwrap ObservableArrayProxy
-    // if (dependency.peek() instanceof ObservableArrayProxy) {
-    //     dependency.dispose();
-    //     dependency = ko.computed(() => {
-    //         const array = getDependency() as ObservableArrayProxy;
-    //         return array && array.unwrap();
-    //     });
-    // }
-
     const subscription = dependency.subscribe(callback, null, event);
     
     const originalDispose = subscription.dispose;
@@ -310,25 +300,5 @@ export function unwrap(instance: Object, key: string | symbol) {
         // invoke getter on instance.__proto__ that defines property on instance
         instance[key];
     }
-    const observable = getOwnPropertyDescriptor(instance, key).get as KnockoutObservable<any>;
-    // TODO: unwrap ObservableArrayProxy
-    // if (observable.peek() instanceof ObservableArrayProxy) {
-    //     const array = observable() as ObservableArrayProxy;
-    //     return array._observableArray;
-    // }
-    return observable;
-}
-
-/*---------------------------------------------------------------------------*/
-
-/**
- * Run mutator function that can write to array at some index (`array[index] = value;`)
- * Then notify about observableArray changes
- */
-export function mutate<T>(
-    getObservableAray: () => T[],
-    mutator: (arrayValue?: T[]) => void
-) {
-    const array = getObservableAray() as ObservableArray<T>;
-    array.mutate(mutator);
+    return getOwnPropertyDescriptor(instance, key).get;
 }
