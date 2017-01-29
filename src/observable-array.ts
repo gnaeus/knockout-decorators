@@ -28,42 +28,46 @@ export function defineObservableArray(
         configurable: true,
         enumerable: true,
         get: obsArray,
-        set(newValue: any[]) {
-            const lastValue = obsArray.peek();
-            // if we got new value
-            if (lastValue !== newValue) {
-                if (Array.isArray(lastValue)) {
-                    // if lastValue array methods were already patched
-                    if (hasOwnProperty(lastValue, "mutate")) {
-                        // clear patched array methods on lastValue (see unit tests)
-                        allMethods.forEach(fnName => {
-                            delete lastValue[fnName]; 
-                        });
-                    }
-                }
-                if (Array.isArray(newValue)) {
-                    // if new value array methods were already connected with another @observable
-                    if (hasOwnProperty(newValue, "mutate")) {
-                        // clone new value to prevent corruption of another @observable (see unit tests)
-                        newValue = [...newValue];
-                    }
-                    // if deep option is set
-                    if (deep) {
-                        // make all array items reactive
-                        for (let i = 0; i < newValue.length; ++i) {
-                            newValue[i] = prepareReactiveValue(newValue[i]);
-                        }
-                    }
-                    // call ko.observableArray.fn[fnName] instead of Array.prototype[fnName]
-                    patchArrayMethods(newValue);
+        set: setter, 
+    });
+
+    setter(value);
+
+    function setter(newValue: any[]) {
+        const lastValue = obsArray.peek();
+        // if we got new value
+        if (lastValue !== newValue) {
+            if (Array.isArray(lastValue)) {
+                // if lastValue array methods were already patched
+                if (hasOwnProperty(lastValue, "mutate")) {
+                    // clear patched array methods on lastValue (see unit tests)
+                    allMethods.forEach(fnName => {
+                        delete lastValue[fnName];
+                    });
                 }
             }
-            // update obsArray contents
-            insideObsArray = true;
-            obsArray(newValue);
-            insideObsArray = false;
+            if (Array.isArray(newValue)) {
+                // if new value array methods were already connected with another @observable
+                if (hasOwnProperty(newValue, "mutate")) {
+                    // clone new value to prevent corruption of another @observable (see unit tests)
+                    newValue = [...newValue];
+                }
+                // if deep option is set
+                if (deep) {
+                    // make all array items reactive
+                    for (let i = 0; i < newValue.length; ++i) {
+                        newValue[i] = prepareReactiveValue(newValue[i]);
+                    }
+                }
+                // call ko.observableArray.fn[fnName] instead of Array.prototype[fnName]
+                patchArrayMethods(newValue);
+            }
         }
-    });
+        // update obsArray contents
+        insideObsArray = true;
+        obsArray(newValue);
+        insideObsArray = false;
+    }
 
     function patchArrayMethods(array: any[]) {
         const arrayMethods = deep ? deepArrayMethods : allArrayMethods;

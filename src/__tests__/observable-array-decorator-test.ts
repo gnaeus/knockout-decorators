@@ -13,7 +13,30 @@ import * as ko from "knockout";
 import { observableArray, ObservableArray } from "../knockout-decorators";
 
 describe("@observableArray decorator", () => {
-    it("should work as plain observable", () => {
+    it("should throw on uninitialized properties", () => {
+        class ViewModel {
+            @observableArray array;
+        }
+
+        let vm = new ViewModel();
+
+        expect(() => vm.array).toThrowError("@observableArray property 'array' was not initialized");
+    });
+
+    it("should define hidden observableArray", () => {
+        class ViewModel {
+            @observableArray array = [];
+        }
+
+        let vm = new ViewModel();
+        
+        let array = Object.getOwnPropertyDescriptor(vm, "array").get;
+
+        expect(ko.isObservable(array)).toBeTruthy();
+        expect(Object.getPrototypeOf(array)).toBe(ko.observableArray.fn);
+    });
+
+    it("should track hidden observable changes", () => {
         class ViewModel {
             @observableArray array = [];
         }
@@ -28,7 +51,7 @@ describe("@observableArray decorator", () => {
         expect(syncArr).toBe(arr);
     });
 
-    it("should observe array changes", () => {
+    it("should track hidden observableArray changes", () => {
         class ViewModel {
             @observableArray array = [];
         }
@@ -60,13 +83,16 @@ describe("@observableArray decorator", () => {
         
         vm.array.remove(val => val % 2 === 0);
         vm.array.splice(2, 0, 5);
+        vm.array.replace(5, 7);
 
-        expect(vm.array).toEqual([1, 3, 5, 3, 1]);
+        expect(vm.array).toEqual([1, 3, 7, 3, 1]);
         expect(changes).toEqual([
             { status: 'deleted', value: 2, index: 1 },
             { status: 'deleted', value: 4, index: 3 },
             { status: 'deleted', value: 2, index: 5 },
-            { status: 'added', value: 5, index: 2 }
+            { status: 'added', value: 5, index: 2 },
+            { status: 'added', value: 7, index: 2 },
+            { status: 'deleted', value: 5, index: 2 },
         ]);
     });
 
@@ -88,37 +114,6 @@ describe("@observableArray decorator", () => {
         expect(Object.hasOwnProperty.call(vm.array, "subscribe")).toBeTruthy();
         expect(Object.hasOwnProperty.call(vm.array, "mutate")).toBeTruthy();
         expect(Object.hasOwnProperty.call(vm.array, "set")).toBeTruthy();
-    });
-
-    it("should lazily create observableArray on instance", () => {
-        class ViewModel {
-            @observableArray array;
-        }
-        
-        let vm = new ViewModel();
-        let temp = vm.array;
-
-        expect(Object.hasOwnProperty.call(vm, "array")).toBeTruthy();
-        expect(Array.isArray(vm.array));
-    });
-
-    it("should expose knockout-specific methods when lazily created", () => {
-        class ViewModel {
-            @observableArray array: ObservableArray<string>;
-        }
-
-        let vm = new ViewModel();
-        let changes = [];
-
-        vm.array.subscribe(val => { changes.push(...val); }, null, "arrayChange");
-        
-        vm.array.splice(0, 0, "foo", "bar");
-
-        expect(vm.array).toEqual(["foo", "bar"]);
-        expect(changes).toEqual([
-            { status: 'added', value: "foo", index: 0 },
-            { status: 'added', value: "bar", index: 1 },
-        ]);
     });
 
     it("should clone array if it is @observableArray from another field", () => {
