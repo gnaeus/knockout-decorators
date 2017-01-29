@@ -10,7 +10,7 @@ jest.unmock("../observable-property");
 jest.unmock("../property-extenders");
 
 import * as ko from "knockout";
-import { component, observable, computed, subscribe } from "../knockout-decorators";
+import { observable, reactive, observableArray, computed, subscribe } from "../knockout-decorators";
 
 describe("subscribe utility function", () => {
     it("should subscribe given callback to decorated @observable", () => {
@@ -30,6 +30,46 @@ describe("subscribe utility function", () => {
         vm.observableField = 123;
 
         expect(vm.plainField).toBe(123);
+    });
+
+    it("should subscribe given callback to decorated @reactive", () => {
+        class ViewModel {
+            plainField: number;
+            
+            @reactive object = {
+                field: 0,  
+            };
+
+            constructor() {
+                subscribe(() => this.object.field, (value) => {
+                    this.plainField = value;
+                });
+            }
+        }
+
+        let vm = new ViewModel();
+        vm.object.field = 123;
+
+        expect(vm.plainField).toBe(123);
+    });
+
+    it("should subscribe given callback to decorated @observableArray", () => {
+        class ViewModel {
+            plainArray: number[];
+            
+            @observableArray observableArray = [];
+
+            constructor() {
+                subscribe(() => this.observableArray, (value) => {
+                    this.plainArray = value;
+                });
+            }
+        }
+
+        let vm = new ViewModel();
+        vm.observableArray.push(1, 2, 3);
+
+        expect(vm.plainArray).toEqual([1, 2, 3]);
     });
 
     it("should subscribe given callback to decorated @computed", () => {
@@ -122,6 +162,4 @@ describe("subscribe utility function", () => {
 
         expect(sideEffectValue).toBe(123);
     });
-
-    // it("should subscribe to ObservableArrayProxy changes", () => { });
 });
