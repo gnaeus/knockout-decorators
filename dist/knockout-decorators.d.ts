@@ -1,23 +1,14 @@
 /// <reference types="knockout" />
-export interface ComponentConstructor {
-    new (params?: any, element?: Node, templateNodes?: Node[]): any;
-}
-export declare type ComponentDecorator = (constructor: ComponentConstructor) => void;
-export declare type TemplateConfig = (string | Node[] | DocumentFragment | {
-    require: string;
-} | {
-    element: string | Node;
-});
 /**
- * Register Knockout component by decorating ViewModel class
- */
-export declare function component(name: string, options?: Object): ComponentDecorator;
-export declare function component(name: string, template: TemplateConfig, options?: Object): ComponentDecorator;
-export declare function component(name: string, template: TemplateConfig, styles: string | string[], options?: Object): ComponentDecorator;
-/**
- * Property decorator that creates hidden ko.observable with ES6 getter and setter for it
+ * Property decorator that creates hidden (shallow) ko.observable with ES6 getter and setter for it
+ * If initialized by Array then hidden (shallow) ko.observableArray will be created
  */
 export declare function observable(prototype: Object, key: string | symbol): void;
+/**
+ * Property decorator that creates hidden (deep) ko.observable with ES6 getter and setter for it
+ * If initialized by Array then hidden (deep) ko.observableArray will be created
+ */
+export declare function reactive(prototype: Object, key: string | symbol): void;
 /**
  * Accessor decorator that wraps ES6 getter to hidden ko.pureComputed
  *
@@ -27,7 +18,7 @@ export declare function observable(prototype: Object, key: string | symbol): voi
  */
 export declare function computed(prototype: Object, key: string | symbol, desc: PropertyDescriptor): PropertyDescriptor;
 /**
- * Property decorator that creates hidden ko.observableArray with ES6 getter and setter for it
+ * Property decorator that creates hidden (shallow) ko.observableArray with ES6 getter and setter for it
  */
 export declare function observableArray(prototype: Object, key: string | symbol): void;
 export interface ObservableArray<T> extends Array<T> {
@@ -43,17 +34,58 @@ export interface ObservableArray<T> extends Array<T> {
     subscribe(callback: (val: T[]) => void): KnockoutSubscription;
     subscribe(callback: (val: T[]) => void, callbackTarget: any): KnockoutSubscription;
     subscribe(callback: (val: any[]) => void, callbackTarget: any, event: string): KnockoutSubscription;
+    /**
+     * Run mutator function that can write to array at some index (`array[index] = value;`)
+     * Then notify about observableArray changes
+     */
+    mutate(mutator: (arrayValue: T[]) => void): void;
+    /**
+     * Replace value at some index and return old value
+     */
+    set(index: number, value: T): T;
 }
 /**
  * Apply extenders to decorated @observable
  */
 export declare function extend(extenders: Object): PropertyDecorator;
+/**
+ * Apply extenders to decorated @observable
+ */
 export declare function extend(extendersFactory: () => Object): PropertyDecorator;
+export interface ComponentConstructor {
+    new (params?: any, element?: Node, templateNodes?: Node[]): any;
+}
+export declare type ComponentDecorator = (constructor: ComponentConstructor) => void;
+export declare type TemplateConfig = (string | Node[] | DocumentFragment | {
+    require: string;
+} | {
+    element: string | Node;
+});
+/**
+ * Register Knockout component by decorating ViewModel class
+ */
+export declare function component(name: string, options?: Object): ComponentDecorator;
+/**
+ * Register Knockout component by decorating ViewModel class
+ */
+export declare function component(name: string, template: TemplateConfig, options?: Object): ComponentDecorator;
+/**
+ * Register Knockout component by decorating ViewModel class
+ */
+export declare function component(name: string, template: TemplateConfig, styles: string | string[], options?: Object): ComponentDecorator;
 /**
  * Like https://github.com/jayphelps/core-decorators.js @autobind but less smart and complex
  * Do NOT use with ES6 inheritance!
  */
 export declare function autobind(prototype: Object, key: string | symbol, desc: PropertyDescriptor): PropertyDescriptor;
+/**
+ * Define hidden ko.subscribable, that notifies subscribers when decorated method is invoked
+ */
+export declare function event(prototype: Object, key: string | symbol): void;
+/**
+ * Define hidden ko.subscribable, that notifies subscribers when decorated method is invoked
+ */
+export declare function event(prototype: Object, key: string | symbol, desc: PropertyDescriptor): PropertyDescriptor;
 /**
  * Subscribe callback to dependency changes
  */
@@ -62,8 +94,35 @@ export declare function subscribe<T>(getDependency: () => T, callback: (value: T
     event?: string;
 }): KnockoutSubscription;
 /**
+ * Subscribe callback to  some `@event`
+ */
+export declare function subscribe(event: () => void, callback: () => void, options?: {
+    once?: boolean;
+}): KnockoutSubscription;
+/**
+ * Subscribe callback to  some `@event`
+ */
+export declare function subscribe<T>(event: (arg: T) => void, callback: (arg: T) => void, options?: {
+    once?: boolean;
+}): KnockoutSubscription;
+/**
+ * Subscribe callback to  some `@event`
+ */
+export declare function subscribe<T1, T2>(event: (arg1: T1, arg2: T2) => void, callback: (arg1: T1, arg2: T2) => void, options?: {
+    once?: boolean;
+}): KnockoutSubscription;
+/**
+ * Subscribe callback to  some `@event`
+ */
+export declare function subscribe<T1, T2>(event: (arg1: T1, arg2: T2, ...args: any[]) => void, callback: (arg1: T1, arg2: T2, ...args: any[]) => void, options?: {
+    once?: boolean;
+}): KnockoutSubscription;
+/**
  * Get internal ko.observable() for object property decodated by @observable
  */
 export declare function unwrap(instance: Object, key: string | symbol): any;
+/**
+ * Get internal ko.observable() for object property decodated by @observable
+ */
 export declare function unwrap<T>(instance: Object, key: string | symbol): KnockoutObservable<T>;
 export as namespace KnockoutDecorators;
