@@ -55,17 +55,18 @@ const REACTIVE_KEY = typeof Symbol !== "undefined"
 
 export function prepareReactiveObject(instance: Object) {
     if (!hasOwnProperty(instance, REACTIVE_KEY)) {
+        // mark instance as ObservableObject
+        defineProperty(instance, REACTIVE_KEY, {
+            configurable: true,
+            value: void 0,
+        });
+        // define deep observable properties
         objectForEach(instance, (key, value) => {
             if (Array.isArray(value)) {
                 defineObservableArray(instance, key, value, true);
             } else {
                 defineObservableProperty(instance, key, value, true);
             }
-        });
-        // mark instance as ObservableObject
-        defineProperty(instance, REACTIVE_KEY, {
-            configurable: true,
-            value: void 0,
         });
     }
     return instance;

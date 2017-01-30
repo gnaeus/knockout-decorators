@@ -169,6 +169,25 @@ describe("@reactive decorator: initialized by object", () => {
 
         expect(vm.model).toBe(frozenObject);
     });
+
+    it("should work with circular references", () => {
+        class ViewModel {
+            @reactive object = null;
+        }
+
+        let vm = new ViewModel();
+
+        const circular = {
+            reference: null,
+        };
+        circular.reference = circular;
+
+        vm.object = circular;
+        
+        expect(vm.object).toBe(vm.object.reference);
+        expect(ko.isObservable(unwrap(vm, "object"))).toBeTruthy();
+        expect(ko.isObservable(unwrap(vm.object, "reference"))).toBeTruthy();
+    });
 });
 
 describe("@reactive decorator: initialized by array", () => {
@@ -226,6 +245,38 @@ describe("@reactive decorator: initialized by array", () => {
         vm.array.push(frozenObject);
 
         expect(vm.array[0]).toBe(frozenObject);
+    });
+
+    it("should work with circular references", () => {
+        class ViewModel {
+            @reactive array = [];
+        }
+
+        let vm = new ViewModel();
+
+        const circular = {
+            array: [],
+        };
+        circular.array.push(circular);
+
+        vm.array = circular.array;
+        
+        expect(vm.array).toBe(vm.array[0].array);
+        expect(ko.isObservable(unwrap(vm, "array"))).toBeTruthy();
+        expect(ko.isObservable(unwrap(vm.array[0], "array"))).toBeTruthy();
+
+        let firstLevelChanged = false;
+        subscribe(() => vm.array, () => { firstLevelChanged = true; });
+
+        let nested = vm.array[0];
+        let secondLevelChanged = false;
+        subscribe(() => nested.array, () => { secondLevelChanged = true; });
+
+        vm.array.push({});
+        
+        expect(firstLevelChanged).toBe(true);
+        // it is because vm.array[0].array has different hidden observale
+        expect(secondLevelChanged).toBe(false);
     });
 
     it("should expose knockout-specific methods", () => {
