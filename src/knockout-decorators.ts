@@ -348,8 +348,8 @@ export function subscribe<T>(
         let handler: (value: any[]) => void;
         if (once) {
             handler = function (eventArgs: any[]) {
-                callback.apply(null, eventArgs);
                 subscription.dispose();
+                callback.apply(null, eventArgs);
             };
         } else {
             handler = function (eventArgs: any[]) {
@@ -369,8 +369,8 @@ export function subscribe<T>(
         let handler: (value: T) => void;
         if (once) {
             handler = function () {
-                callback.apply(null, arguments);
                 subscription.dispose();
+                callback.apply(null, arguments);
             };
         } else {
             handler = callback;

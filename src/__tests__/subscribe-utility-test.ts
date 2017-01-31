@@ -136,6 +136,27 @@ describe("subscribe utility function", () => {
         expect(vm.plainField).toBe(123);
     });
 
+    it("should run recursive subscription to decorated @observable once", () => {
+        class ViewModel {
+            plainField: number;
+            
+            @observable observableField: number = 0;
+
+            constructor() {
+                subscribe(() => this.observableField, (value) => {
+                    this.plainField = value;
+                    this.observableField = this.observableField + 1;
+                }, { once: true });
+            }
+        }
+
+        let vm = new ViewModel();
+        vm.observableField = 123;
+        vm.observableField = 456;
+
+        expect(vm.plainField).toBe(123);
+    });
+
     it("should return subscription to hidden ko.computed", () => {
         let koObservable = ko.observable();
 
