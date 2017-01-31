@@ -38,6 +38,8 @@ class PersonView {
  * [@observableArray](#knockout-decorators-observableArray)
  * [@extend](#knockout-decorators-extend)
  * [@component](#knockout-decorators-component)
+ * [@autobind](#knockout-decorators-autobind)
+ * [@event](#knockout-decorators-event)
  * [subscribe](#knockout-decorators-subscribe)
  * [unwrap](#knockout-decorators-unwrap)
 
@@ -51,6 +53,8 @@ class PersonView {
 Property decorator that creates hidden `ko.observable` with ES6 getter and setter for it<br>
 If initialized by Array then hidden `ko.observableArray` will be created (see [@observableArray](#knockout-decorators-observableArray))
 ```js
+import { observable } from "knockout-decorators";
+
 class Model {
   @observable field = 123;
   @observable collection = [];
@@ -67,6 +71,8 @@ model.field = 456;                                // [console] ➜ 456
 Accessor decorator that wraps ES6 getter to hidden `ko.pureComputed`<br>
 Setter is not wrapped to hidden `ko.pureComputed` and stays unchanged
 ```js
+import { observable, computed } from "knockout-decorators";
+
 class Person {
   @observable firstName = "";
   @observable lastName = "";
@@ -89,6 +95,8 @@ Like [@observable](#knockout-decorators-observable), but creates "deep observabl
 If initialized by Array then hidden `ko.observableArray` will be created (see [@observableArray](#knockout-decorators-observableArray))
 
 ```js
+import { reactive } from "knockout-decorators";
+
 class ViewModel {
   @reactive deepObservable = {  // like @observable
     firstName: "Clive Staples", // like @observable
@@ -121,6 +129,8 @@ vm.deepObservable.array.push({
 #### <a name="knockout-decorators-observableArray"></a> @observableArray
 Property decorator that creates hidden `ko.observableArray` with ES6 getter and setter for it
 ```js
+import { observableArray } from "knockout-decorators";
+
 class Model {
   @observableArray array = [1, 2, 3];
 };
@@ -137,6 +147,8 @@ They works like if we invoke them on hidden `ko.observableArray`.
 And also decorated array has:
  * a `subscribe(callback: (value: any[]) => void)` function from `ko.subscribable`,
 ```js
+import { observableArray, ObservableArray } from "knockout-decorators";
+
 class Model {
   @observableArray array = [1, 2, 3] as ObservableArray<number>;
 };
@@ -149,6 +161,8 @@ model.array.remove(val => val % 2 === 0); // [console] ➜  [{ status: 'deleted'
 ```
 * a new `mutate(callback: () => void)` function that runs callback in which we can mutate array directly,
 ```js
+import { observableArray, ObservableArray } from "knockout-decorators";
+
 class Model {
   @observableArray array = [1, 2, 3] as ObservableArray<number>;
 };
@@ -162,6 +176,8 @@ model.array.mutate(() => {
 ```
 * a new `set(i: number, value: any): any` function that sets a new value at specified index and returns the old value.
 ```js
+import { observableArray, ObservableArray } from "knockout-decorators";
+
 class Model {
   @observableArray array = [1, 2, 3] as ObservableArray<number>;
 };
@@ -178,13 +194,15 @@ console.log(oldValue);    // [console] ➜ 3
 #### <a name="knockout-decorators-extend"></a> @extend
 Apply extenders to decorated `@observable`, `@reactive`, `@observableArray` or `@computed`
 ```js
-@extend(extenders: Object)
-@extend(extendersFactory: () => Object)
+@extend(extenders: Object);
+@extend(extendersFactory: () => Object);
 ```
 
 Extenders can be defined by plain object or by calling method, that returns extenders-object.<br>
 Note that `extendersFactory` invoked with ViewModel instance as `this` argument.
 ```js
+import { observable, computed, extend } from "knockout-decorators";
+
 class ViewModel {
   rateLimit: 50;
   
@@ -230,6 +248,8 @@ If template is not specified then it will be replaced by HTML comment `<!---->`
 If ViewModel constructor accepts zero or one arguments,
 then it will be registered as `viewModel:` in config object.
 ```js
+import { component } from "knockout-decorators";
+
 @component("my-component")
 class Component {
     constructor(params: any) {}
@@ -246,6 +266,8 @@ If ViewModel constructor accepts two or three arguments,
 then `createViewModel:` factory is created<br>
 and `{ element, templateNodes }` are passed as arguments to ViewModel constructor.
 ```js
+import { component } from "knockout-decorators";
+
 @component("my-component",
     require("./my-component.html"),
     require("./my-component.css"), {
@@ -274,30 +296,98 @@ ko.components.register("my-component", {
 
 <br>
 
-#### <a name="knockout-decorators-subscribe"></a> subscribe
-Subscribe to `@observable` or `@computed` dependency with creation of hidden `ko.computed()`
+#### <a name="knockout-decorators-autobind"></a> @autobind
+Bind class method to class instance. Clone of [core-decorators.js](https://github.com/jayphelps/core-decorators.js#autobind) `@autobind`
 ```js
-subscribe<T>(getDependency: () => T, callback: (value: T) => void, options?: {
-  once?: boolean,
-  event?: string,
-}): KnockoutSubscription
+import { observable, component, autobind } from "knockout-decorators";
+
+@component("my-component", `
+  <ul data-bind="foreach: array">
+    <li data-bind="click: $component.remove">remove me</li>
+  </ul>
+`)
+class MyComponent {
+  @observable array = [1, 2, 3] as ObservableArray<number>;
+  
+  @autobind
+  remove(item: number) {
+    this.array.remove(item);
+  }
+}
 ```
 
-| Argument      | Default    | Description                                                                    |
-|:--------------|:-----------|:--------------------------------------------------------------------|
-| getDependency |            | Function for getting observeble property                            |
-| callback      |            | Callback that handle dependency changes                             |
-| options       | `null`     | Options object                                                      |
-| options.once  | `false`    | If `true` then subscription will be disposed after first invocation |
-| optons.event  | `"change"` | Event for passing to Knockout native `subscribe()`                  |
+<br>
+
+#### <a name="knockout-decorators-event"></a> @event
+Create subscribable function that invokes it's subscribers when it called.<br>
+All arguments that passed to `@event` function are translated to it's subscribers. Internally uses hidden `ko.subscribable`.<br>
+
+Subscribers can be attached by calling `.subscribe()` method of `EventProperty` type or by `subscribe()` [utility](#knockout-decorators-subscribe).
+```js
+import { event, EventProperty } from "knockout-decorators";
+
+class Publisher {
+  @event myEvent: EventProperty;
+}
+class Subscriber {  
+  constructor(publisher: Publisher) {
+    publisher.myEvent.subscribe((arg1, arg2) => {
+      console.log("lambda:", arg1, arg2);
+    });
+    
+    // `subscription` type is `KnockoutSubscription`
+    const subscription = publisher.myEvent.subscribe(this.onEvent);
+  }
+  
+  @autobind
+  onEvent(arg) {
+    console.log("method:", arg1, arg2);
+  }
+}
+
+const publisher = new Publisher();
+const subscriber = new Subscriber(publisher);
+
+// emit @event
+publisher.myEvent(123, "test");
+// [console] ➜ lambda:  123  "test"
+// [console] ➜ method:  123  "test"
+```
+
+#### <a name="knockout-decorators-subscribe"></a> subscribe
+Subscribe to `@observable` or `@computed` dependency with creation of hidden `ko.computed()`<br>
+Or subscribe to some `@event` property
+```js
+subscribe<T>(
+  dependency: () => T,
+  callback: (value: T) => void,
+  options?: { once?: boolean, event?: string }
+): KnockoutSubscription;
+
+subscribe<T1, T2, ...>(
+  event: (arg1: T1, arg2: T2, ...) => void,
+  callback: (arg1: T1, arg2: T2, ...) => void,
+  options?: { once?: boolean }
+): KnockoutSubscription;
+```
+
+| Argument          | Default    | Description                                                         |
+|:------------------|:-----------|:--------------------------------------------------------------------|
+| dependencyOrEvent |            | (1) Function for getting observeble property (2) @event property    |
+| callback          |            | Callback that handle dependency changes or @event notifications     |
+| options           | `null`     | Options object                                                      |
+| options.once      | `false`    | If `true` then subscription will be disposed after first invocation |
+| optons.event      | `"change"` | Event name for passing to Knockout native `subscribe()`             |
 
 ```js
+import { observable, subscribe } from "knockout-decorators";
+// subscriptions to @observable changes
 class ViewModel {
-  @observable field = "";
+  @observable field = 123;
   
   constructor() {
     subscribe(() => this.field, (value) => {
-      console.log(value);
+      console.log(value); // TypeScript detects that `value` type is `number`
     });
 
     subscribe(() => this.field, (value) => {
@@ -306,7 +396,35 @@ class ViewModel {
 
     subscribe(() => this.field, (value) => {
       console.log(value);
-    }, { event: "beforeChange" });
+    }, { event: "beforeChange" });    
+  }  
+}
+```
+```js
+import { event, subscribe } from "knockout-decorators";
+// subscriptions to @event
+class ViewModel {
+  @event myEvent: (arg: string) => void;
+  
+  constructor() {
+    subscribe(this.myEvent, (arg) => {
+      console.log(arg); // TypeScript detects that `arg` type is `string`
+    });
+    
+    subscribe(this.myEvent, (arg) => {
+      console.log(arg);
+    }, { once: true });
+    
+    // `subscription` type is `KnockoutSubscription`
+    const subscription = subscribe(this.myEvent, (arg) => {
+      console.log(arg);
+    });
+    
+    // unsubscribe from @event
+    subscription.dispose();
+    
+    // emit @event
+    this.myEvent("event argument")
   }  
 }
 ```
@@ -329,6 +447,8 @@ unwrap<T>(instance: Object, key: string | symbol): KnockoutObservable<T>;
 <a name="knockout-decorators-validation"></a>
 KnockoutValidation example
 ```js
+import { observable, extend, unwrap } from "knockout-decorators";
+
 class MyViewModel {
   @extend({ required: "MyField is required" })
   @observable myField = "";
