@@ -328,18 +328,18 @@ Subscribers can be attached by calling `.subscribe()` method of `EventProperty` 
 ```js
 import { event, EventProperty } from "knockout-decorators";
 
-class Publisher {
+class Producer {
   @event myEvent: EventProperty;
 }
 
-class Subscriber {  
-  constructor(publisher: Publisher) {
-    publisher.myEvent.subscribe((arg1, arg2) => {
+class Consumer {  
+  constructor(producer: Producer) {
+    producer.myEvent.subscribe((arg1, arg2) => {
       console.log("lambda:", arg1, arg2);
     });
     
     // `subscription` type is `KnockoutSubscription`
-    const subscription = publisher.myEvent.subscribe(this.onEvent);
+    const subscription = producer.myEvent.subscribe(this.onEvent);
   }
   
   @autobind
@@ -348,11 +348,11 @@ class Subscriber {
   }
 }
 
-const publisher = new Publisher();
-const subscriber = new Subscriber(publisher);
+const producer = new Producer();
+const consumer = new Consumer(producer);
 
 // emit @event
-publisher.myEvent(123, "test");
+producer.myEvent(123, "test");
 // [console] ➜ lambda:  123  "test"
 // [console] ➜ method:  123  "test"
 ```
