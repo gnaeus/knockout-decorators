@@ -82,39 +82,32 @@ export declare function autobind(prototype: Object, key: string | symbol, desc: 
  * Define hidden ko.subscribable, that notifies subscribers when decorated method is invoked
  */
 export declare function event(prototype: Object, key: string | symbol): void;
+export declare type EventProperty = Function & {
+    subscribe(callback: Function): KnockoutSubscription;
+};
 /**
- * Define hidden ko.subscribable, that notifies subscribers when decorated method is invoked
+ * Subscribe callback to `@observable` or `@computed` dependency changes or to some `@event`
  */
-export declare function event(prototype: Object, key: string | symbol, desc: PropertyDescriptor): PropertyDescriptor;
-/**
- * Subscribe callback to dependency changes
- */
-export declare function subscribe<T>(getDependency: () => T, callback: (value: T) => void, options?: {
+export declare function subscribe<T>(dependencyOrEvent: () => T, callback: (value: T) => void, options?: {
     once?: boolean;
     event?: string;
 }): KnockoutSubscription;
 /**
- * Subscribe callback to  some `@event`
- */
-export declare function subscribe(event: () => void, callback: () => void, options?: {
-    once?: boolean;
-}): KnockoutSubscription;
-/**
- * Subscribe callback to  some `@event`
+ * Subscribe callback to some `@event`
  */
 export declare function subscribe<T>(event: (arg: T) => void, callback: (arg: T) => void, options?: {
     once?: boolean;
 }): KnockoutSubscription;
 /**
- * Subscribe callback to  some `@event`
+ * Subscribe callback to some `@event`
  */
 export declare function subscribe<T1, T2>(event: (arg1: T1, arg2: T2) => void, callback: (arg1: T1, arg2: T2) => void, options?: {
     once?: boolean;
 }): KnockoutSubscription;
 /**
- * Subscribe callback to  some `@event`
+ * Subscribe callback to some `@event`
  */
-export declare function subscribe<T1, T2>(event: (arg1: T1, arg2: T2, ...args: any[]) => void, callback: (arg1: T1, arg2: T2, ...args: any[]) => void, options?: {
+export declare function subscribe<T1, T2, T3>(event: (arg1: T1, arg2: T2, arg3: T3, ...args: any[]) => void, callback: (arg1: T1, arg2: T2, arg3: T3, ...args: any[]) => void, options?: {
     once?: boolean;
 }): KnockoutSubscription;
 /**

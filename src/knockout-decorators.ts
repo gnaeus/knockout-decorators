@@ -268,7 +268,7 @@ export function event(prototype: Object, key: string | symbol): void {
     })
 }
 
-export type Event = Function & {
+export type EventProperty = Function & {
     subscribe(callback: Function): KnockoutSubscription;
 };
 
@@ -318,7 +318,7 @@ export function subscribe<T>(
     
     if (hasOwnProperty(dependencyOrEvent, "subscribe")) {
         // subscribe to @event
-        const event = dependencyOrEvent as Event;
+        const event = dependencyOrEvent as EventProperty;
 
         if (once) {
             const subscription = event.subscribe(function () {

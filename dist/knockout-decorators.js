@@ -299,6 +299,28 @@ function prepareReactiveObject(instance) {
 /**
  * Copyright (c) 2016-2017 Dmitry Panyushkin
  * Available under MIT license
+ */
+function defineEventProperty(instance, key) {
+    var subscribable$$1 = new ko.subscribable();
+    var event = function () {
+        var eventArgs = arraySlice(arguments);
+        subscribable$$1.notifySubscribers(eventArgs);
+    };
+    event.subscribe = function (callback) {
+        return subscribable$$1.subscribe(function (eventArgs) {
+            callback.apply(null, eventArgs);
+        });
+    };
+    defineProperty(instance, key, {
+        configurable: true,
+        value: event,
+    });
+    return event;
+}
+
+/**
+ * Copyright (c) 2016-2017 Dmitry Panyushkin
+ * Available under MIT license
  * Version: 0.9.0
  */
 /**
@@ -446,65 +468,52 @@ function autobind(prototype, key, desc) {
         }
     };
 }
+/*---------------------------------------------------------------------------*/
 /**
  * Define hidden ko.subscribable, that notifies subscribers when decorated method is invoked
  */
-function event(prototype, key, desc) {
-    return {
-        configurable: false,
+function event(prototype, key) {
+    defineProperty(prototype, key, {
+        configurable: true,
         get: function () {
-            var subscribable$$1 = new ko.subscribable();
-            function eventNotifier() {
-                var eventArgs = arraySlice(arguments);
-                subscribable$$1.notifySubscribers(eventArgs);
-            }
-            eventNotifier["subscribable"] = subscribable$$1;
-            defineProperty(this, key, {
-                configurable: true,
-                value: eventNotifier,
-            });
-            return eventNotifier;
+            return defineEventProperty(this, key);
         },
-    };
+    });
 }
 /**
- * Subscribe callback to dependency changes
+ * Subscribe callback to `@observable` or `@computed` dependency changes or to some `@event`
  */
 function subscribe(dependencyOrEvent, callback, options) {
     var once = options && options.once || false;
-    if (hasOwnProperty(dependencyOrEvent, "subscribable")) {
+    if (hasOwnProperty(dependencyOrEvent, "subscribe")) {
         // subscribe to @event
-        var subscribable$$1 = dependencyOrEvent["subscribable"];
-        var handler = void 0;
+        var event_1 = dependencyOrEvent;
         if (once) {
-            handler = function (eventArgs) {
-                callback.apply(null, eventArgs);
+            var subscription_1 = event_1.subscribe(function () {
                 subscription_1.dispose();
-            };
+                callback.apply(null, arguments);
+            });
+            return subscription_1;
         }
         else {
-            handler = function (eventArgs) {
-                callback.apply(null, eventArgs);
-            };
+            return event_1.subscribe(callback);
         }
-        var subscription_1 = subscribable$$1.subscribe(handler);
-        return subscription_1;
     }
     else {
         // subscribe to @observable, @reactive or @computed
-        var event_1 = options && options.event || "change";
+        var event_2 = options && options.event || "change";
         var computed_1 = ko.computed(dependencyOrEvent);
         var handler = void 0;
         if (once) {
             handler = function () {
-                callback.apply(null, arguments);
                 subscription_2.dispose();
+                callback.apply(null, arguments);
             };
         }
         else {
             handler = callback;
         }
-        var subscription_2 = computed_1.subscribe(handler, null, event_1);
+        var subscription_2 = computed_1.subscribe(handler, null, event_2);
         var originalDispose_1 = subscription_2.dispose;
         // dispose hidden computed with subscription
         subscription_2.dispose = function () {

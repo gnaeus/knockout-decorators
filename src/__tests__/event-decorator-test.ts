@@ -10,7 +10,7 @@ jest.unmock("../observable-property");
 jest.unmock("../property-extenders");
 
 import * as ko from "knockout";
-import { event, autobind, subscribe, Event } from "../knockout-decorators";
+import { event, autobind, subscribe, EventProperty } from "../knockout-decorators";
 
 describe("@event decorator", () => {
     it("should lazily create properties on instance", () => {
@@ -204,7 +204,7 @@ describe("@event decorator", () => {
 
     it("should create subscribable events", () => {
         class Publisher {
-            @event myEvent: Event;
+            @event myEvent: EventProperty;
         }
 
         class Subscriber {
