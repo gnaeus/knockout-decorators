@@ -320,15 +320,18 @@ class MyComponent {
 
 #### <a name="knockout-decorators-event"></a> @event
 Create subscribable function that invokes it's subscribers when it called.<br>
-All arguments that passed to `@event` function are translated to it's subscribers. Internally uses hidden `ko.subscribable`.<br>
 
-Subscribers can be attached by calling `.subscribe()` method of `EventProperty` type or by `subscribe()` [utility](#knockout-decorators-subscribe).
+All arguments that passed to `@event` function are translated to it's subscribers.<br>
+Internally uses hidden `ko.subscribable`.<br>
+
+Subscribers can be attached by calling `.subscribe()` method of `EventProperty` type or by `subscribe()` [utility](#knockout-decorators-subscribe-event).
 ```js
 import { event, EventProperty } from "knockout-decorators";
 
 class Publisher {
   @event myEvent: EventProperty;
 }
+
 class Subscriber {  
   constructor(publisher: Publisher) {
     publisher.myEvent.subscribe((arg1, arg2) => {
@@ -340,7 +343,7 @@ class Subscriber {
   }
   
   @autobind
-  onEvent(arg) {
+  onEvent(arg1, arg2) {
     console.log("method:", arg1, arg2);
   }
 }
@@ -354,16 +357,19 @@ publisher.myEvent(123, "test");
 // [console] ➜ method:  123  "test"
 ```
 
+<br>
+
 #### <a name="knockout-decorators-subscribe"></a> subscribe
-Subscribe to `@observable` or `@computed` dependency with creation of hidden `ko.computed()`<br>
-Or subscribe to some `@event` property
+Subscribe to `@observable` (or `@computed`) dependency with creation of hidden `ko.computed()`
 ```js
 subscribe<T>(
   dependency: () => T,
   callback: (value: T) => void,
   options?: { once?: boolean, event?: string }
 ): KnockoutSubscription;
-
+```
+Or subscribe to some `@event` property
+```js
 subscribe<T1, T2, ...>(
   event: (arg1: T1, arg2: T2, ...) => void,
   callback: (arg1: T1, arg2: T2, ...) => void,
@@ -379,9 +385,10 @@ subscribe<T1, T2, ...>(
 | options.once      | `false`    | If `true` then subscription will be disposed after first invocation |
 | optons.event      | `"change"` | Event name for passing to Knockout native `subscribe()`             |
 
+Subscribe to `@observable` changes
 ```js
 import { observable, subscribe } from "knockout-decorators";
-// subscriptions to @observable changes
+
 class ViewModel {
   @observable field = 123;
   
@@ -400,9 +407,10 @@ class ViewModel {
   }  
 }
 ```
+<a name="knockout-decorators-subscribe-event"></a>Subscribe to `@event` property
 ```js
 import { event, subscribe } from "knockout-decorators";
-// subscriptions to @event
+
 class ViewModel {
   @event myEvent: (arg: string) => void;
   
