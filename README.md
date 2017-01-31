@@ -34,6 +34,7 @@ class PersonView {
 ## Documentation
  * [@observable](#knockout-decorators-observable)
  * [@computed](#knockout-decorators-computed)
+ * [@reactive](#knockout-decorators-reactive)
  * [@observableArray](#knockout-decorators-observableArray)
  * [@extend](#knockout-decorators-extend)
  * [@component](#knockout-decorators-component)
@@ -47,10 +48,12 @@ class PersonView {
 [Changes from v0.7.1](#knockout-decorators-changelog)
 
 #### <a name="knockout-decorators-observable"></a> @observable
-Property decorator that creates hidden `ko.observable` with ES6 getter and setter for it
+Property decorator that creates hidden `ko.observable` with ES6 getter and setter for it<br>
+If initialized by Array then hidden `ko.observableArray` will be created (see [@observableArray](#knockout-decorators-observableArray))
 ```js
 class Model {
   @observable field = 123;
+  @observable collection = [];
 };
 let model = new Model();
 
@@ -61,7 +64,7 @@ model.field = 456;                                // [console] ➜ 456
 <br>
 
 #### <a name="knockout-decorators-computed"></a> @computed
-Accessor decorator that wraps ES6 getter to hidden `ko.pureComputed`
+Accessor decorator that wraps ES6 getter to hidden `ko.pureComputed`<br>
 Setter is not wrapped to hidden `ko.pureComputed` and stays unchanged
 ```js
 class Person {
@@ -81,6 +84,40 @@ person.fullName = "  John  Smith  " // [console] ➜ "John Smith"
 
 <br>
 
+#### <a name="knockout-decorators-reactive"></a> @reactive
+Like [@observable](#knockout-decorators-observable), but creates "deep observable" property (see example below)<br>
+If initialized by Array then hidden `ko.observableArray` will be created (see [@observableArray](#knockout-decorators-observableArray))
+
+```js
+class ViewModel {
+  @reactive deepObservable = {  // like @observable
+    firstName: "Clive Staples", // like @observable
+    lastName: "Lewis",          // like @observable
+
+    array: [],                  // like @observableArray
+
+    object: {                   // like @observable
+      foo: "bar",               // like @observable
+      reference: null,          // like @observable
+    },
+  }
+}
+
+const vm = new ViewModel();
+
+vm.deepObservable.object.reference = {
+  firstName: "Clive Staples", // make @observable
+  lastName: "Lewis",          // make @observable
+};
+
+vm.deepObservable.array.push({
+  firstName: "Clive Staples", // make @observable
+  lastName: "Lewis",          // make @observable
+});
+```
+
+<br>
+
 #### <a name="knockout-decorators-observableArray"></a> @observableArray
 Property decorator that creates hidden `ko.observableArray` with ES6 getter and setter for it
 ```js
@@ -92,15 +129,16 @@ let model = new Model();
 ko.computed(() => { console.log(model.field); }); // [console] ➜ [1, 2, 3]
 model.field = [4, 5, 6];                          // [console] ➜ [4, 5, 6]
 ```
-Functions from `ko.observableArray` (both Knockout-specific `remove`, `removeAll`, `destroy`, `destroyAll`, `replace`<br>
+Functions from `ko.observableArray` (both Knockout-specific `remove`, `removeAll`, `destroy`, `destroyAll`, `replace`
 and redefined `Array.prototype` functions `pop`, `push`, `reverse`, `shift`, `sort`, `splice`, `unshift`)
 are also presents in decorated poperty.<br>
 They works like if we invoke them on hidden `ko.observableArray`.
 
-And also decorated array has a `subscribe` function from `ko.subscribable`
+And also decorated array has:
+ * a `subscribe(callback: (value: any[]) => void)` function from `ko.subscribable`,
 ```js
 class Model {
-  @observableArray array = [1, 2, 3];
+  @observableArray array = [1, 2, 3] as ObservableArray<number>;
 };
 let model = new Model();
 model.array.subscribe((changes) => { console.log(changes); }, null, "arrayChange");
@@ -109,11 +147,36 @@ model.array.push(4);                      // [console] ➜  [{ status: 'added', 
 model.array.remove(val => val % 2 === 0); // [console] ➜  [{ status: 'deleted', value: 2, index: 1 },
                                           //                { status: 'deleted', value: 4, index: 3 }]
 ```
+* a new `mutate(callback: () => void)` function that runs callback in which we can mutate array directly,
+```js
+class Model {
+  @observableArray array = [1, 2, 3] as ObservableArray<number>;
+};
 
+let model = new Model();
+
+model.array.mutate(() => {
+  model.array[1] = 200; // this changes are observed
+  model.array[2] = 300; // when mutation callback stops execution
+});
+```
+* a new `set(i: number, value: any): any` function that sets a new value at specified index and returns the old value.
+```js
+class Model {
+  @observableArray array = [1, 2, 3] as ObservableArray<number>;
+};
+
+let model = new Model();
+
+let oldValue = model.array.set(2, 300) // this change is observed
+
+console.log(model.array); // [console] ➜ [1, 2, 300]
+console.log(oldValue);    // [console] ➜ 3
+```
 <br>
 
 #### <a name="knockout-decorators-extend"></a> @extend
-Apply extenders to decorated `@observable` or `@computed`
+Apply extenders to decorated `@observable`, `@reactive`, `@observableArray` or `@computed`
 ```js
 @extend(extenders: Object)
 @extend(extendersFactory: () => Object)
@@ -312,7 +375,7 @@ namespace MyTypescriptNamespace {
 <br>
 
 ### <a name="knockout-decorators-changelog"></a>
-### Breaking changes from v0.7.1 to v0.8.0
+### Breaking changes from v0.7.1
 
 1. Removed `@subscribe` decorator
 2. Removed `@reaction` decorator
@@ -335,7 +398,7 @@ class ViewModel {
 }
 ```
 
-So in v0.8.0 instead of `@subscribe` decorator there is shorthand function `subscribe`
+So from v0.8.0 instead of `@subscribe` decorator there is shorthand function `subscribe`
 with some extra functionality like "subscribe once":
 ```js
 class ViewModel {
