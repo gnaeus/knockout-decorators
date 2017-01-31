@@ -8,6 +8,7 @@ import { extendObject, defineProperty, hasOwnProperty, getOwnPropertyDescriptor,
 import { defineExtenders, applyExtenders } from "./property-extenders";
 import { defineObservableProperty, prepareReactiveObject } from "./observable-property";
 import { defineObservableArray } from "./observable-array";
+import { defineEventProperty } from "./event-property";
 
 /**
  * Property decorator that creates hidden (shallow) ko.observable with ES6 getter and setter for it
@@ -258,57 +259,31 @@ export function autobind(prototype: Object, key: string | symbol, desc: Property
 /**
  * Define hidden ko.subscribable, that notifies subscribers when decorated method is invoked
  */
-export function event(prototype: Object, key: string | symbol): void;
-/**
- * Define hidden ko.subscribable, that notifies subscribers when decorated method is invoked
- */
-export function event(prototype: Object, key: string | symbol, desc: PropertyDescriptor): PropertyDescriptor;
-/**
- * Define hidden ko.subscribable, that notifies subscribers when decorated method is invoked
- */
-export function event(prototype: Object, key: string | symbol, desc?: PropertyDescriptor) {
-    return {
-        configurable: false,
+export function event(prototype: Object, key: string | symbol): void {
+    defineProperty(prototype, key, {
+        configurable: true,
         get() {
-            const subscribable = new ko.subscribable();
-            
-            function eventNotifier () {
-                const eventArgs = arraySlice(arguments);
-                subscribable.notifySubscribers(eventArgs);
-            }
-
-            eventNotifier["subscribable"] = subscribable;
-
-            defineProperty(this, key, {
-                configurable: true,
-                value: eventNotifier,
-            });
-
-            return eventNotifier;
+            return defineEventProperty(this, key);
         },
-    } as PropertyDescriptor;
+    })
 }
+
+export type Event = Function & {
+    subscribe(callback: Function): KnockoutSubscription;
+};
 
 /*---------------------------------------------------------------------------*/
 
 /**
- * Subscribe callback to dependency changes
+ * Subscribe callback to `@observable` or `@computed` dependency changes or to some `@event`
  */
 export function subscribe<T>(
-    getDependency: () => T, 
+    dependencyOrEvent: () => T, 
     callback: (value: T) => void,
     options?: { once?: boolean, event?: string }
 ): KnockoutSubscription;
 /**
- * Subscribe callback to  some `@event`
- */
-export function subscribe(
-    event: () => void, 
-    callback: () => void,
-    options?: { once?: boolean }
-): KnockoutSubscription;
-/**
- * Subscribe callback to  some `@event`
+ * Subscribe callback to some `@event`
  */
 export function subscribe<T>(
     event: (arg: T) => void, 
@@ -316,7 +291,7 @@ export function subscribe<T>(
     options?: { once?: boolean }
 ): KnockoutSubscription;
 /**
- * Subscribe callback to  some `@event`
+ * Subscribe callback to some `@event`
  */
 export function subscribe<T1, T2>(
     event: (arg1: T1, arg2: T2) => void, 
@@ -324,15 +299,15 @@ export function subscribe<T1, T2>(
     options?: { once?: boolean }
 ): KnockoutSubscription;
 /**
- * Subscribe callback to  some `@event`
+ * Subscribe callback to some `@event`
  */
-export function subscribe<T1, T2>(
-    event: (arg1: T1, arg2: T2, ...args: any[]) => void, 
-    callback: (arg1: T1, arg2: T2, ...args: any[]) => void,
+export function subscribe<T1, T2, T3>(
+    event: (arg1: T1, arg2: T2, arg3: T3, ...args: any[]) => void, 
+    callback: (arg1: T1, arg2: T2, arg3: T3, ...args: any[]) => void,
     options?: { once?: boolean }
 ): KnockoutSubscription;
 /**
- * Subscribe callback to dependency changes
+ * Subscribe callback to `@observable` or `@computed` dependency changes or to some `@event`
  */
 export function subscribe<T>(
     dependencyOrEvent: Function,
@@ -341,25 +316,19 @@ export function subscribe<T>(
 ): KnockoutSubscription {
     const once = options && options.once || false;
     
-    if (hasOwnProperty(dependencyOrEvent, "subscribable")) {
+    if (hasOwnProperty(dependencyOrEvent, "subscribe")) {
         // subscribe to @event
-        const subscribable = dependencyOrEvent["subscribable"] as KnockoutSubscribable<any[]>;
+        const event = dependencyOrEvent as Event;
 
-        let handler: (value: any[]) => void;
         if (once) {
-            handler = function (eventArgs: any[]) {
+            const subscription = event.subscribe(function () {
                 subscription.dispose();
-                callback.apply(null, eventArgs);
-            };
+                callback.apply(null, arguments);
+            });
+            return subscription;
         } else {
-            handler = function (eventArgs: any[]) {
-                callback.apply(null, eventArgs);
-            };
+            return event.subscribe(callback);
         }
-
-        const subscription = subscribable.subscribe(handler);
-
-        return subscription;
     } else {
         // subscribe to @observable, @reactive or @computed
         const event = options && options.event || "change";
