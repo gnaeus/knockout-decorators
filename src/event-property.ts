@@ -4,12 +4,12 @@
  */
 import * as ko from "knockout";
 import { defineProperty, arraySlice } from "./common-functions";
-import { EventProperty } from "./knockout-decorators";
+import { EventType } from "./knockout-decorators";
 
 export function defineEventProperty(instance: Object, key: string | symbol) {
     const subscribable = new ko.subscribable<any[]>();
 
-    const event: EventProperty = function () {
+    const event: EventType = function () {
         const eventArgs = arraySlice(arguments);
         subscribable.notifySubscribers(eventArgs);
     } as any;

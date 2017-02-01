@@ -324,12 +324,12 @@ Create subscribable function that invokes it's subscribers when it called.<br>
 All arguments that passed to `@event` function are translated to it's subscribers.<br>
 Internally uses hidden `ko.subscribable`.<br>
 
-Subscribers can be attached by calling `.subscribe()` method of `EventProperty` type or by `subscribe()` [utility](#knockout-decorators-subscribe-event).
+Subscribers can be attached by calling `.subscribe()` method of `EventType` type or by `subscribe()` [utility](#knockout-decorators-subscribe-event).
 ```js
-import { event, EventProperty } from "knockout-decorators";
+import { event, EventType } from "knockout-decorators";
 
 class Producer {
-  @event myEvent: EventProperty;
+  @event myEvent: EventType;
 }
 
 class Consumer {  

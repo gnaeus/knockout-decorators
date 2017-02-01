@@ -10,7 +10,7 @@ jest.unmock("../observable-property");
 jest.unmock("../property-extenders");
 
 import * as ko from "knockout";
-import { observable, reactive, observableArray, computed, subscribe } from "../knockout-decorators";
+import { observable, reactive, observableArray, computed, subscribe, ObservableArray } from "../knockout-decorators";
 
 describe("subscribe utility function", () => {
     it("should subscribe given callback to decorated @observable", () => {
@@ -96,7 +96,7 @@ describe("subscribe utility function", () => {
         expect(vm.plainField).toBe(123);
     });
 
-    it("should subscribe to decorated @observable with given event", () => {
+    it("should subscribe to decorated @observable with 'beforeChange' event", () => {
         class ViewModel {
             plainField: number;
             
@@ -114,6 +114,45 @@ describe("subscribe utility function", () => {
         vm.observableField = 456;
 
         expect(vm.plainField).toBe(123);
+    });
+
+    it("should subscribe to decorated @observableArray with 'arrayChange' event", () => {
+        class ViewModel {
+            @observableArray array = [1, 2, 3, 4, 3, 2, 1] as ObservableArray<number>;
+        }
+        
+        let vm = new ViewModel();
+        let changes = [];
+
+        subscribe(() => vm.array, (val) => {
+            changes.push(...val);
+        }, { event: "arrayChange" });
+
+        vm.array.remove(val => val % 2 === 0);
+        vm.array.splice(2, 0, 5);
+        vm.array.replace(5, 7);
+
+        expect(vm.array).toEqual([1, 3, 7, 3, 1]);
+        expect(changes).toEqual([
+            { status: 'deleted', value: 2, index: 1 },
+            { status: 'deleted', value: 4, index: 3 },
+            { status: 'deleted', value: 2, index: 5 },
+            { status: 'added', value: 5, index: 2 },
+            { status: 'added', value: 7, index: 2 },
+            { status: 'deleted', value: 5, index: 2 },
+        ]);
+    });
+
+    it("should throw when trying to subscribe to non-@observableArray with 'arrayChange' event", () => {
+        class ViewModel {
+            array = [1, 2, 3];
+        }
+
+        let vm = new ViewModel();
+
+        expect(() => {
+            subscribe(() => vm.array, (val) => { }, { event: "arrayChange" });
+        }).toThrow();
     });
 
     it("should run subscription to decorated @observable once", () => {
@@ -134,6 +173,30 @@ describe("subscribe utility function", () => {
         vm.observableField = 456;
 
         expect(vm.plainField).toBe(123);
+    });
+
+    it("should subscribe to decorated @observableArray with 'arrayChange' event once", () => {
+        class ViewModel {
+            @observableArray array = [1, 2, 3, 4, 3, 2, 1] as ObservableArray<number>;
+        }
+        
+        let vm = new ViewModel();
+        let changes = [];
+
+        subscribe(() => vm.array, (val) => {
+            changes.push(...val);
+        }, { once: true, event: "arrayChange" });
+
+        vm.array.remove(val => val % 2 === 0);
+        vm.array.splice(2, 0, 5);
+        vm.array.replace(5, 7);
+
+        expect(vm.array).toEqual([1, 3, 7, 3, 1]);
+        expect(changes).toEqual([
+            { status: 'deleted', value: 2, index: 1 },
+            { status: 'deleted', value: 4, index: 3 },
+            { status: 'deleted', value: 2, index: 5 },
+        ]);
     });
 
     it("should run recursive subscription to decorated @observable once", () => {

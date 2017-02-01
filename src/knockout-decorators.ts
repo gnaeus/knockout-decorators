@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2016-2017 Dmitry Panyushkin
  * Available under MIT license
- * Version: 0.9.0
+ * Version: 0.9.1
  */
 import * as ko from "knockout";
 import { extendObject, defineProperty, hasOwnProperty, getOwnPropertyDescriptor, arraySlice } from "./common-functions";
@@ -268,22 +268,34 @@ export function event(prototype: Object, key: string | symbol): void {
     })
 }
 
-export type EventProperty = Function & {
+export type EventType = Function & {
     subscribe(callback: Function): KnockoutSubscription;
 };
 
 /*---------------------------------------------------------------------------*/
 
 /**
- * Subscribe callback to `@observable` or `@computed` dependency changes or to some `@event`
+ * Subscribe callback to `@observable` or `@computed` dependency changes or to some `@event` property
  */
 export function subscribe<T>(
     dependencyOrEvent: () => T, 
     callback: (value: T) => void,
-    options?: { once?: boolean, event?: string }
+    options?: { once?: boolean, event?: "change" | "beforeChange" }
 ): KnockoutSubscription;
 /**
- * Subscribe callback to some `@event`
+ * Subscribe callback to `@observableArray` dependency "arrayChange" event
+ */
+export function subscribe<T>(
+    dependency: () => T[],
+    callback: (value: {
+        status: "added" | "deleted";
+        value: T;
+        index: number;
+    }[]) => void,
+    options: { once?: boolean, event: "arrayChange" }
+): KnockoutSubscription;
+/**
+ * Subscribe callback to some `@event` property
  */
 export function subscribe<T>(
     event: (arg: T) => void, 
@@ -291,7 +303,7 @@ export function subscribe<T>(
     options?: { once?: boolean }
 ): KnockoutSubscription;
 /**
- * Subscribe callback to some `@event`
+ * Subscribe callback to some `@event` property
  */
 export function subscribe<T1, T2>(
     event: (arg1: T1, arg2: T2) => void, 
@@ -299,7 +311,7 @@ export function subscribe<T1, T2>(
     options?: { once?: boolean }
 ): KnockoutSubscription;
 /**
- * Subscribe callback to some `@event`
+ * Subscribe callback to some `@event` property
  */
 export function subscribe<T1, T2, T3>(
     event: (arg1: T1, arg2: T2, arg3: T3, ...args: any[]) => void, 
@@ -312,13 +324,13 @@ export function subscribe<T1, T2, T3>(
 export function subscribe<T>(
     dependencyOrEvent: Function,
     callback: (...args: any[]) => void,
-    options?: { once?: boolean, event?: string }
+    options?: { once?: boolean, event?: "change" | "beforeChange" | "arrayChange" }
 ): KnockoutSubscription {
     const once = options && options.once || false;
     
     if (hasOwnProperty(dependencyOrEvent, "subscribe")) {
-        // subscribe to @event
-        const event = dependencyOrEvent as EventProperty;
+        // overload: subscribe to @event property
+        const event = dependencyOrEvent as EventType;
 
         if (once) {
             const subscription = event.subscribe(function () {
@@ -330,12 +342,12 @@ export function subscribe<T>(
             return event.subscribe(callback);
         }
     } else {
-        // subscribe to @observable, @reactive or @computed
+        // overload: subscribe to @observable, @reactive or @computed 
         const event = options && options.event || "change";
 
-        const computed = ko.computed(dependencyOrEvent as () => T);
-        
-        let handler: (value: T) => void;
+        let handler: (value: any) => void;
+        let subscription: KnockoutSubscription;
+
         if (once) {
             handler = function () {
                 subscription.dispose();
@@ -345,15 +357,26 @@ export function subscribe<T>(
             handler = callback;
         }
 
-        const subscription = computed.subscribe(handler, null, event);
-        
-        const originalDispose = subscription.dispose;
-        // dispose hidden computed with subscription
-        subscription.dispose = function () {
-            originalDispose.call(this);
-            computed.dispose();
-        };
+        if (event === "arrayChange") {
+            const obsArray = dependencyOrEvent() as ObservableArray<any>;
 
+            if (Array.isArray(obsArray) && hasOwnProperty(obsArray, "mutate")) {
+                subscription = obsArray.subscribe(handler, null, event);
+            } else {
+                throw new Error("Can not subscribe to 'arrayChange' because dependency is not an 'observableArray'");
+            }
+        } else {
+            const computed = ko.computed(dependencyOrEvent as () => T);
+
+            subscription = computed.subscribe(handler, null, event);
+
+            const originalDispose = subscription.dispose;
+            // dispose hidden computed with subscription
+            subscription.dispose = function () {
+                originalDispose.call(this);
+                computed.dispose();
+            };
+        }
         return subscription;
     }
 }
