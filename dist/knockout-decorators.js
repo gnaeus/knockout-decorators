@@ -321,7 +321,7 @@ function defineEventProperty(instance, key) {
 /**
  * Copyright (c) 2016-2017 Dmitry Panyushkin
  * Available under MIT license
- * Version: 0.9.0
+ * Version: 0.9.1
  */
 /**
  * Property decorator that creates hidden (shallow) ko.observable with ES6 getter and setter for it
@@ -486,7 +486,7 @@ function event(prototype, key) {
 function subscribe(dependencyOrEvent, callback, options) {
     var once = options && options.once || false;
     if (hasOwnProperty(dependencyOrEvent, "subscribe")) {
-        // subscribe to @event
+        // overload: subscribe to @event property
         var event_1 = dependencyOrEvent;
         if (once) {
             var subscription_1 = event_1.subscribe(function () {
@@ -500,10 +500,10 @@ function subscribe(dependencyOrEvent, callback, options) {
         }
     }
     else {
-        // subscribe to @observable, @reactive or @computed
+        // overload: subscribe to @observable, @reactive or @computed 
         var event_2 = options && options.event || "change";
-        var computed_1 = ko.computed(dependencyOrEvent);
         var handler = void 0;
+        var subscription_2;
         if (once) {
             handler = function () {
                 subscription_2.dispose();
@@ -513,13 +513,25 @@ function subscribe(dependencyOrEvent, callback, options) {
         else {
             handler = callback;
         }
-        var subscription_2 = computed_1.subscribe(handler, null, event_2);
-        var originalDispose_1 = subscription_2.dispose;
-        // dispose hidden computed with subscription
-        subscription_2.dispose = function () {
-            originalDispose_1.call(this);
-            computed_1.dispose();
-        };
+        if (event_2 === "arrayChange") {
+            var obsArray = dependencyOrEvent();
+            if (Array.isArray(obsArray) && hasOwnProperty(obsArray, "mutate")) {
+                subscription_2 = obsArray.subscribe(handler, null, event_2);
+            }
+            else {
+                throw new Error("Can not subscribe to 'arrayChange' because dependency is not an 'observableArray'");
+            }
+        }
+        else {
+            var computed_1 = ko.computed(dependencyOrEvent);
+            subscription_2 = computed_1.subscribe(handler, null, event_2);
+            var originalDispose_1 = subscription_2.dispose;
+            // dispose hidden computed with subscription
+            subscription_2.dispose = function () {
+                originalDispose_1.call(this);
+                computed_1.dispose();
+            };
+        }
         return subscription_2;
     }
 }

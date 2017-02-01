@@ -1,6 +1,6 @@
 {
   "name": "knockout-decorators",
-  "version": "0.9.0",
+  "version": "0.9.1",
   "description": "Decorators for use Knockout JS in TypeScript and ESNext environments",
   "main": "dist/knockout-decorators.js",
   "typings": "dist/knockout-decorators.d.ts",

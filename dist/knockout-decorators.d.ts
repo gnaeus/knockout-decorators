@@ -82,30 +82,41 @@ export declare function autobind(prototype: Object, key: string | symbol, desc: 
  * Define hidden ko.subscribable, that notifies subscribers when decorated method is invoked
  */
 export declare function event(prototype: Object, key: string | symbol): void;
-export declare type EventProperty = Function & {
+export declare type EventType = Function & {
     subscribe(callback: Function): KnockoutSubscription;
 };
 /**
- * Subscribe callback to `@observable` or `@computed` dependency changes or to some `@event`
+ * Subscribe callback to `@observable` or `@computed` dependency changes or to some `@event` property
  */
 export declare function subscribe<T>(dependencyOrEvent: () => T, callback: (value: T) => void, options?: {
     once?: boolean;
-    event?: string;
+    event?: "change" | "beforeChange";
 }): KnockoutSubscription;
 /**
- * Subscribe callback to some `@event`
+ * Subscribe callback to `@observableArray` dependency "arrayChange" event
+ */
+export declare function subscribe<T>(dependency: () => T[], callback: (value: {
+    status: "added" | "deleted";
+    value: T;
+    index: number;
+}[]) => void, options: {
+    once?: boolean;
+    event: "arrayChange";
+}): KnockoutSubscription;
+/**
+ * Subscribe callback to some `@event` property
  */
 export declare function subscribe<T>(event: (arg: T) => void, callback: (arg: T) => void, options?: {
     once?: boolean;
 }): KnockoutSubscription;
 /**
- * Subscribe callback to some `@event`
+ * Subscribe callback to some `@event` property
  */
 export declare function subscribe<T1, T2>(event: (arg1: T1, arg2: T2) => void, callback: (arg1: T1, arg2: T2) => void, options?: {
     once?: boolean;
 }): KnockoutSubscription;
 /**
- * Subscribe callback to some `@event`
+ * Subscribe callback to some `@event` property
  */
 export declare function subscribe<T1, T2, T3>(event: (arg1: T1, arg2: T2, arg3: T3, ...args: any[]) => void, callback: (arg1: T1, arg2: T2, arg3: T3, ...args: any[]) => void, options?: {
     once?: boolean;
