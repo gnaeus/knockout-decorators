@@ -3,9 +3,9 @@
  * Available under MIT license
  */
 import * as ko from "knockout";
-import { defineProperty, hasOwnProperty, arraySlice } from "./common-functions";
-import { applyExtenders } from "./property-extenders";
+import { arraySlice, defineProperty, hasOwnProperty } from "./common-functions";
 import { prepareReactiveValue } from "./observable-property";
+import { applyExtenders } from "./property-extenders";
 
 type ObsArray = KnockoutObservableArray<any> & { [fnName: string]: Function };
 
@@ -18,17 +18,17 @@ const allObservableArrayMethods = [...deepObservableArrayMethods, "replace"];
 const allMethods = [...allArrayMethods, ...allObservableArrayMethods, "mutate", "set"];
 
 export function defineObservableArray(
-    instance: Object, key: string | symbol, value: any[], deep: boolean
+    instance: Object, key: string | symbol, value: any[], deep: boolean,
 ) {
     const obsArray = applyExtenders(instance, key, ko.observableArray()) as ObsArray;
-    
+
     let insideObsArray = false;
 
     defineProperty(instance, key, {
         configurable: true,
         enumerable: true,
         get: obsArray,
-        set: setter, 
+        set: setter,
     });
 
     setter(value);
@@ -41,7 +41,7 @@ export function defineObservableArray(
                 // if lastValue array methods were already patched
                 if (hasOwnProperty(lastValue, "mutate")) {
                     // clear patched array methods on lastValue (see unit tests)
-                    allMethods.forEach(fnName => {
+                    allMethods.forEach((fnName) => {
                         delete lastValue[fnName];
                     });
                 }
@@ -72,7 +72,7 @@ export function defineObservableArray(
     function patchArrayMethods(array: any[]) {
         const arrayMethods = deep ? deepArrayMethods : allArrayMethods;
 
-        arrayMethods.forEach(fnName => defineProperty(array, fnName, {
+        arrayMethods.forEach((fnName) => defineProperty(array, fnName, {
             configurable: true,
             value() {
                 if (insideObsArray) {
@@ -82,19 +82,19 @@ export function defineObservableArray(
                 const result = obsArray[fnName].apply(obsArray, arguments);
                 insideObsArray = false;
                 return result;
-            }
+            },
         }));
-        
+
         const observableArrayMethods = deep ? deepObservableArrayMethods : allObservableArrayMethods;
 
-        observableArrayMethods.forEach(fnName => defineProperty(array, fnName, {
+        observableArrayMethods.forEach((fnName) => defineProperty(array, fnName, {
             configurable: true,
             value() {
                 insideObsArray = true;
                 const result = obsArray[fnName].apply(obsArray, arguments);
                 insideObsArray = false;
                 return result;
-            }
+            },
         }));
 
         if (deep) {
@@ -112,7 +112,7 @@ export function defineObservableArray(
                     const result = obsArray.push.apply(obsArray, args);
                     insideObsArray = false;
                     return result;
-                }
+                },
             });
 
             defineProperty(array, "unshift", {
@@ -129,7 +129,7 @@ export function defineObservableArray(
                     const result = obsArray.unshift.apply(obsArray, args);
                     insideObsArray = false;
                     return result;
-                }
+                },
             });
 
             defineProperty(array, "splice", {
@@ -140,7 +140,7 @@ export function defineObservableArray(
                     }
 
                     let result: any[];
-                    
+
                     insideObsArray = true;
                     switch (arguments.length) {
                         case 0:
@@ -151,7 +151,7 @@ export function defineObservableArray(
                         }
                         case 3: {
                             result = obsArray.splice(
-                                arguments[0], arguments[1], prepareReactiveValue(arguments[2])
+                                arguments[0], arguments[1], prepareReactiveValue(arguments[2]),
                             );
                             break;
                         }
@@ -167,7 +167,7 @@ export function defineObservableArray(
                     insideObsArray = false;
 
                     return result;
-                }
+                },
             });
 
             defineProperty(array, "replace", {
@@ -177,43 +177,47 @@ export function defineObservableArray(
                     const result = obsArray.replace(oldItem, prepareReactiveValue(newItem));
                     insideObsArray = false;
                     return result;
-                }
+                },
             });
 
             defineProperty(array, "mutate", {
                 configurable: true,
                 value(mutator: (array?: any[]) => void) {
-                    const array = obsArray.peek();
-                    obsArray.valueWillMutate();
-                    mutator(array);
-                    for (let i = 0; i < array.length; ++i) {
-                        array[i] = prepareReactiveValue(array[i]);
+                    const nativeArray = obsArray.peek();
+                    // it is defined for ko.observableArray
+                    (obsArray.valueWillMutate as Function)();
+                    mutator(nativeArray);
+                    for (let i = 0; i < nativeArray.length; ++i) {
+                        nativeArray[i] = prepareReactiveValue(nativeArray[i]);
                     }
-                    obsArray.valueHasMutated();
-                }
+                    // it is defined for ko.observableArray
+                    (obsArray.valueHasMutated as Function)();
+                },
             });
 
             defineProperty(array, "set", {
                 configurable: true,
                 value(index: number, newItem: any) {
                     return obsArray.splice(index, 1, prepareReactiveValue(newItem))[0];
-                }
+                },
             });
         } else {
             defineProperty(array, "mutate", {
                 configurable: true,
                 value(mutator: (array?: any[]) => void) {
-                    obsArray.valueWillMutate();
+                    // it is defined for ko.observableArray
+                    (obsArray.valueWillMutate as Function)();
                     mutator(obsArray.peek());
-                    obsArray.valueHasMutated();
-                }
+                    // it is defined for ko.observableArray
+                    (obsArray.valueHasMutated as Function)();
+                },
             });
 
             defineProperty(array, "set", {
                 configurable: true,
                 value(index: number, newItem: any) {
                     return obsArray.splice(index, 1, newItem)[0];
-                }
+                },
             });
         }
     }
@@ -224,13 +228,13 @@ export interface ObservableArray<T> extends Array<T> {
 
     remove(item: T): T[];
     remove(removeFunction: (item: T) => boolean): T[];
-    
+
     removeAll(): T[];
     removeAll(items: T[]): T[];
 
     destroy(item: T): void;
     destroy(destroyFunction: (item: T) => boolean): void;
-    
+
     destroyAll(): void;
     destroyAll(items: T[]): void;
 

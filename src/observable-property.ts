@@ -3,17 +3,17 @@
  * Available under MIT license
  */
 import * as ko from "knockout";
-import { objectForEach, defineProperty, hasOwnProperty, getPrototypeOf } from "./common-functions";
-import { applyExtenders } from "./property-extenders";
+import { defineProperty, getPrototypeOf, hasOwnProperty, objectForEach } from "./common-functions";
 import { defineObservableArray } from "./observable-array";
+import { applyExtenders } from "./property-extenders";
 
 export function defineObservableProperty(
-    instance: Object, key: string | symbol, value: any, deep: boolean
+    instance: Object, key: string | symbol, value: any, deep: boolean,
 ) {
     const observable = applyExtenders(instance, key, ko.observable());
 
     let setter = observable as Function;
-    
+
     if (deep) {
         setter = function (newValue: any) {
             observable(prepareReactiveValue(newValue));
@@ -26,7 +26,7 @@ export function defineObservableProperty(
         get: observable,
         set: setter,
     });
-    
+
     setter(value);
 }
 
@@ -37,7 +37,7 @@ export function prepareReactiveValue(value: any) {
             return value;
         } else if (value.constructor === Object) {
             // value is plain Object
-            return prepareReactiveObject(value); 
+            return prepareReactiveObject(value);
         } else if (hasOwnProperty(value, "constructor")) {
             const prototype = getPrototypeOf(value);
             if (prototype === Object.prototype || prototype === null) {

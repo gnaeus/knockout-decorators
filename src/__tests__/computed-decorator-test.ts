@@ -10,10 +10,20 @@ jest.unmock("../observable-property");
 jest.unmock("../property-extenders");
 
 import * as ko from "knockout";
-import { observable, reactive, observableArray, computed } from "../knockout-decorators";
+import { computed, observable, observableArray, reactive } from "../knockout-decorators";
 
 describe("@computed decorator", () => {
-    ko.options.deferUpdates = false;
+    it("should throw on properties without getter", () => {
+        expect(() => {
+            class ViewModel {
+                @computed set onlySetter(_: any) {
+                    // ...
+                }
+            }
+            // tslint:disable-next-line:no-unused-new
+            new ViewModel();
+        }).toThrowError("@computed property 'onlySetter' has no getter");
+    });
 
     it("should lazily create properties on instance", () => {
         class Calc {
@@ -23,7 +33,7 @@ describe("@computed decorator", () => {
                 return this.number * this.number;
             }
         }
-        
+
         let calc = new Calc();
         let temp = calc.square;
 
@@ -38,7 +48,7 @@ describe("@computed decorator", () => {
                 return this.number * this.number;
             }
         }
-        
+
         let calc: any = new Calc();
         // get @computed property
         calc.square;

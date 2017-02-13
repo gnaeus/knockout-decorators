@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2016-2017 Dmitry Panyushkin
  * Available under MIT license
- * Version: 0.9.1
+ * Version: 0.9.2
  */
 import * as ko from "knockout";
-import { extendObject, defineProperty, hasOwnProperty, getOwnPropertyDescriptor, arraySlice } from "./common-functions";
-import { defineExtenders, applyExtenders } from "./property-extenders";
-import { defineObservableProperty, prepareReactiveObject } from "./observable-property";
-import { defineObservableArray } from "./observable-array";
+import { defineProperty, extendObject, getOwnPropertyDescriptor, hasOwnProperty } from "./common-functions";
 import { defineEventProperty } from "./event-property";
+import { defineObservableArray } from "./observable-array";
+import { defineObservableProperty } from "./observable-property";
+import { applyExtenders, defineExtenders } from "./property-extenders";
 
 /**
  * Property decorator that creates hidden (shallow) ko.observable with ES6 getter and setter for it
@@ -20,7 +20,7 @@ export function observable(prototype: Object, key: string | symbol) {
         get() {
             throw new Error("@observable property '" + key.toString() + "' was not initialized");
         },
-        set(value: any) {
+        set(this: Object, value: any) {
             if (Array.isArray(value)) {
                 defineObservableArray(this, key, value, false);
             } else {
@@ -42,7 +42,7 @@ export function reactive(prototype: Object, key: string | symbol) {
         get() {
             throw new Error("@reactive property '" + key.toString() + "' was not initialized");
         },
-        set(value: any) {
+        set(this: Object, value: any) {
             if (Array.isArray(value)) {
                 defineObservableArray(this, key, value, true);
             } else {
@@ -56,18 +56,22 @@ export function reactive(prototype: Object, key: string | symbol) {
 
 /**
  * Accessor decorator that wraps ES6 getter to hidden ko.pureComputed
- * 
+ *
  * Setter is not wrapped to hidden ko.pureComputed and stays unchanged
  *
- * But we can still extend getter @computed by extenders like { rateLimit: 500 } 
+ * But we can still extend getter @computed by extenders like { rateLimit: 500 }
  */
 export function computed(prototype: Object, key: string | symbol, desc: PropertyDescriptor) {
     const { get, set } = desc || (desc = getOwnPropertyDescriptor(prototype, key));
-    desc.get = function () {
+    if (!get) {
+        throw new Error("@computed property '" + key.toString() + "' has no getter");
+    }
+    desc.get = function (this: Object) {
         const computed = applyExtenders(this, key, ko.pureComputed(get, this));
         defineProperty(this, key, {
             configurable: true,
             get: computed,
+            // tslint:disable-next-line:object-literal-shorthand
             set: set,
         });
         return computed();
@@ -86,7 +90,7 @@ export function observableArray(prototype: Object, key: string | symbol) {
         get() {
             throw new Error("@observableArray property '" + key.toString() + "' was not initialized");
         },
-        set(value: any[]) {
+        set(this: Object, value: any[]) {
             defineObservableArray(this, key, value, false);
         },
     });
@@ -97,13 +101,13 @@ export interface ObservableArray<T> extends Array<T> {
 
     remove(item: T): T[];
     remove(removeFunction: (item: T) => boolean): T[];
-    
+
     removeAll(): T[];
     removeAll(items: T[]): T[];
 
     destroy(item: T): void;
     destroy(destroyFunction: (item: T) => boolean): void;
-    
+
     destroyAll(): void;
     destroyAll(items: T[]): void;
 
@@ -140,7 +144,7 @@ export function extend(extendersFactory: () => Object): PropertyDecorator;
 export function extend(extendersOrFactory: Object | Function) {
     return function (prototype: Object, key: string | symbol) {
         defineExtenders(prototype, key, extendersOrFactory);
-    }
+    };
 }
 
 /*---------------------------------------------------------------------------*/
@@ -149,7 +153,7 @@ export interface ComponentConstructor {
     new (
         params?: any,
         element?: Node,
-        templateNodes?: Node[]
+        templateNodes?: Node[],
     ): any;
 }
 
@@ -157,8 +161,8 @@ export type ComponentDecorator = (constructor: ComponentConstructor) => void;
 
 export type TemplateConfig = (
     string
-    | Node[] 
-    | DocumentFragment 
+    | Node[]
+    | DocumentFragment
     | { require: string }
     | { element: string | Node }
 );
@@ -168,7 +172,7 @@ export type TemplateConfig = (
  */
 export function component(
     name: string,
-    options?: Object
+    options?: Object,
 ): ComponentDecorator;
 /**
  * Register Knockout component by decorating ViewModel class
@@ -176,7 +180,7 @@ export function component(
 export function component(
     name: string,
     template: TemplateConfig,
-    options?: Object
+    options?: Object,
 ): ComponentDecorator;
 /**
  * Register Knockout component by decorating ViewModel class
@@ -185,7 +189,7 @@ export function component(
     name: string,
     template: TemplateConfig,
     styles: string | string[],
-    options?: Object
+    options?: Object,
 ): ComponentDecorator;
 /**
  * Register Knockout component by decorating ViewModel class
@@ -198,7 +202,7 @@ export function component(
     name: string,
     template?: any,
     styles?: any,
-    options?: Object
+    options?: Object,
 ) {
     if (options === void 0) {
         if (styles === void 0) {
@@ -219,14 +223,18 @@ export function component(
     return function (constructor: ComponentConstructor) {
         ko.components.register(name, extendObject({
             viewModel: constructor.length < 2 ? constructor : {
-                createViewModel(params, { element, templateNodes }) {
+                createViewModel(params: any, {
+                    element, templateNodes,
+                }: {
+                    element: Node, templateNodes: Node[],
+                }) {
                     return new constructor(params, element, templateNodes);
-                }
+                },
             },
             template: template || "<!---->",
             synchronous: true,
-        }, options));
-    }
+        }, options as Object));
+    };
 }
 
 /*---------------------------------------------------------------------------*/
@@ -238,9 +246,11 @@ export function component(
 export function autobind(prototype: Object, key: string | symbol, desc: PropertyDescriptor) {
     const { value, configurable, enumerable } = desc || (desc = getOwnPropertyDescriptor(prototype, key));
     return {
+        // tslint:disable-next-line:object-literal-shorthand
         configurable: configurable,
+        // tslint:disable-next-line:object-literal-shorthand
         enumerable: enumerable,
-        get() {
+        get(this: Object) {
             if (this === prototype) {
                 return value;
             }
@@ -250,7 +260,7 @@ export function autobind(prototype: Object, key: string | symbol, desc: Property
                 value: bound,
             });
             return bound;
-        }
+        },
     } as PropertyDescriptor;
 }
 
@@ -262,10 +272,10 @@ export function autobind(prototype: Object, key: string | symbol, desc: Property
 export function event(prototype: Object, key: string | symbol): void {
     defineProperty(prototype, key, {
         configurable: true,
-        get() {
+        get(this: Object) {
             return defineEventProperty(this, key);
         },
-    })
+    });
 }
 
 export type EventType = Function & {
@@ -278,9 +288,9 @@ export type EventType = Function & {
  * Subscribe callback to `@observable` or `@computed` dependency changes or to some `@event` property
  */
 export function subscribe<T>(
-    dependencyOrEvent: () => T, 
+    dependencyOrEvent: () => T,
     callback: (value: T) => void,
-    options?: { once?: boolean, event?: "change" | "beforeChange" }
+    options?: { once?: boolean, event?: "change" | "beforeChange" },
 ): KnockoutSubscription;
 /**
  * Subscribe callback to `@observableArray` dependency "arrayChange" event
@@ -292,31 +302,31 @@ export function subscribe<T>(
         value: T;
         index: number;
     }[]) => void,
-    options: { once?: boolean, event: "arrayChange" }
+    options: { once?: boolean, event: "arrayChange" },
 ): KnockoutSubscription;
 /**
  * Subscribe callback to some `@event` property
  */
 export function subscribe<T>(
-    event: (arg: T) => void, 
+    event: (arg: T) => void,
     callback: (arg: T) => void,
-    options?: { once?: boolean }
+    options?: { once?: boolean },
 ): KnockoutSubscription;
 /**
  * Subscribe callback to some `@event` property
  */
 export function subscribe<T1, T2>(
-    event: (arg1: T1, arg2: T2) => void, 
+    event: (arg1: T1, arg2: T2) => void,
     callback: (arg1: T1, arg2: T2) => void,
-    options?: { once?: boolean }
+    options?: { once?: boolean },
 ): KnockoutSubscription;
 /**
  * Subscribe callback to some `@event` property
  */
 export function subscribe<T1, T2, T3>(
-    event: (arg1: T1, arg2: T2, arg3: T3, ...args: any[]) => void, 
+    event: (arg1: T1, arg2: T2, arg3: T3, ...args: any[]) => void,
     callback: (arg1: T1, arg2: T2, arg3: T3, ...args: any[]) => void,
-    options?: { once?: boolean }
+    options?: { once?: boolean },
 ): KnockoutSubscription;
 /**
  * Subscribe callback to `@observable` or `@computed` dependency changes or to some `@event`
@@ -324,10 +334,10 @@ export function subscribe<T1, T2, T3>(
 export function subscribe<T>(
     dependencyOrEvent: Function,
     callback: (...args: any[]) => void,
-    options?: { once?: boolean, event?: "change" | "beforeChange" | "arrayChange" }
+    options?: { once?: boolean, event?: "change" | "beforeChange" | "arrayChange" },
 ): KnockoutSubscription {
     const once = options && options.once || false;
-    
+
     if (hasOwnProperty(dependencyOrEvent, "subscribe")) {
         // overload: subscribe to @event property
         const event = dependencyOrEvent as EventType;
@@ -342,7 +352,7 @@ export function subscribe<T>(
             return event.subscribe(callback);
         }
     } else {
-        // overload: subscribe to @observable, @reactive or @computed 
+        // overload: subscribe to @observable, @reactive or @computed
         const event = options && options.event || "change";
 
         let handler: (value: any) => void;
@@ -372,7 +382,7 @@ export function subscribe<T>(
 
             const originalDispose = subscription.dispose;
             // dispose hidden computed with subscription
-            subscription.dispose = function () {
+            subscription.dispose = function (this: KnockoutSubscription) {
                 originalDispose.call(this);
                 computed.dispose();
             };
@@ -397,6 +407,7 @@ export function unwrap<T>(instance: Object, key: string | symbol): KnockoutObser
 export function unwrap(instance: Object, key: string | symbol) {
     if (!hasOwnProperty(instance, key)) {
         // invoke getter on instance.__proto__ that defines property on instance
+        // tslint:disable-next-line:no-unused-expression
         instance[key];
     }
     return getOwnPropertyDescriptor(instance, key).get;

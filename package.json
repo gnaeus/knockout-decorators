@@ -1,6 +1,6 @@
 {
   "name": "knockout-decorators",
-  "version": "0.9.1",
+  "version": "0.9.2",
   "description": "Decorators for use Knockout JS in TypeScript and ESNext environments",
   "main": "dist/knockout-decorators.js",
   "typings": "dist/knockout-decorators.d.ts",
@@ -13,6 +13,7 @@
     "build-typings": "tsc -p tsconfig.typings.json && npm run move-typings && npm run fix-typings",
     "move-typings": "shx cp __temp/knockout-decorators.d.ts dist/knockout-decorators.d.ts && shx rm -rf __temp",
     "fix-typings": "shx echo \"export as namespace KnockoutDecorators;\" >> dist/knockout-decorators.d.ts",
+    "lint": "tslint --project tsconfig.json",
     "test": "jest --no-cache"
   },
   "repository": {
@@ -40,6 +41,7 @@
     "rollup-plugin-typescript": "^0.8.1",
     "rollup-plugin-uglify": "^1.0.1",
     "shx": "^0.2.1",
+    "tslint": "^4.4.2",
     "typescript": "^2.1.4"
   },
   "dependencies": {

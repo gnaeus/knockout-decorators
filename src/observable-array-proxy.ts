@@ -2,8 +2,7 @@
  * Copyright (c) 2016-2017 Dmitry Panyushkin
  * Available under MIT license
  */
-import * as ko from "knockout";
-import { defineProperty, arraySlice } from "./common-functions";
+import { arraySlice, defineProperty } from "./common-functions";
 
 // for `new ObservableArrayProxy(...) instanceof Array === true`
 class ArrayStub { }
@@ -18,10 +17,10 @@ export class ObservableArrayProxy<T> extends ArrayStub {
 
     /** @private */
     _preapreArrayItem: (item: T) => T;
-    
+
     constructor(
         observableArray: KnockoutObservableArray<T>,
-        preapreArrayItem?: (item: T) => T
+        preapreArrayItem?: (item: T) => T,
     ) {
         super();
 
@@ -29,7 +28,7 @@ export class ObservableArrayProxy<T> extends ArrayStub {
             configurable: true,
             value: observableArray,
         });
-        
+
         defineProperty(this, "_preapreArrayItem", {
             configurable: true,
             value: preapreArrayItem,
@@ -58,10 +57,10 @@ export class ObservableArrayProxy<T> extends ArrayStub {
                 defineProperty(ObservableArrayProxy.prototype, i.toString(), {
                     configurable: true,
                     enumerable: true,
-                    get: function <T>(this: ObservableArrayProxy<T>) {
+                    get<T>(this: ObservableArrayProxy<T>) {
                         return this._observableArray()[i];
                     },
-                    set: function <T>(this: ObservableArrayProxy<T>, value: T) {
+                    set<T>(this: ObservableArrayProxy<T>, value: T) {
                         if (this._preapreArrayItem) {
                             value = this._preapreArrayItem(value);
                         }
@@ -74,7 +73,7 @@ export class ObservableArrayProxy<T> extends ArrayStub {
     }
 
     /** Array.prototype.push() */
-    push() {
+    public push() {
         const args = arraySlice(arguments);
         this._prepareArrayItems(args);
         this._defineArrayIndexAccessors(this._observableArray.length + args.length);
@@ -82,7 +81,7 @@ export class ObservableArrayProxy<T> extends ArrayStub {
     }
 
     /** Array.prototype.unshift() */
-    unshift() {
+    public unshift() {
         const args = arraySlice(arguments);
         this._prepareArrayItems(args);
         this._defineArrayIndexAccessors(this._observableArray.length + args.length);
@@ -90,7 +89,7 @@ export class ObservableArrayProxy<T> extends ArrayStub {
     }
 
     /** Array.prototype.splice() */
-    splice(start: number, remove: number) {
+    public splice(start: number, remove: number) {
         const args = arraySlice(arguments);
         this._prepareArrayItems(args, 2);
 
@@ -111,37 +110,37 @@ export class ObservableArrayProxy<T> extends ArrayStub {
         if (start + remove > length) {
             remove = length - start;
         }
-        
+
         this._defineArrayIndexAccessors(length - remove + append);
         return this._observableArray.splice.apply(this._observableArray, args);
     }
 
     /** ko.observableArray.fn.replace() */
-    replace(oldItem: any, newItem: any) {
+    public replace(oldItem: any, newItem: any) {
         if (this._preapreArrayItem) {
             newItem = this._preapreArrayItem(newItem);
         }
         return this._observableArray.replace(oldItem, newItem);
     }
 
-    /** 
+    /**
      * ko.observable.fn.peek()
-     * 
+     *
      * Get native array instance. If called from ko.computed() then dependency will not be registered.
      */
-    peek() {
+    public peek() {
         return this._observableArray.peek();
     }
 
     /**
      * Get native array instance. If called from ko.computed() then dependency will be registered.
      */
-    unwrap() {
+    public unwrap() {
         return this._observableArray();
     }
 
     /** Object.prototype.toJSON() */
-    toJSON() {
+    protected toJSON() {
         return this._observableArray();
     }
 }
@@ -164,16 +163,16 @@ defineProperty(ObservableArrayProxy.prototype, "length", {
     "toJSON",
     "_prepareArrayItems",
     "_defineArrayIndexAccessors",
-].forEach(key => {
+].forEach((key) => {
     defineProperty(ObservableArrayProxy.prototype, key, {
         configurable: true,
         value: ObservableArrayProxy.prototype[key],
-    }); 
+    });
 });
 
 [
     // Array.prototype[fnName]
-	"concat",
+    "concat",
     "every",
     "filter",
     "find",
@@ -191,7 +190,7 @@ defineProperty(ObservableArrayProxy.prototype, "length", {
     "some",
     "toLocaleString",
     "toString",
-].forEach(fnName => {
+].forEach((fnName) => {
     defineProperty(ObservableArrayProxy.prototype, fnName, {
         configurable: true,
         value<T>(this: ObservableArrayProxy<T>) {
@@ -212,8 +211,8 @@ defineProperty(ObservableArrayProxy.prototype, "length", {
     "removeAll",
     "destroy",
     "destroyAll",
-    "subscribe"
-].forEach(fnName => {
+    "subscribe",
+].forEach((fnName) => {
     defineProperty(ObservableArrayProxy.prototype, fnName, {
         configurable: true,
         value<T>(this: ObservableArrayProxy<T>) {

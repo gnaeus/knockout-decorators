@@ -7,7 +7,7 @@ module.exports = {
             if (filename.indexOf(".ts") === filename.length - 3) {
                 src = ts.transpile(src, {
                     experimentalDecorators: true,
-                    lib: [ "dom", "es5", "es6" ],
+                    lib: [ "dom", "es5", "es2015.symbol" ],
                     target: ts.ScriptTarget.ES5,
                 });
             }

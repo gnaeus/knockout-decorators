@@ -1,8 +1,15 @@
 {
   "compilerOptions": {
+    "noImplicitAny": true,
+    "noImplicitThis": true,
+    "noImplicitReturns": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "strictNullChecks": true,
+    "suppressImplicitAnyIndexErrors": true,
     "experimentalDecorators": true,
     "lib": [
-      "dom", "es5", "es6"
+      "dom", "es5", "es2015.symbol"
     ],
     "target": "es5"
   },

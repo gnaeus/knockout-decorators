@@ -3,7 +3,7 @@
  * Available under MIT license
  */
 import * as ko from "knockout";
-import { defineProperty, arraySlice } from "./common-functions";
+import { arraySlice, defineProperty } from "./common-functions";
 import { EventType } from "./knockout-decorators";
 
 export function defineEventProperty(instance: Object, key: string | symbol) {
