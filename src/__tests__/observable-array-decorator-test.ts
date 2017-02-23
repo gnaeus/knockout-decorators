@@ -15,7 +15,7 @@ import { observableArray, ObservableArray } from "../knockout-decorators";
 describe("@observableArray decorator", () => {
     it("should throw on uninitialized properties", () => {
         class ViewModel {
-            @observableArray array;
+            @observableArray array: any[];
         }
 
         let vm = new ViewModel();
@@ -25,11 +25,11 @@ describe("@observableArray decorator", () => {
 
     it("should define hidden observableArray", () => {
         class ViewModel {
-            @observableArray array = [];
+            @observableArray array: any[] = [];
         }
 
         let vm = new ViewModel();
-        
+
         let array = Object.getOwnPropertyDescriptor(vm, "array").get;
 
         expect(ko.isObservable(array)).toBeTruthy();
@@ -38,13 +38,13 @@ describe("@observableArray decorator", () => {
 
     it("should track hidden observable changes", () => {
         class ViewModel {
-            @observableArray array = [];
+            @observableArray array: number[] = [];
         }
-        
+
         let vm = new ViewModel();
         let syncArr: any[];
         ko.computed(() => { syncArr = vm.array; });
-        
+
         let arr = [1, 2, 3];
         vm.array = arr;
 
@@ -53,17 +53,17 @@ describe("@observableArray decorator", () => {
 
     it("should track hidden observableArray changes", () => {
         class ViewModel {
-            @observableArray array = [];
+            @observableArray array: number[] = [];
         }
-        
+
         let vm = new ViewModel();
 
         let syncArr: any[];
         ko.computed(() => { syncArr = vm.array; });
-        
+
         let arr = [1, 2, 3];
         vm.array = arr;
-        
+
         let removed = vm.array.splice(1, 1);
 
         expect(syncArr).toBe(arr);
@@ -75,24 +75,24 @@ describe("@observableArray decorator", () => {
         class ViewModel {
             @observableArray array = [1, 2, 3, 4, 3, 2, 1] as ObservableArray<number>;
         }
-        
-        let vm = new ViewModel();
-        let changes = [];
 
-        vm.array.subscribe(val => { changes.push(...val); }, null, "arrayChange");
-        
-        vm.array.remove(val => val % 2 === 0);
+        let vm = new ViewModel();
+        let changes: KnockoutArrayChange<number>[] = [];
+
+        vm.array.subscribe((val) => { changes.push(...val); }, null, "arrayChange");
+
+        vm.array.remove((val) => val % 2 === 0);
         vm.array.splice(2, 0, 5);
         vm.array.replace(5, 7);
 
         expect(vm.array).toEqual([1, 3, 7, 3, 1]);
         expect(changes).toEqual([
-            { status: 'deleted', value: 2, index: 1 },
-            { status: 'deleted', value: 4, index: 3 },
-            { status: 'deleted', value: 2, index: 5 },
-            { status: 'added', value: 5, index: 2 },
-            { status: 'added', value: 7, index: 2 },
-            { status: 'deleted', value: 5, index: 2 },
+            { status: "deleted", value: 2, index: 1 },
+            { status: "deleted", value: 4, index: 3 },
+            { status: "deleted", value: 2, index: 5 },
+            { status: "added", value: 5, index: 2 },
+            { status: "added", value: 7, index: 2 },
+            { status: "deleted", value: 5, index: 2 },
         ]);
     });
 
@@ -100,7 +100,7 @@ describe("@observableArray decorator", () => {
         class ViewModel {
             @observableArray array = [1, 2, 3];
         }
-        
+
         let vm = new ViewModel();
         let previous = vm.array;
         vm.array = [4, 5, 6];
@@ -123,11 +123,11 @@ describe("@observableArray decorator", () => {
         }
 
         let vm = new ViewModel();
-        let changesFirst = [];
-        let changesSecond = [];
+        let changesFirst: KnockoutArrayChange<number>[] = [];
+        let changesSecond: KnockoutArrayChange<number>[] = [];
 
-        vm.arrayFirst.subscribe(val => { changesFirst.push(...val); }, null, "arrayChange");
-        vm.arraySecond.subscribe(val => { changesSecond.push(...val); }, null, "arrayChange");
+        vm.arrayFirst.subscribe((val) => { changesFirst.push(...val); }, null, "arrayChange");
+        vm.arraySecond.subscribe((val) => { changesSecond.push(...val); }, null, "arrayChange");
 
         // assign pointer to array
         vm.arrayFirst = vm.arraySecond;
@@ -139,12 +139,12 @@ describe("@observableArray decorator", () => {
         expect(vm.arraySecond).toEqual([3, 4]);
 
         expect(changesFirst).toEqual([
-            { status: 'added', value: 3, index: 0 },
-            { status: 'deleted', value: 1, index: 0 },
-            { status: 'added', value: 4, index: 1 },
-            { status: 'deleted', value: 2, index: 1 },
-            { status: 'added', value: 5, index: 2 },
-            { status: 'added', value: 6, index: 3 },
+            { status: "added", value: 3, index: 0 },
+            { status: "deleted", value: 1, index: 0 },
+            { status: "added", value: 4, index: 1 },
+            { status: "deleted", value: 2, index: 1 },
+            { status: "added", value: 5, index: 2 },
+            { status: "added", value: 6, index: 3 },
         ]);
         expect(changesSecond).toEqual([]);
     });
@@ -155,9 +155,9 @@ describe("@observableArray decorator", () => {
         }
 
         let vm = new ViewModel();
-        let changes = [];
+        let changes: KnockoutArrayChange<number>[] = [];
 
-        vm.array.subscribe(val => { changes.push(...val); }, null, "arrayChange");
+        vm.array.subscribe((val) => { changes.push(...val); }, null, "arrayChange");
 
         vm.array.mutate((array) => {
             array[1] = 4;
@@ -165,8 +165,8 @@ describe("@observableArray decorator", () => {
 
         expect(vm.array).toEqual([1, 4, 3]);
         expect(changes).toEqual([
-            { status: 'added', value: 4, index: 1 },
-            { status: 'deleted', value: 2, index: 1 },
+            { status: "added", value: 4, index: 1 },
+            { status: "deleted", value: 2, index: 1 },
         ]);
     });
 
@@ -176,17 +176,17 @@ describe("@observableArray decorator", () => {
         }
 
         let vm = new ViewModel();
-        let changes = [];
+        let changes: KnockoutArrayChange<number>[] = [];
 
-        vm.array.subscribe(val => { changes.push(...val); }, null, "arrayChange");
+        vm.array.subscribe((val) => { changes.push(...val); }, null, "arrayChange");
 
         let oldValue = vm.array.set(1, 4);
 
         expect(oldValue).toBe(2);
         expect(vm.array).toEqual([1, 4, 3]);
         expect(changes).toEqual([
-            { status: 'deleted', value: 2, index: 1 },
-            { status: 'added', value: 4, index: 1 },
+            { status: "deleted", value: 2, index: 1 },
+            { status: "added", value: 4, index: 1 },
         ]);
     });
 });

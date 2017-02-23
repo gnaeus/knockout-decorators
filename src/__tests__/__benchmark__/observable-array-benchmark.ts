@@ -14,12 +14,13 @@ import { observableArray } from "../../knockout-decorators";
 import { ObservableArrayProxy } from "../../observable-array-proxy";
 
 describe("Observable Array Benchmark", () => {
-     function benchNative(count: number) {
+    function benchNative(count: number) {
         let source = new Array(count);
         for (let i = 0; i < count; ++i) {
             source[i] = i;
         }
         let arr = source;
+        // tslint:disable-next-line:prefer-for-of
         for (let i = 0; i < arr.length; ++i) {
             let temp = arr[0];
             for (let j = 0; j < arr.length - 1; ++j) {
@@ -32,10 +33,12 @@ describe("Observable Array Benchmark", () => {
 
     it("benchmark Native Array", () => {
         let res = benchNative(10);
+        // tslint:disable-next-line:no-console
         console.time("Native Array [size: 100, mutations: 100x100, runs: 10]");
         for (let i = 0; i < 10; ++i) {
             res = benchNative(100);
         }
+        // tslint:disable-next-line:no-console
         console.timeEnd("Native Array [size: 100, mutations: 100x100, runs: 10]");
     });
 
@@ -45,6 +48,7 @@ describe("Observable Array Benchmark", () => {
             source[i] = i;
         }
         let arr = ko.observableArray(source);
+        // tslint:disable-next-line:prefer-for-of
         for (let i = 0; i < arr().length; ++i) {
             let temp = arr()[0];
             for (let j = 0; j < arr().length - 1; ++j) {
@@ -57,10 +61,12 @@ describe("Observable Array Benchmark", () => {
 
     it("benchmark Knockout Observable Array", () => {
         let res = benchKnockout(10);
+        // tslint:disable-next-line:no-console
         console.time("Knockout Observable Array [size: 100, mutations: 100x100, runs: 10]");
         for (let i = 0; i < 10; ++i) {
             res = benchKnockout(100);
         }
+        // tslint:disable-next-line:no-console
         console.timeEnd("Knockout Observable Array [size: 100, mutations: 100x100, runs: 10]");
     });
 
@@ -73,6 +79,7 @@ describe("Observable Array Benchmark", () => {
             @observableArray arr = source;
         }
         let vm = new ViewModel();
+        // tslint:disable-next-line:prefer-for-of
         for (let i = 0; i < vm.arr.length; ++i) {
             let temp = vm.arr[0];
             for (let j = 0; j < vm.arr.length - 1; ++j) {
@@ -85,10 +92,12 @@ describe("Observable Array Benchmark", () => {
 
     it("benchmark Observable Array Decorator", () => {
         let res = benchDecorator(10);
+        // tslint:disable-next-line:no-console
         console.time("Observable Array Decorator [size: 100, mutations: 100x100, runs: 10]");
         for (let i = 0; i < 10; ++i) {
             res = benchDecorator(100);
         }
+        // tslint:disable-next-line:no-console
         console.timeEnd("Observable Array Decorator [size: 100, mutations: 100x100, runs: 10]");
     });
 
@@ -98,6 +107,7 @@ describe("Observable Array Benchmark", () => {
             source[i] = i;
         }
         let arr = makeProxy(source);
+        // tslint:disable-next-line:prefer-for-of
         for (let i = 0; i < arr.length; ++i) {
             let temp = arr[0];
             for (let j = 0; j < arr.length - 1; ++j) {
@@ -114,10 +124,12 @@ describe("Observable Array Benchmark", () => {
 
     it("benchmark Observable Array Proxy", () => {
         let res = benchProxy(10);
+        // tslint:disable-next-line:no-console
         console.time("Observable Array Proxy [size: 100, mutations: 100x100, runs: 10]");
         for (let i = 0; i < 10; ++i) {
             res = benchProxy(100);
         }
+        // tslint:disable-next-line:no-console
         console.timeEnd("Observable Array Proxy [size: 100, mutations: 100x100, runs: 10]");
     });
 });

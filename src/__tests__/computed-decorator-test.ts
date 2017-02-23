@@ -51,6 +51,7 @@ describe("@computed decorator", () => {
 
         let calc: any = new Calc();
         // get @computed property
+        // tslint:disable-next-line:no-unused-expression
         calc.square;
 
         // get @computed property
@@ -65,7 +66,7 @@ describe("@computed decorator", () => {
                 return this.number * this.number;
             }
         }
-        
+
         let calc = new Calc();
         let result: number;
 
@@ -80,13 +81,13 @@ describe("@computed decorator", () => {
 
     it("should track @observableArray changes", () => {
         class Calc {
-            @observableArray numbers = [];
+            @observableArray numbers: number[] = [];
 
             @computed get squares() {
-                return this.numbers.map(x => x * x);
+                return this.numbers.map((x) => x * x);
             }
         }
-        
+
         let calc = new Calc();
         let result: number[];
 
@@ -109,7 +110,7 @@ describe("@computed decorator", () => {
                 return this.object.number * this.object.number;
             }
         }
-        
+
         let calc = new Calc();
         let result: number;
 
@@ -133,7 +134,7 @@ describe("@computed decorator", () => {
         }
 
         let user = new User();
-        
+
         let fullName;
         ko.computed(() => { fullName = user.name; });
 

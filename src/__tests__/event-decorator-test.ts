@@ -10,16 +10,17 @@ jest.unmock("../observable-property");
 jest.unmock("../property-extenders");
 
 import * as ko from "knockout";
-import { event, autobind, subscribe, EventType } from "../knockout-decorators";
+import { autobind, event, EventType, subscribe } from "../knockout-decorators";
 
 describe("@event decorator", () => {
     it("should lazily create properties on instance", () => {
         class Publisher {
             @event myEvent: () => void;
         }
-        
+
         let publisher = new Publisher();
-        
+
+        // tslint:disable-next-line:no-unused-expression
         publisher.myEvent;
 
         expect(Object.hasOwnProperty.call(publisher, "myEvent")).toBeTruthy();
@@ -104,7 +105,7 @@ describe("@event decorator", () => {
 
         let subscription1 = subscribe(publisher.simpleEvent, subscriber1.onSimpleEvent);
         let subscription2 = subscribe(publisher.simpleEvent, subscriber2.onSimpleEvent);
-        
+
         subscription1.dispose();
 
         publisher.simpleEvent();
@@ -168,7 +169,7 @@ describe("@event decorator", () => {
 
     it("should define event without signature", () => {
         class Publisher {
-            @event untypedEvent;
+            @event untypedEvent: any;
         }
 
         class Subscriber {
@@ -194,11 +195,11 @@ describe("@event decorator", () => {
 
     it("should throw when trying to redefine @event property", () => {
         class Publisher {
-            @event untypedEvent;
+            @event untypedEvent: any;
         }
 
         let publisher = new Publisher();
-        
+
         expect(() => { publisher.untypedEvent = null; }).toThrow();
     });
 
@@ -208,7 +209,7 @@ describe("@event decorator", () => {
         }
 
         class Subscriber {
-            passedArguments = [];
+            passedArguments: any[] = [];
 
             @autobind
             onEvent(arg: any) {

@@ -10,12 +10,12 @@ jest.unmock("../observable-property");
 jest.unmock("../property-extenders");
 
 import * as ko from "knockout";
-import { reactive, subscribe, unwrap, ObservableArray } from "../knockout-decorators";
+import { ObservableArray, reactive, subscribe, unwrap } from "../knockout-decorators";
 
 describe("@reactive decorator", () => {
     it("should throw on uninitialized properties", () => {
         class ViewModel {
-            @reactive field;
+            @reactive field: any;
         }
 
         let vm = new ViewModel();
@@ -25,17 +25,17 @@ describe("@reactive decorator", () => {
 
     it("should combine deep observable objects and arrays", () => {
         class ViewModel {
-            @reactive deepObservable = {    // like @observable
-                firstName: "Clive Staples", // like @observable
-                lastName: "Lewis",          // like @observable
+            @reactive deepObservable = {       // like @observable
+                firstName: "Clive Staples",    // like @observable
+                lastName: "Lewis",             // like @observable
 
-                array: [],                  // like @observableArray
+                array: [] as any[],            // like @observableArray
 
-                object: {                   // like @observable({ deep: true })
-                    foo: "bar",             // like @observable
-                    reference: null,        // like @observable({ deep: true })
+                object: {                      // like @observable({ deep: true })
+                    foo: "bar",                // like @observable
+                    reference: null as Object, // like @observable({ deep: true })
                 },
-            }
+            };
         }
 
         const vm = new ViewModel();
@@ -129,11 +129,13 @@ describe("@reactive decorator: initialized by object", () => {
 
         let vm = new ViewModel();
 
-        let first, second, nested;
-        subscribe(() => vm.object.first, value => { first = value; });
-        subscribe(() => vm.object.second, value => { second = value; });
-        subscribe(() => vm.object.reference.nested, value => { nested = value; });
-        
+        let first: number;
+        let second: string;
+        let nested: number;
+        subscribe(() => vm.object.first, (value) => { first = value; });
+        subscribe(() => vm.object.second, (value) => { second = value; });
+        subscribe(() => vm.object.reference.nested, (value) => { nested = value; });
+
         vm.object.first = 456;
         vm.object.second = "bar";
         vm.object.reference.nested = 500;
@@ -145,7 +147,7 @@ describe("@reactive decorator: initialized by object", () => {
 
     it("should modify plain objects", () => {
         class ViewModel {
-            @reactive field = null;
+            @reactive field: Object = null;
         }
 
         let vm = new ViewModel();
@@ -159,7 +161,7 @@ describe("@reactive decorator: initialized by object", () => {
         class Model { }
 
         class ViewModel {
-            @reactive model = null;
+            @reactive model: Object = null;
         }
 
         let vm = new ViewModel();
@@ -171,19 +173,23 @@ describe("@reactive decorator: initialized by object", () => {
     });
 
     it("should work with circular references", () => {
+        type Circular = {
+            reference: Circular;
+        };
+
         class ViewModel {
-            @reactive object = null;
+            @reactive object: Circular = null;
         }
 
         let vm = new ViewModel();
 
         const circular = {
-            reference: null,
+            reference: null as Circular,
         };
         circular.reference = circular;
 
         vm.object = circular;
-        
+
         expect(vm.object).toBe(vm.object.reference);
         expect(ko.isObservable(unwrap(vm, "object"))).toBeTruthy();
         expect(ko.isObservable(unwrap(vm.object, "reference"))).toBeTruthy();
@@ -193,11 +199,11 @@ describe("@reactive decorator: initialized by object", () => {
 describe("@reactive decorator: initialized by array", () => {
     it("should define deep observableArray property", () => {
         class ViewModel {
-            @reactive array = [];
+            @reactive array: any[] = [];
         }
 
         let vm = new ViewModel();
-        
+
         let array = Object.getOwnPropertyDescriptor(vm, "array").get;
 
         expect(ko.isObservable(array)).toBeTruthy();
@@ -206,7 +212,7 @@ describe("@reactive decorator: initialized by array", () => {
 
     it("should track deep observableArray changes", () => {
         class ViewModel {
-            @reactive array = [];
+            @reactive array: { x: number, y: number }[] = [];
         }
 
         let vm = new ViewModel();
@@ -222,7 +228,7 @@ describe("@reactive decorator: initialized by array", () => {
 
     it("should modify plain object array items", () => {
         class ViewModel {
-            @reactive array = [];
+            @reactive array: Object[] = [];
         }
 
         let vm = new ViewModel();
@@ -236,7 +242,7 @@ describe("@reactive decorator: initialized by array", () => {
         class Model { }
 
         class ViewModel {
-            @reactive array = [];
+            @reactive array: Model[] = [];
         }
 
         let vm = new ViewModel();
@@ -248,19 +254,23 @@ describe("@reactive decorator: initialized by array", () => {
     });
 
     it("should work with circular references", () => {
+        type Circular = {
+            array: Circular[];
+        };
+
         class ViewModel {
-            @reactive array = [];
+            @reactive array: Circular[] = [];
         }
 
         let vm = new ViewModel();
 
         const circular = {
-            array: [],
+            array: [] as Circular[],
         };
         circular.array.push(circular);
 
         vm.array = circular.array;
-        
+
         expect(vm.array).toBe(vm.array[0].array);
         expect(ko.isObservable(unwrap(vm, "array"))).toBeTruthy();
         expect(ko.isObservable(unwrap(vm.array[0], "array"))).toBeTruthy();
@@ -272,8 +282,10 @@ describe("@reactive decorator: initialized by array", () => {
         let secondLevelChanged = false;
         subscribe(() => nested.array, () => { secondLevelChanged = true; });
 
-        vm.array.push({});
-        
+        vm.array.push({
+            array: [] as Circular[],
+        });
+
         expect(firstLevelChanged).toBe(true);
         // it is because vm.array[0].array has different hidden observale
         expect(secondLevelChanged).toBe(false);
@@ -283,24 +295,24 @@ describe("@reactive decorator: initialized by array", () => {
         class ViewModel {
             @reactive array = [1, 2, 3, 4, 3, 2, 1] as ObservableArray<number>;
         }
-        
-        let vm = new ViewModel();
-        let changes = [];
 
-        vm.array.subscribe(val => { changes.push(...val); }, null, "arrayChange");
-        
-        vm.array.remove(val => val % 2 === 0);
+        let vm = new ViewModel();
+        let changes: KnockoutArrayChange<number>[] = [];
+
+        vm.array.subscribe((val) => { changes.push(...val); }, null, "arrayChange");
+
+        vm.array.remove((val) => val % 2 === 0);
         vm.array.splice(2, 0, 5);
         vm.array.replace(5, 7);
 
         expect(vm.array).toEqual([1, 3, 7, 3, 1]);
         expect(changes).toEqual([
-            { status: 'deleted', value: 2, index: 1 },
-            { status: 'deleted', value: 4, index: 3 },
-            { status: 'deleted', value: 2, index: 5 },
-            { status: 'added', value: 5, index: 2 },
-            { status: 'added', value: 7, index: 2 },
-            { status: 'deleted', value: 5, index: 2 },
+            { status: "deleted", value: 2, index: 1 },
+            { status: "deleted", value: 4, index: 3 },
+            { status: "deleted", value: 2, index: 5 },
+            { status: "added", value: 5, index: 2 },
+            { status: "added", value: 7, index: 2 },
+            { status: "deleted", value: 5, index: 2 },
         ]);
     });
 
@@ -308,7 +320,7 @@ describe("@reactive decorator: initialized by array", () => {
         class ViewModel {
             @reactive array = [1, 2, 3];
         }
-        
+
         let vm = new ViewModel();
         let previous = vm.array;
         vm.array = [4, 5, 6];
@@ -331,11 +343,11 @@ describe("@reactive decorator: initialized by array", () => {
         }
 
         let vm = new ViewModel();
-        let changesFirst = [];
-        let changesSecond = [];
+        let changesFirst: KnockoutArrayChange<number>[] = [];
+        let changesSecond: KnockoutArrayChange<number>[] = [];
 
-        vm.arrayFirst.subscribe(val => { changesFirst.push(...val); }, null, "arrayChange");
-        vm.arraySecond.subscribe(val => { changesSecond.push(...val); }, null, "arrayChange");
+        vm.arrayFirst.subscribe((val) => { changesFirst.push(...val); }, null, "arrayChange");
+        vm.arraySecond.subscribe((val) => { changesSecond.push(...val); }, null, "arrayChange");
 
         // assign pointer to array
         vm.arrayFirst = vm.arraySecond;
@@ -347,12 +359,12 @@ describe("@reactive decorator: initialized by array", () => {
         expect(vm.arraySecond).toEqual([3, 4]);
 
         expect(changesFirst).toEqual([
-            { status: 'added', value: 3, index: 0 },
-            { status: 'deleted', value: 1, index: 0 },
-            { status: 'added', value: 4, index: 1 },
-            { status: 'deleted', value: 2, index: 1 },
-            { status: 'added', value: 5, index: 2 },
-            { status: 'added', value: 6, index: 3 },
+            { status: "added", value: 3, index: 0 },
+            { status: "deleted", value: 1, index: 0 },
+            { status: "added", value: 4, index: 1 },
+            { status: "deleted", value: 2, index: 1 },
+            { status: "added", value: 5, index: 2 },
+            { status: "added", value: 6, index: 3 },
         ]);
         expect(changesSecond).toEqual([]);
     });
@@ -363,9 +375,9 @@ describe("@reactive decorator: initialized by array", () => {
         }
 
         let vm = new ViewModel();
-        let changes = [];
+        let changes: KnockoutArrayChange<number>[] = [];
 
-        vm.array.subscribe(val => { changes.push(...val); }, null, "arrayChange");
+        vm.array.subscribe((val) => { changes.push(...val); }, null, "arrayChange");
 
         vm.array.mutate((array) => {
             array[1] = 4;
@@ -373,8 +385,8 @@ describe("@reactive decorator: initialized by array", () => {
 
         expect(vm.array).toEqual([1, 4, 3]);
         expect(changes).toEqual([
-            { status: 'added', value: 4, index: 1 },
-            { status: 'deleted', value: 2, index: 1 },
+            { status: "added", value: 4, index: 1 },
+            { status: "deleted", value: 2, index: 1 },
         ]);
     });
 
@@ -384,17 +396,17 @@ describe("@reactive decorator: initialized by array", () => {
         }
 
         let vm = new ViewModel();
-        let changes = [];
+        let changes: KnockoutArrayChange<number>[] = [];
 
-        vm.array.subscribe(val => { changes.push(...val); }, null, "arrayChange");
+        vm.array.subscribe((val) => { changes.push(...val); }, null, "arrayChange");
 
         let oldValue = vm.array.set(1, 4);
 
         expect(oldValue).toBe(2);
         expect(vm.array).toEqual([1, 4, 3]);
         expect(changes).toEqual([
-            { status: 'deleted', value: 2, index: 1 },
-            { status: 'added', value: 4, index: 1 },
+            { status: "deleted", value: 2, index: 1 },
+            { status: "added", value: 4, index: 1 },
         ]);
     });
 });

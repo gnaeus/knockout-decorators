@@ -11,13 +11,13 @@ jest.unmock("../property-extenders");
 
 import * as ko from "knockout";
 import { subscribe, unwrap } from "../knockout-decorators";
-import { prepareReactiveValue } from "../observable-property";
 import { ObservableArrayProxy } from "../observable-array-proxy";
+import { prepareReactiveValue } from "../observable-property";
 
 describe("deep ObservableArray", () => {
     function makeProxy<T>(array: T[]): T[] & KnockoutObservableArray<T> {
         return new ObservableArrayProxy(
-            ko.observableArray(array), prepareReactiveValue
+            ko.observableArray(array), prepareReactiveValue,
         ) as any;
     }
 

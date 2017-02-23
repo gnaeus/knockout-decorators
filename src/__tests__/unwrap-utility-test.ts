@@ -10,7 +10,7 @@ jest.unmock("../observable-property");
 jest.unmock("../property-extenders");
 
 import * as ko from "knockout";
-import { observable, reactive, observableArray, computed, extend, unwrap } from "../knockout-decorators";
+import { computed, extend, observable, observableArray, reactive, unwrap } from "../knockout-decorators";
 
 describe("unwrap utility function", () => {
     it("should return hidden observable", () => {
@@ -43,7 +43,7 @@ describe("unwrap utility function", () => {
 
     it("should return hidden observableArray", () => {
         class ViewModel {
-            @observableArray array = [];
+            @observableArray array: any[] = [];
         }
 
         let vm = new ViewModel();
@@ -68,7 +68,7 @@ describe("unwrap utility function", () => {
 
         expect(ko.isObservable(obsArray)).toBeTruthy();
         expect(Object.getPrototypeOf(obsArray)).toBe(ko.observableArray.fn);
-        
+
         expect(ko.isObservable(observableProperty)).toBeTruthy();
     });
 
@@ -89,16 +89,16 @@ describe("unwrap utility function", () => {
         expect(instance.property).toBe("observable value");
     });
 
-    ko.extenders["required"] = (target) => {
+    ko.extenders["required"] = (target: KnockoutObservable<any>) => {
         const extendedObservable = ko.pureComputed({
             read: target,
-            write: value => {
+            write: (value) => {
                 extendedObservable.isValid = !!value;
                 return target(value);
             },
         }) as any;
         return extendedObservable;
-    }
+    };
 
     it("should return hidden extended observable", () => {
         class Test {
@@ -144,11 +144,11 @@ describe("unwrap utility function", () => {
 
         class Derived extends Base {
             @observable observableDerivedField = "";
-            
+
             @computed get computedDerivedField() {
                 return this.observableDerivedField;
             }
-        };
+        }
 
         let instance = new Derived();
 

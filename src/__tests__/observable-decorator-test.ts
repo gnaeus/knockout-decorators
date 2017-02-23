@@ -15,7 +15,7 @@ import { observable } from "../knockout-decorators";
 describe("@observable decorator", () => {
     it("should throw on uninitialized properties", () => {
         class ViewModel {
-            @observable text;
+            @observable text: any;
         }
 
         let vm = new ViewModel();
@@ -29,7 +29,7 @@ describe("@observable decorator", () => {
         }
 
         let vm = new ViewModel();
-        
+
         let text = Object.getOwnPropertyDescriptor(vm, "text").get;
 
         expect(ko.isObservable(text)).toBeTruthy();
@@ -37,11 +37,11 @@ describe("@observable decorator", () => {
 
     it("should define hidden observableArray when initialized by array", () => {
         class ViewModel {
-            @observable array = [];
+            @observable array: any[] = [];
         }
 
         let vm = new ViewModel();
-        
+
         let array = Object.getOwnPropertyDescriptor(vm, "array").get;
 
         expect(ko.isObservable(array)).toBeTruthy();
@@ -56,7 +56,7 @@ describe("@observable decorator", () => {
         let vm = new ViewModel();
 
         let changedText;
-        ko.pureComputed(() => vm.text).subscribe(value => { changedText = value; });
+        ko.pureComputed(() => vm.text).subscribe((value) => { changedText = value; });
 
         vm.text = "test";
 
@@ -65,7 +65,7 @@ describe("@observable decorator", () => {
 
     it("should not modify property value", () => {
         class ViewModel {
-            @observable field = null;
+            @observable field: Object = null;
         }
 
         let vm = new ViewModel();

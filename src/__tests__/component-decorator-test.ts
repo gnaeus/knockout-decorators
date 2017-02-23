@@ -16,10 +16,10 @@ interface ComponentConfig extends KnockoutComponentTypes.ComponentConfig {
     synchronous?: boolean;
 }
 
-describe("@component decorator", () => {
-    // mock for require()
-    function reuqire(path: string) { return path; }
+/** mock for require() */
+function reuqire(path: string) { return path; }
 
+describe("@component decorator", () => {
     it("should register components", () => {
         @component("my-component")
         class MyComponent {}
@@ -48,12 +48,15 @@ describe("@component decorator", () => {
     it("should create view model factory if constructor has 2 or 3 args", () => {
         @component("my-component")
         class MyComponent {
-            constructor(public params, public element, public templateNodes) {}
+            constructor(public params: any, public element: any, public templateNodes: any) {}
         }
 
         ko.components.defaultLoader.getConfig("my-component", ({ viewModel }) => {
-            expect(viewModel.constructor).toBe(Object);
-            
+            expect(viewModel).toBeDefined();
+            if (viewModel !== void 0) {
+                expect(viewModel.constructor).toBe(Object);
+            }
+
             let { createViewModel } = viewModel as any;
             expect(createViewModel instanceof Function).toBeTruthy();
 
@@ -107,13 +110,13 @@ describe("@component decorator", () => {
 
     it("should work with (name, template, styles, options) overload", () => {
         @component("my-component", "<div></div>", reuqire("./my-component.css"), {
-            additionalData: { foo: "bar" }
+            additionalData: { foo: "bar" },
         })
         class MyComponent {}
 
         ko.components.defaultLoader.getConfig("my-component", (config) => {
             expect(config.template).toBe("<div></div>");
-            expect(config['additionalData']).toEqual({ foo: "bar" });
+            expect(config["additionalData"]).toEqual({ foo: "bar" });
         });
     });
 
@@ -121,5 +124,5 @@ describe("@component decorator", () => {
         if (ko.components.isRegistered("my-component")) {
             ko.components.unregister("my-component");
         }
-    })
+    });
 });
