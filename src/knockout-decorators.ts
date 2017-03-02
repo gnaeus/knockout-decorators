@@ -193,10 +193,10 @@ export function component(
 ): ComponentDecorator;
 /**
  * Register Knockout component by decorating ViewModel class
- * @param name { String } Name of component
- * @param template { Any } Knockout template definition
- * @param styles { Any } Ignored parameter (used for `require()` styles by webpack etc.)
- * @param options { Object } Another options that passed directly to `ko.components.register()`
+ * @param name {String} Name of component
+ * @param template {Any} Knockout template definition
+ * @param styles {Any} Ignored parameter (used for `require()` styles by webpack etc.)
+ * @param options {Object} Another options that passed directly to `ko.components.register()`
  */
 export function component(
     name: string,
@@ -226,8 +226,8 @@ export function component(
                 createViewModel(params: any, {
                     element, templateNodes,
                 }: {
-                    element: Node, templateNodes: Node[],
-                }) {
+                        element: Node, templateNodes: Node[],
+                    }) {
                     return new constructor(params, element, templateNodes);
                 },
             },
@@ -269,7 +269,7 @@ export function autobind(prototype: Object, key: string | symbol, desc: Property
 /**
  * Define hidden ko.subscribable, that notifies subscribers when decorated method is invoked
  */
-export function event(prototype: Object, key: string | symbol): void {
+export function event(prototype: Object, key: string | symbol) {
     defineProperty(prototype, key, {
         configurable: true,
         get(this: Object) {
@@ -331,11 +331,11 @@ export function subscribe<T1, T2, T3>(
 /**
  * Subscribe callback to `@observable` or `@computed` dependency changes or to some `@event`
  */
-export function subscribe<T>(
+export function subscribe(
     dependencyOrEvent: Function,
     callback: (...args: any[]) => void,
     options?: { once?: boolean, event?: "change" | "beforeChange" | "arrayChange" },
-): KnockoutSubscription {
+) {
     const once = options && options.once || false;
 
     if (hasOwnProperty(dependencyOrEvent, "subscribe")) {
@@ -376,7 +376,7 @@ export function subscribe<T>(
                 throw new Error("Can not subscribe to 'arrayChange' because dependency is not an 'observableArray'");
             }
         } else {
-            const computed = ko.computed(dependencyOrEvent as () => T);
+            const computed = ko.computed(dependencyOrEvent as () => any);
 
             subscription = computed.subscribe(handler, null, event);
 
@@ -411,4 +411,89 @@ export function unwrap(instance: Object, key: string | symbol) {
         instance[key];
     }
     return getOwnPropertyDescriptor(instance, key).get;
+}
+
+/*---------------------------------------------------------------------------*/
+const SUBSCRIPTIONS_KEY = typeof Symbol !== "undefined"
+    ? Symbol("ko_decorators_subscriptions") : "__ko_decorators_subscriptions__";
+
+/**
+ * Mixin which add `subscribe()` instance method and implement `dispose()` method,
+ * that disposes all subscription created by `subscribe()`
+ */
+export interface Disposable {
+    /** Dispose all subscriptions from this class */
+    dispose(): void;
+
+    /** Subscribe callback to `@observable` or `@computed` dependency changes or to some `@event` property */
+    subscribe<T>(
+        dependencyOrEvent: () => T,
+        callback: (value: T) => void,
+        options?: { once?: boolean, event?: "change" | "beforeChange" },
+    ): KnockoutSubscription;
+    /** Subscribe callback to `@observableArray` dependency "arrayChange" event */
+    subscribe<T>(
+        dependency: () => T[],
+        callback: (value: {
+            status: "added" | "deleted";
+            value: T;
+            index: number;
+        }[]) => void,
+        options: { once?: boolean, event: "arrayChange" },
+    ): KnockoutSubscription;
+    /** Subscribe callback to some `@event` property */
+    subscribe<T>(
+        event: (arg: T) => void,
+        callback: (arg: T) => void,
+        options?: { once?: boolean },
+    ): KnockoutSubscription;
+    /** Subscribe callback to some `@event` property */
+    subscribe<T1, T2>(
+        event: (arg1: T1, arg2: T2) => void,
+        callback: (arg1: T1, arg2: T2) => void,
+        options?: { once?: boolean },
+    ): KnockoutSubscription;
+    /** Subscribe callback to some `@event` property */
+    subscribe<T1, T2, T3>(
+        event: (arg1: T1, arg2: T2, arg3: T3, ...args: any[]) => void,
+        callback: (arg1: T1, arg2: T2, arg3: T3, ...args: any[]) => void,
+        options?: { once?: boolean },
+    ): KnockoutSubscription;
+}
+
+/**
+ * Mixin which add `subscribe()` instance method and implement `dispose()` method,
+ * that disposes all subscription created by `subscribe()`
+ * @param Base {Function} Base class to extend
+ */
+export function Disposable<T extends new (...args: any[]) => {}>(
+    // tslint:disable-next-line:variable-name
+    Base?: T,
+): (new (...args: any[]) => Disposable) & T {
+    if (typeof Base === "undefined") {
+        Base = class { } as T;
+    }
+    return class extends Base {
+        constructor(...args: any[]) {
+            super(...args);
+        }
+
+        /** Dispose all subscriptions from this class */
+        dispose() {
+            const subscriptions: KnockoutSubscription[] = this[SUBSCRIPTIONS_KEY];
+            if (subscriptions) {
+                subscriptions.forEach((subscription) => {
+                    subscription.dispose();
+                });
+            }
+        }
+
+        /** Subscribe callback to `@observable` or `@computed` dependency changes or to some `@event` */
+        subscribe() {
+            const subscription: KnockoutSubscription = subscribe.apply(null, arguments);
+            const subscriptions: KnockoutSubscription[] = this[SUBSCRIPTIONS_KEY] || (this[SUBSCRIPTIONS_KEY] = []);
+            subscriptions.push(subscription);
+            return subscription;
+        }
+    };
 }
