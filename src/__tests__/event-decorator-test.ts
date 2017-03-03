@@ -9,7 +9,6 @@ jest.unmock("../observable-array-proxy");
 jest.unmock("../observable-property");
 jest.unmock("../property-extenders");
 
-import * as ko from "knockout";
 import { autobind, event, EventType, subscribe } from "../knockout-decorators";
 
 describe("@event decorator", () => {
