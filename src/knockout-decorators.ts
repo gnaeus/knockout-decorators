@@ -459,6 +459,11 @@ export interface Disposable {
         callback: (arg1: T1, arg2: T2, arg3: T3, ...args: any[]) => void,
         options?: { once?: boolean },
     ): KnockoutSubscription;
+
+    /** Get internal ko.observable() for class property decodated by `@observable` */
+    unwrap(key: string | symbol): any;
+    /** Get internal ko.observable() for class property decodated by `@observable` */
+    unwrap<T>(key: string | symbol): KnockoutObservable<T>;
 }
 
 /**
@@ -494,6 +499,11 @@ export function Disposable<T extends new (...args: any[]) => {}>(
             const subscriptions: KnockoutSubscription[] = this[SUBSCRIPTIONS_KEY] || (this[SUBSCRIPTIONS_KEY] = []);
             subscriptions.push(subscription);
             return subscription;
+        }
+
+        /** Get internal ko.observable() for class property decodated by `@observable` */
+        unwrap(key: string) {
+            return unwrap(this, key);
         }
     };
 }

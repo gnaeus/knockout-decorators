@@ -10,7 +10,7 @@ jest.unmock("../observable-property");
 jest.unmock("../property-extenders");
 
 import * as ko from "knockout";
-import { autobind, Disposable, event, observable } from "../knockout-decorators";
+import { computed, Disposable, event, observable } from "../knockout-decorators";
 
 describe("Disposable mixin", () => {
     it("should apply mixin without base class", () => {
@@ -141,5 +141,26 @@ describe("Disposable mixin", () => {
 
         expect(observableSideEffect).toBe(123);
         expect(eventSideEffect).toBe(123);
+    });
+
+    it("can unwrap own properties", () => {
+        class ViewModel extends Disposable() {
+            @observable observable = 1;
+            @computed get computed() {
+                return this.observable + 1;
+            }
+
+            constructor() {
+                super();
+            }
+        }
+
+        let vm = new ViewModel();
+
+        let koObservable = vm.unwrap("observable");
+        let koComputed = vm.unwrap("computed");
+
+        expect(ko.isObservable(koObservable)).toBeTruthy();
+        expect(ko.isComputed(koComputed)).toBeTruthy();
     });
 });
