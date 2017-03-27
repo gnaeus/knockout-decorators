@@ -21,7 +21,6 @@ export function defineEventProperty(instance: Object, key: string | symbol) {
     };
 
     defineProperty(instance, key, {
-        configurable: true,
         value: event,
     });
 

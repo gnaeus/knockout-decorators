@@ -12,7 +12,7 @@ export function defineObservableProperty(
 ) {
     const observable = applyExtenders(instance, key, ko.observable());
 
-    let setter = observable as Function;
+    let setter = observable as any;
 
     if (deep) {
         setter = function (newValue: any) {
@@ -21,7 +21,6 @@ export function defineObservableProperty(
     }
 
     defineProperty(instance, key, {
-        configurable: true,
         enumerable: true,
         get: observable,
         set: setter,
@@ -54,7 +53,6 @@ export function prepareReactiveObject(instance: Object) {
     if (!hasOwnProperty(instance, PATCHED_KEY)) {
         // mark instance as ObservableObject
         defineProperty(instance, PATCHED_KEY, {
-            configurable: true,
             value: true,
         });
         // define deep observable properties

@@ -25,7 +25,6 @@ export function defineObservableArray(
     let insideObsArray = false;
 
     defineProperty(instance, key, {
-        configurable: true,
         enumerable: true,
         get: obsArray,
         set: setter,
@@ -62,7 +61,6 @@ export function defineObservableArray(
                 }
                 // mark instance as ObservableArray
                 defineProperty(newValue, PATCHED_KEY, {
-                    configurable: true,
                     value: true,
                 });
                 // call ko.observableArray.fn[fnName] instead of Array.prototype[fnName]
@@ -79,7 +77,6 @@ export function defineObservableArray(
         const arrayMethods = deep ? deepArrayMethods : allArrayMethods;
 
         arrayMethods.forEach((fnName) => defineProperty(array, fnName, {
-            configurable: true,
             value() {
                 if (insideObsArray) {
                     return Array.prototype[fnName].apply(array, arguments);
@@ -94,7 +91,6 @@ export function defineObservableArray(
         const observableArrayMethods = deep ? deepObservableArrayMethods : allObservableArrayMethods;
 
         observableArrayMethods.forEach((fnName) => defineProperty(array, fnName, {
-            configurable: true,
             value() {
                 insideObsArray = true;
                 const result = obsArray[fnName].apply(obsArray, arguments);
@@ -105,7 +101,6 @@ export function defineObservableArray(
 
         if (deep) {
             defineProperty(array, "push", {
-                configurable: true,
                 value() {
                     if (insideObsArray) {
                         return Array.prototype.push.apply(array, arguments);
@@ -122,7 +117,6 @@ export function defineObservableArray(
             });
 
             defineProperty(array, "unshift", {
-                configurable: true,
                 value() {
                     if (insideObsArray) {
                         return Array.prototype.unshift.apply(array, arguments);
@@ -139,7 +133,6 @@ export function defineObservableArray(
             });
 
             defineProperty(array, "splice", {
-                configurable: true,
                 value() {
                     if (insideObsArray) {
                         return Array.prototype.splice.apply(array, arguments);
@@ -177,7 +170,6 @@ export function defineObservableArray(
             });
 
             defineProperty(array, "replace", {
-                configurable: true,
                 value(oldItem: any, newItem: any) {
                     insideObsArray = true;
                     const result = obsArray.replace(oldItem, prepareReactiveValue(newItem));
@@ -187,7 +179,6 @@ export function defineObservableArray(
             });
 
             defineProperty(array, "mutate", {
-                configurable: true,
                 value(mutator: (array?: any[]) => void) {
                     const nativeArray = obsArray.peek();
                     // it is defined for ko.observableArray
@@ -202,14 +193,12 @@ export function defineObservableArray(
             });
 
             defineProperty(array, "set", {
-                configurable: true,
                 value(index: number, newItem: any) {
                     return obsArray.splice(index, 1, prepareReactiveValue(newItem))[0];
                 },
             });
         } else {
             defineProperty(array, "mutate", {
-                configurable: true,
                 value(mutator: (array?: any[]) => void) {
                     // it is defined for ko.observableArray
                     (obsArray.valueWillMutate as Function)();
@@ -220,7 +209,6 @@ export function defineObservableArray(
             });
 
             defineProperty(array, "set", {
-                configurable: true,
                 value(index: number, newItem: any) {
                     return obsArray.splice(index, 1, newItem)[0];
                 },

@@ -18,7 +18,6 @@ import { applyExtenders, defineExtenders } from "./property-extenders";
  */
 export function observable(prototype: Object, key: string | symbol) {
     defineProperty(prototype, key, {
-        configurable: true,
         get() {
             throw new Error("@observable property '" + key.toString() + "' was not initialized");
         },
@@ -40,7 +39,6 @@ export function observable(prototype: Object, key: string | symbol) {
  */
 export function reactive(prototype: Object, key: string | symbol) {
     defineProperty(prototype, key, {
-        configurable: true,
         get() {
             throw new Error("@reactive property '" + key.toString() + "' was not initialized");
         },
@@ -71,7 +69,6 @@ export function computed(prototype: Object, key: string | symbol, desc: Property
     desc.get = function (this: Object) {
         const computed = applyExtenders(this, key, ko.pureComputed(get, this));
         defineProperty(this, key, {
-            configurable: true,
             get: computed,
             // tslint:disable-next-line:object-literal-shorthand
             set: set,
@@ -88,7 +85,6 @@ export function computed(prototype: Object, key: string | symbol, desc: Property
  */
 export function observableArray(prototype: Object, key: string | symbol) {
     defineProperty(prototype, key, {
-        configurable: true,
         get() {
             throw new Error("@observableArray property '" + key.toString() + "' was not initialized");
         },
@@ -258,7 +254,6 @@ export function autobind(prototype: Object, key: string | symbol, desc: Property
             }
             const bound = value.bind(this);
             defineProperty(this, key, {
-                configurable: true,
                 value: bound,
             });
             return bound;
@@ -273,7 +268,6 @@ export function autobind(prototype: Object, key: string | symbol, desc: Property
  */
 export function event(prototype: Object, key: string | symbol) {
     defineProperty(prototype, key, {
-        configurable: true,
         get(this: Object) {
             return defineEventProperty(this, key);
         },

@@ -25,12 +25,10 @@ export class ObservableArrayProxy<T> extends ArrayStub {
         super();
 
         defineProperty(this, "_observableArray", {
-            configurable: true,
             value: observableArray,
         });
 
         defineProperty(this, "_preapreArrayItem", {
-            configurable: true,
             value: preapreArrayItem,
         });
 
@@ -55,7 +53,6 @@ export class ObservableArrayProxy<T> extends ArrayStub {
         if (ObservableArrayProxy._maxLength < length) {
             for (let i = ObservableArrayProxy._maxLength; i < length; i++) {
                 defineProperty(ObservableArrayProxy.prototype, i.toString(), {
-                    configurable: true,
                     enumerable: true,
                     get<T>(this: ObservableArrayProxy<T>) {
                         return this._observableArray()[i];
@@ -146,7 +143,6 @@ export class ObservableArrayProxy<T> extends ArrayStub {
 }
 
 defineProperty(ObservableArrayProxy.prototype, "length", {
-    configurable: true,
     get<T>(this: ObservableArrayProxy<T>) {
         return this._observableArray().length;
     },
@@ -165,7 +161,6 @@ defineProperty(ObservableArrayProxy.prototype, "length", {
     "_defineArrayIndexAccessors",
 ].forEach((key) => {
     defineProperty(ObservableArrayProxy.prototype, key, {
-        configurable: true,
         value: ObservableArrayProxy.prototype[key],
     });
 });
@@ -192,7 +187,6 @@ defineProperty(ObservableArrayProxy.prototype, "length", {
     "toString",
 ].forEach((fnName) => {
     defineProperty(ObservableArrayProxy.prototype, fnName, {
-        configurable: true,
         value<T>(this: ObservableArrayProxy<T>) {
             const nativeArray = this._observableArray();
             return nativeArray[fnName].apply(nativeArray, arguments);
@@ -214,7 +208,6 @@ defineProperty(ObservableArrayProxy.prototype, "length", {
     "subscribe",
 ].forEach((fnName) => {
     defineProperty(ObservableArrayProxy.prototype, fnName, {
-        configurable: true,
         value<T>(this: ObservableArrayProxy<T>) {
             const observableArray = this._observableArray as any;
             return observableArray[fnName].apply(observableArray, arguments);

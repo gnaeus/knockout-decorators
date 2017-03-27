@@ -12,9 +12,13 @@ if (typeof Symbol !== "undefined") {
     SUBSCRIPTIONS_KEY = Symbol(SUBSCRIPTIONS_KEY);
 }
 
+export function defineProperty(instance: Object, key: any, descriptor: PropertyDescriptor) {
+    descriptor.configurable = true;
+    Object.defineProperty(instance, key, descriptor);
+}
+
 export const extendObject = ko.utils.extend;
 export const objectForEach = ko.utils.objectForEach;
-export const defineProperty = Object.defineProperty.bind(Object);
 export const getPrototypeOf = Object.getPrototypeOf.bind(Object);
 export const getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor.bind(Object);
 export const hasOwnProperty = Function.prototype.call.bind(Object.prototype.hasOwnProperty);
