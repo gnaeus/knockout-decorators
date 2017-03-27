@@ -4,7 +4,9 @@
  * Version: 0.9.2
  */
 import * as ko from "knockout";
-import { defineProperty, extendObject, getOwnPropertyDescriptor, hasOwnProperty } from "./common-functions";
+import {
+    defineProperty, extendObject, getOwnPropertyDescriptor, hasOwnProperty, PATCHED_KEY, SUBSCRIPTIONS_KEY,
+} from "./common-functions";
 import { defineEventProperty } from "./event-property";
 import { defineObservableArray } from "./observable-array";
 import { defineObservableProperty } from "./observable-property";
@@ -370,7 +372,7 @@ export function subscribe(
         if (event === "arrayChange") {
             const obsArray = dependencyOrEvent() as ObservableArray<any>;
 
-            if (Array.isArray(obsArray) && hasOwnProperty(obsArray, "mutate")) {
+            if (Array.isArray(obsArray) && hasOwnProperty(obsArray, PATCHED_KEY)) {
                 subscription = obsArray.subscribe(handler, null, event);
             } else {
                 throw new Error("Can not subscribe to 'arrayChange' because dependency is not an 'observableArray'");
@@ -414,9 +416,6 @@ export function unwrap(instance: Object, key: string | symbol) {
 }
 
 /*---------------------------------------------------------------------------*/
-const SUBSCRIPTIONS_KEY = typeof Symbol !== "undefined"
-    ? Symbol("ko_decorators_subscriptions") : "__ko_decorators_subscriptions__";
-
 /**
  * Mixin which add `subscribe()` instance method and implement `dispose()` method,
  * that disposes all subscription created by `subscribe()`

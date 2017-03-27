@@ -3,7 +3,7 @@
  * Available under MIT license
  */
 import * as ko from "knockout";
-import { arraySlice, defineProperty, hasOwnProperty } from "./common-functions";
+import { arraySlice, defineProperty, hasOwnProperty, PATCHED_KEY } from "./common-functions";
 import { prepareReactiveValue } from "./observable-property";
 import { applyExtenders } from "./property-extenders";
 
@@ -39,7 +39,8 @@ export function defineObservableArray(
         if (lastValue !== newValue) {
             if (Array.isArray(lastValue)) {
                 // if lastValue array methods were already patched
-                if (hasOwnProperty(lastValue, "mutate")) {
+                if (hasOwnProperty(lastValue, PATCHED_KEY)) {
+                    delete lastValue[PATCHED_KEY];
                     // clear patched array methods on lastValue (see unit tests)
                     allMethods.forEach((fnName) => {
                         delete lastValue[fnName];
@@ -48,7 +49,7 @@ export function defineObservableArray(
             }
             if (Array.isArray(newValue)) {
                 // if new value array methods were already connected with another @observable
-                if (hasOwnProperty(newValue, "mutate")) {
+                if (hasOwnProperty(newValue, PATCHED_KEY)) {
                     // clone new value to prevent corruption of another @observable (see unit tests)
                     newValue = [...newValue];
                 }
@@ -59,6 +60,11 @@ export function defineObservableArray(
                         newValue[i] = prepareReactiveValue(newValue[i]);
                     }
                 }
+                // mark instance as ObservableArray
+                defineProperty(newValue, PATCHED_KEY, {
+                    configurable: true,
+                    value: true,
+                });
                 // call ko.observableArray.fn[fnName] instead of Array.prototype[fnName]
                 patchArrayMethods(newValue);
             }

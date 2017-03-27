@@ -3,7 +3,7 @@
  * Available under MIT license
  */
 import * as ko from "knockout";
-import { defineProperty, getPrototypeOf, hasOwnProperty, objectForEach } from "./common-functions";
+import { defineProperty, getPrototypeOf, hasOwnProperty, objectForEach, PATCHED_KEY } from "./common-functions";
 import { defineObservableArray } from "./observable-array";
 import { applyExtenders } from "./property-extenders";
 
@@ -50,15 +50,12 @@ export function prepareReactiveValue(value: any) {
     return value;
 }
 
-const REACTIVE_KEY = typeof Symbol !== "undefined"
-    ? Symbol("ko_decorators_reactive") : "__ko_decorators_reactive__";
-
 export function prepareReactiveObject(instance: Object) {
-    if (!hasOwnProperty(instance, REACTIVE_KEY)) {
+    if (!hasOwnProperty(instance, PATCHED_KEY)) {
         // mark instance as ObservableObject
-        defineProperty(instance, REACTIVE_KEY, {
+        defineProperty(instance, PATCHED_KEY, {
             configurable: true,
-            value: void 0,
+            value: true,
         });
         // define deep observable properties
         objectForEach(instance, (key, value) => {

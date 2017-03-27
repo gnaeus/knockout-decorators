@@ -2,10 +2,7 @@
  * Copyright (c) 2016-2017 Dmitry Panyushkin
  * Available under MIT license
  */
-import { extendObject, hasOwnProperty, objectForEach } from "./common-functions";
-
-const EXTENDERS_KEY = typeof Symbol !== "undefined"
-    ? Symbol("ko_decorators_extenders") : "__ko_decorators_extenders__";
+import { EXTENDERS_KEY, extendObject, hasOwnProperty, objectForEach } from "./common-functions";
 
 type Extender = Object | Function;
 
