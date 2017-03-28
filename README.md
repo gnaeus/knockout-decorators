@@ -47,7 +47,7 @@ class PersonView {
 
 [Usage without module loaders](#knockout-decorators-without-loaders)
 
-[Changes from v0.7.1](#knockout-decorators-changelog)
+[ChangeLog](./CHANGELOG.md)
 
 #### <a name="knockout-decorators-observable"></a> @observable
 Property decorator that creates hidden `ko.observable` with ES6 getter and setter for it<br>
@@ -496,44 +496,6 @@ namespace MyTypescriptNamespace {
   
   export class MyClass {
     @observable field = "";
-  }
-}
-```
-
-<br>
-
-### <a name="knockout-decorators-changelog"></a>
-### Breaking changes from v0.7.1
-
-1. Removed `@subscribe` decorator
-2. Removed `@reaction` decorator
-3. Added `subscribe(() => this.observableProp, (value) => { ... })` function
-4. Added `unwrap(this, "observablePropName")` function
-
-Native `ko.computed` with side effects can be used in all places
-where we use `@reaction` decorator.
-
-In v0.7.1 and earlier `@subscribe` decorator can be used only with `@observable` 
-but not with `@computed`. To avoid this restriction we can create `ko.pureComputed`
-and subscribe to it:
-```js
-class ViewModel {
-  @computed get computedProp() { ... }
-
-  constructor() {
-    ko.pureComputed(() => this.computedProp).subscribe((value) => { ... });
-  }
-}
-```
-
-So from v0.8.0 instead of `@subscribe` decorator there is shorthand function `subscribe`
-with some extra functionality like "subscribe once":
-```js
-class ViewModel {
-  @computed get computedProp() { ... }
-
-  constructor() {
-    subscribe(() => this.computedProp, (value) => { ... });
   }
 }
 ```
