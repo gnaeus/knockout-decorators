@@ -47,7 +47,7 @@ class PersonView {
 
 [Usage without module loaders](#knockout-decorators-without-loaders)
 
-[ChangeLog](./CHANGELOG.md)
+[Change Log](./CHANGELOG.md)
 
 #### <a name="knockout-decorators-observable"></a> @observable
 Property decorator that creates hidden `ko.observable` with ES6 getter and setter for it<br>

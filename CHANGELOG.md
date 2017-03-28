@@ -4,7 +4,7 @@
 ### Added
 - `Disposable()` mixin
 
-`Disposable()` mixin injects to class
+`Disposable()` mixin injects to class:
 - `.subscribe()` method, an alias for `subscribe()` utility function
 - `.dispose()` method. It disposes all subscription created by `.subscribe()` method
 - `.unwrap()` method, an alias for `unwrap()` utility function
@@ -12,7 +12,7 @@
 ## [0.9.1] - 2017-02-01
 ### Added
 - `@reactive` (deep observable) decorator. It can be used for recursively
-  observing nested object's properties (see #3)
+  observing nested object's properties (see [#3](./issues/3))
 - `@event` decorator. It creates hidden `ko.subscribable` for class property
 - `ObservableArray.set(index, value)` method
 - `ObservableArray.mutate(() => {...})` method
@@ -66,7 +66,7 @@ class ViewModel {
 
 ## [0.6.0] - 2016-12-11
 ### Added
-- `unwrap(this, "observablePropName")` function for getting internal observable (see #1)
+- `unwrap(this, "observablePropName")` function for getting internal observable (see [#1](./issues/1))
 
 ## [0.5.0] - 2016-12-10
 ### Changed
