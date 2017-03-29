@@ -2,6 +2,7 @@
 __Decorators for use Knockout JS in TypeScript and ESNext environments__
 
 [![Build Status](https://travis-ci.org/gnaeus/knockout-decorators.svg?branch=master)](https://travis-ci.org/gnaeus/knockout-decorators)
+[![Coverage Status](https://coveralls.io/repos/gnaeus/knockout-decorators/badge.svg?branch=master&service=github)](https://coveralls.io/github/gnaeus/knockout-decorators?branch=master)
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/gnaeus/knockout-decorators/master/LICENSE)
 [![npm version](https://img.shields.io/npm/v/knockout-decorators.svg?style=flat)](https://www.npmjs.com/package/knockout-decorators)
 
