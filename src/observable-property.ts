@@ -34,15 +34,16 @@ export function prepareReactiveValue(value: any) {
         if (Array.isArray(value) || value === null) {
             // value is Array or null
             return value;
-        } else if (value.constructor === Object) {
-            // value is plain Object
-            return prepareReactiveObject(value);
         } else if (hasOwnProperty(value, "constructor")) {
+            // there is redefined own property "constructor"
             const prototype = getPrototypeOf(value);
             if (prototype === Object.prototype || prototype === null) {
                 // value is plain Object
                 return prepareReactiveObject(value);
             }
+        } else if (value.constructor === Object) {
+            // value is plain Object
+            return prepareReactiveObject(value);
         }
     }
     // value is primitive, function or class instance

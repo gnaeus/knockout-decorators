@@ -150,6 +150,32 @@ describe("@reactive decorator: initialized by object", () => {
         expect(() => { vm.field = frozenObject; }).toThrow();
     });
 
+    it("should modify plain objects without prototype", () => {
+        class ViewModel {
+            @reactive field: Object = null;
+        }
+
+        let vm = new ViewModel();
+
+        let frozenObject = Object.create(null);
+        frozenObject.foo = "bar";
+        frozenObject = Object.freeze({ foo: "bar" });
+
+        expect(() => { vm.field = frozenObject; }).toThrow();
+    });
+
+    it("should modify plain objects with redefined 'constructor' property", () => {
+        class ViewModel {
+            @reactive field: Object = null;
+        }
+
+        let vm = new ViewModel();
+
+        let frozenObject: any = Object.freeze({ constructor: "bar" });
+
+        expect(() => { vm.field = frozenObject; }).toThrow();
+    });
+
     it("should not modify class instances", () => {
         class Model { }
 
@@ -160,6 +186,25 @@ describe("@reactive decorator: initialized by object", () => {
         let vm = new ViewModel();
 
         let frozenObject = Object.freeze(new Model());
+
+        vm.model = frozenObject;
+
+        expect(vm.model).toBe(frozenObject);
+    });
+
+    it("should not modify class instances with redefined 'constructor' property", () => {
+        class Model { }
+
+        class ViewModel {
+            @reactive model: Object = null;
+        }
+
+        let vm = new ViewModel();
+
+        let frozenObject = new Model();
+        frozenObject.constructor = Object;
+        frozenObject = Object.freeze(frozenObject);
+
         vm.model = frozenObject;
 
         expect(vm.model).toBe(frozenObject);
