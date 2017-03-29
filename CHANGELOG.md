@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## [0.10.0] - 2017-03-29
 ### Added
 - `Disposable()` mixin
 
@@ -83,8 +85,9 @@ class ViewModel {
 - `@subscribe` decorator
 - `@component` decorator
 
-[Unreleased]: https://github.com/gnaeus/knockout-decorators/compare/0.9.1...HEAD
-[0.9.1]: https://github.com/gnaeus/knockout-decorators/compare/0.8.0..0.9.1
+[Unreleased]: https://github.com/gnaeus/knockout-decorators/compare/0.10.0...HEAD
+[0.10.0]: https://github.com/gnaeus/knockout-decorators/compare/0.9.1...0.10.0
+[0.9.1]: https://github.com/gnaeus/knockout-decorators/compare/0.8.0...0.9.1
 [0.8.0]: https://github.com/gnaeus/knockout-decorators/compare/0.7.1...0.8.0
 [0.7.1]: https://github.com/gnaeus/knockout-decorators/compare/0.6.0...0.7.1
 [0.6.0]: https://github.com/gnaeus/knockout-decorators/compare/0.5.0...0.6.0
