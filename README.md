@@ -42,6 +42,7 @@ class PersonView {
  * [@event](#knockout-decorators-event)
  * [subscribe](#knockout-decorators-subscribe)
  * [unwrap](#knockout-decorators-unwrap)
+ * [Disposable() mixin](#knockout-decorators-disposable)
 
 [Work with KnockoutValidation](#knockout-decorators-validation)
 
@@ -477,6 +478,58 @@ class MyViewModel {
   <button data-bind="click: checkMyField">check</button>
   <p data-bind="validationMessage: unwrap('myField')"></p>
 </div>
+```
+
+<br>
+
+#### <a name="knockout-decorators-disposable"></a> Disposable() mixin
+Mixin that injects to class shorthands for utility functions and provides automatic disposing of created subscriptions
+(see [MDN](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes#Mix-ins)
+or [TypeScript 2.2 docs](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-2-2.html))
+```js
+function Disposable(Base? /* optional */) {
+  return class extends Base {
+    subscribe(...): KnockoutSubscription;
+    dispose(): void;
+    unwrap(propName: string): KnockoutObservable;
+  }
+}
+```
+* `Disposable.subscribe(...)` Shorthand for [`subscribe()`](#knockout-decorators-subscribe)
+  utility function that also store created subscription in hidden class property.
+* `Disposable.dispose()` Automatically dispose all subscriptions created by `Disposable.subscribe(...)` method.
+* `Disposable.unwrap()` Shorthand for [`unwrap()`](#knockout-decorators-unwrap)
+  utility function that returns hidden Knockout observable for decorated class property.
+
+```js
+import { observable, Disposable } from "knockout-decorators";
+
+class Derived extends Disposable(Base) {
+  @observable text = "";
+  
+  @computed({ pure: false })
+  get upperCase() {
+    return this.text.toUpperCase();
+  }
+  
+  constructor() {
+    // subscribe to computed changes
+    // and store created subscription in hidden class property 
+    this.subscribe(() => this.upperCase, (value) => {
+      console.log(value);
+    });
+  }
+  
+  dispose() {
+    // dispose all subscriptions that created by this.subscribe()
+    super.dispose();
+    // unwrap and dispose hiddden Knockout computed
+    this.unwrap("upperCase").dispose();
+  }
+}
+
+// Base class is optional
+class Component extends Disposable() { }
 ```
 
 <br>
