@@ -2,15 +2,8 @@
  * Copyright (c) 2016-2017 Dmitry Panyushkin
  * Available under MIT license
  */
-jest.unmock("knockout");
-jest.unmock("../knockout-decorators");
-jest.unmock("../observable-array");
-jest.unmock("../observable-array-proxy");
-jest.unmock("../observable-property");
-jest.unmock("../property-extenders");
-
 import * as ko from "knockout";
-import { computed, observable, observableArray, reactive } from "../knockout-decorators";
+import { computed, observable, observableArray, reactive } from "../src/knockout-decorators";
 
 describe("@computed decorator", () => {
     it("should throw on properties without getter", () => {

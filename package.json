@@ -1,6 +1,6 @@
 {
   "name": "knockout-decorators",
-  "version": "0.9.2",
+  "version": "0.10.0",
   "description": "Decorators for use Knockout JS in TypeScript and ESNext environments",
   "main": "dist/knockout-decorators.js",
   "typings": "dist/knockout-decorators.d.ts",
@@ -45,17 +45,16 @@
     "typescript": "^2.2.1"
   },
   "dependencies": {
-    "knockout": "^3.4.1"
+    "knockout": "^3.4.2"
   },
   "jest": {
-    "moduleFileExtensions": [
-      "js",
-      "ts"
-    ],
-    "rootDir": "./src",
+    "collectCoverage": true,
+    "collectCoverageFrom": [ "src/**/*.ts" ],
+    "coverageReporters": [ "lcov", "text" ],
+    "moduleFileExtensions": [ "js", "ts" ],
     "transform": {
-      ".*\\.ts$": "../jest-transformer.js"
+      ".*\\.ts$": "jest-transformer.js"
     },
-    "testRegex": "/__tests__/.*\\.ts$"
+    "testRegex": "/test/.*(test|benchmark)\\.ts$"
   }
 }

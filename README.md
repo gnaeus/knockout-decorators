@@ -502,7 +502,7 @@ function Disposable(Base? /* optional */) {
   utility function that returns hidden Knockout observable for decorated class property.
 
 ```js
-import { observable, Disposable } from "knockout-decorators";
+import { observable, computed, Disposable } from "knockout-decorators";
 
 class Derived extends Disposable(Base) {
   @observable text = "";

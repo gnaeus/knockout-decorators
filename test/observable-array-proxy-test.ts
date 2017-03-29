@@ -2,17 +2,10 @@
  * Copyright (c) 2016-2017 Dmitry Panyushkin
  * Available under MIT license
  */
-jest.unmock("knockout");
-jest.unmock("../knockout-decorators");
-jest.unmock("../observable-array");
-jest.unmock("../observable-array-proxy");
-jest.unmock("../observable-property");
-jest.unmock("../property-extenders");
-
 import * as ko from "knockout";
-import { subscribe, unwrap } from "../knockout-decorators";
-import { ObservableArrayProxy } from "../observable-array-proxy";
-import { prepareReactiveValue } from "../observable-property";
+import { subscribe, unwrap } from "../src/knockout-decorators";
+import { ObservableArrayProxy } from "../src/observable-array-proxy";
+import { prepareReactiveValue } from "../src/observable-property";
 
 describe("deep ObservableArray", () => {
     function makeProxy<T>(array: T[]): T[] & KnockoutObservableArray<T> {

@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) 2016-2017 Dmitry Panyushkin
+ * Available under MIT license
+ */
 import * as ko from "knockout";
 
 const prefix = "__ko_decorators_";

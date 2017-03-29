@@ -1,7 +1,7 @@
 var ts = require("typescript");
 var fs = require("fs");
 
-var tsconfig = JSON.parse(fs.readFileSync("./src/__tests__/tsconfig.json", "utf8"));
+var tsconfig = JSON.parse(fs.readFileSync("./test/tsconfig.json", "utf8"));
 
 tsconfig.target = ts.ScriptTarget.ES5;
 

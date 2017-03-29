@@ -2,15 +2,8 @@
  * Copyright (c) 2016-2017 Dmitry Panyushkin
  * Available under MIT license
  */
-jest.unmock("knockout");
-jest.unmock("../knockout-decorators");
-jest.unmock("../observable-array");
-jest.unmock("../observable-array-proxy");
-jest.unmock("../observable-property");
-jest.unmock("../property-extenders");
-
 import * as ko from "knockout";
-import { component } from "../knockout-decorators";
+import { component } from "../src/knockout-decorators";
 
 interface ComponentConfig extends KnockoutComponentTypes.ComponentConfig {
     synchronous?: boolean;

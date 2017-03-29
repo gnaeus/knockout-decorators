@@ -2,14 +2,7 @@
  * Copyright (c) 2016-2017 Dmitry Panyushkin
  * Available under MIT license
  */
-jest.unmock("knockout");
-jest.unmock("../knockout-decorators");
-jest.unmock("../observable-array");
-jest.unmock("../observable-array-proxy");
-jest.unmock("../observable-property");
-jest.unmock("../property-extenders");
-
-import { autobind, event, EventType, subscribe } from "../knockout-decorators";
+import { autobind, event, EventType, subscribe } from "../src/knockout-decorators";
 
 describe("@event decorator", () => {
     it("should lazily create properties on instance", () => {
