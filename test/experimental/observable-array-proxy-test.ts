@@ -3,9 +3,9 @@
  * Available under MIT license
  */
 import * as ko from "knockout";
-import { subscribe, unwrap } from "../src/knockout-decorators";
-import { ObservableArrayProxy } from "../src/observable-array-proxy";
-import { prepareReactiveValue } from "../src/observable-property";
+import { ObservableArrayProxy } from "../../src/experimental/observable-array-proxy";
+import { subscribe, unwrap } from "../../src/knockout-decorators";
+import { prepareReactiveValue } from "../../src/observable-property";
 
 describe("deep ObservableArray", () => {
     function makeProxy<T>(array: T[]): T[] & KnockoutObservableArray<T> {

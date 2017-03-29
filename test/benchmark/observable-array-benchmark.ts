@@ -3,8 +3,8 @@
  * Available under MIT license
  */
 import * as ko from "knockout";
+import { ObservableArrayProxy } from "../../src/experimental/observable-array-proxy";
 import { observableArray } from "../../src/knockout-decorators";
-import { ObservableArrayProxy } from "../../src/observable-array-proxy";
 
 describe("Observable Array Benchmark", () => {
     function benchNative(count: number) {

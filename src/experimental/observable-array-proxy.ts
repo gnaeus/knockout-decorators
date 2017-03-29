@@ -2,7 +2,7 @@
  * Copyright (c) 2016-2017 Dmitry Panyushkin
  * Available under MIT license
  */
-import { arraySlice, defineProperty } from "./common-functions";
+import { arraySlice, defineProperty } from "../common-functions";
 
 // for `new ObservableArrayProxy(...) instanceof Array === true`
 class ArrayStub { }

@@ -19,7 +19,7 @@ export default {
 
     plugins: [
         typescriptPlugin({
-            typescript: typescript
+            typescript: typescript,
         }),
     ],
 }

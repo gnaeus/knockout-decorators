@@ -56,7 +56,8 @@
   "jest": {
     "collectCoverage": true,
     "collectCoverageFrom": [
-      "src/**/*.ts"
+      "src/**",
+      "!src/experimental/**"
     ],
     "coverageReporters": [
       "lcov",
