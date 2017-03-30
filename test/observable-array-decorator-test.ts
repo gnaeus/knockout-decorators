@@ -182,4 +182,34 @@ describe("@observableArray decorator", () => {
             { status: "added", value: 4, index: 1 },
         ]);
     });
+
+    it("sould write null values to property", () => {
+        class ViewModel {
+            @observableArray array = [] as ObservableArray<any>;
+        }
+
+        let vm = new ViewModel();
+
+        // check property is valid
+        expect(Array.isArray(vm.array)).toBeTruthy();
+        expect(ko.isObservable(Object.getOwnPropertyDescriptor(vm, "array").get)).toBeTruthy();
+
+        // set null
+        vm.array = null;
+
+        expect(vm.array).toBe(null);
+        expect(ko.isObservable(Object.getOwnPropertyDescriptor(vm, "array").get)).toBeTruthy();
+
+        // set same value
+        vm.array = vm.array;
+
+        expect(vm.array).toBe(null);
+        expect(ko.isObservable(Object.getOwnPropertyDescriptor(vm, "array").get)).toBeTruthy();
+
+        // set an array
+        vm.array = [] as any;
+
+        expect(Array.isArray(vm.array)).toBeTruthy();
+        expect(ko.isObservable(Object.getOwnPropertyDescriptor(vm, "array").get)).toBeTruthy();
+    });
 });

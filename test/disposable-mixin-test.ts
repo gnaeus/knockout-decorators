@@ -3,6 +3,7 @@
  * Available under MIT license
  */
 import * as ko from "knockout";
+import { hasOwnProperty, SUBSCRIPTIONS_KEY } from "../src/common-functions";
 import { computed, Disposable, event, observable } from "../src/knockout-decorators";
 
 describe("Disposable mixin", () => {
@@ -155,5 +156,39 @@ describe("Disposable mixin", () => {
 
         expect(ko.isObservable(koObservable)).toBeTruthy();
         expect(ko.isComputed(koComputed)).toBeTruthy();
+    });
+
+    it("should not define hidden subscriptions if subscriptions are not defined", () => {
+        class ViewModel extends Disposable() { }
+
+        let vm = new ViewModel();
+
+        expect(hasOwnProperty(vm, SUBSCRIPTIONS_KEY)).toBeFalsy();
+    });
+
+    it("should have dispose function without side effects if subscriptions are not defined", () => {
+        class ViewModel extends Disposable() { }
+
+        let vm = Object.freeze(new ViewModel());
+
+        vm.dispose();
+    });
+
+    it("should delede hidden subscriptions array when disposed", () => {
+        class ViewModel extends Disposable() {
+            constructor() {
+                super();
+                this.subscribe(() => null, () => { /* noop */ });
+            }
+        }
+
+        let vm = new ViewModel();
+
+        expect(Array.isArray(vm[SUBSCRIPTIONS_KEY])).toBeTruthy();
+        expect(vm[SUBSCRIPTIONS_KEY].length).toBe(1);
+
+        vm.dispose();
+
+        expect(hasOwnProperty(vm, SUBSCRIPTIONS_KEY)).toBeFalsy();
     });
 });

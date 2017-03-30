@@ -378,6 +378,21 @@ describe("@reactive decorator: initialized by array", () => {
         ]);
     });
 
+    it("should define optimized splice method", () => {
+        class ViewModel {
+            @reactive array = [] as ObservableArray<number>;
+        }
+
+        let vm = new ViewModel();
+
+        vm.array.splice(0, 0, 1, 2, 3);
+        vm.array.splice(4, 0, 4);
+        vm.array.splice(5, 0);
+        (vm.array as any).splice();
+
+        expect(vm.array).toEqual([1, 2, 3, 4]);
+    });
+
     it("should clear array methods on previous observableArray value", () => {
         class ViewModel {
             @reactive array = [1, 2, 3];

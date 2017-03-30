@@ -509,6 +509,7 @@ export function Disposable<T extends new (...args: any[]) => {}>(
                 subscriptions.forEach((subscription) => {
                     subscription.dispose();
                 });
+                delete this[SUBSCRIPTIONS_KEY];
             }
         }
 
