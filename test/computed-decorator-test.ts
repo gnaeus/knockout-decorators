@@ -138,4 +138,55 @@ describe("@computed decorator", () => {
         expect(user.lastName).toBe("Smith");
         expect(user.name).toBe("John Smith");
     });
+
+    it("should define hidden ko.computed", () => {
+        class Model {
+            @computed({ pure: false })
+            get property() {
+                return 0;
+            }
+        }
+
+        let model = new Model();
+        // tslint:disable-next-line:no-unused-expression
+        model.property;
+
+        let hidden = Object.getOwnPropertyDescriptor(model, "property").get;
+
+        expect(ko.isComputed(hidden)).toBeTruthy();
+        expect(ko["isPureComputed"](hidden)).toBeFalsy();
+    });
+
+    it("should define hidden ko.pureComputed", () => {
+        class Model {
+            @computed({ pure: true })
+            get property() {
+                return 0;
+            }
+        }
+
+        let model = new Model();
+        // tslint:disable-next-line:no-unused-expression
+        model.property;
+
+        let hidden = Object.getOwnPropertyDescriptor(model, "property").get;
+
+        expect(ko["isPureComputed"](hidden)).toBeTruthy();
+    });
+
+    it("should define hidden ko.pureComputed by default", () => {
+        class Model {
+            @computed get property() {
+                return 0;
+            }
+        }
+
+        let model = new Model();
+        // tslint:disable-next-line:no-unused-expression
+        model.property;
+
+        let hidden = Object.getOwnPropertyDescriptor(model, "property").get;
+
+        expect(ko["isPureComputed"](hidden)).toBeTruthy();
+    });
 });

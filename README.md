@@ -34,8 +34,8 @@ class PersonView {
 ---
 ## Documentation
  * [@observable](#knockout-decorators-observable)
- * [@computed](#knockout-decorators-computed)
  * [@reactive](#knockout-decorators-reactive)
+ * [@computed](#knockout-decorators-computed)
  * [@observableArray](#knockout-decorators-observableArray)
  * [@extend](#knockout-decorators-extend)
  * [@component](#knockout-decorators-component)
@@ -65,29 +65,6 @@ let model = new Model();
 
 ko.computed(() => { console.log(model.field); }); // [console] ➜ 123
 model.field = 456;                                // [console] ➜ 456
-```
-
-<br>
-
-#### <a name="knockout-decorators-computed"></a> @computed
-Accessor decorator that wraps ES6 getter to hidden `ko.pureComputed`<br>
-Setter is not wrapped to hidden `ko.pureComputed` and stays unchanged
-```js
-import { observable, computed } from "knockout-decorators";
-
-class Person {
-  @observable firstName = "";
-  @observable lastName = "";
-
-  @computed
-  get fullName() { return this.firstName + " " + this.lastName; }
-  set fullName(value) { [this.firstName, this.lastName] = value.trim().split(/\s+/g); }
-}
-let person = new Person();
-
-ko.pureComputed(() => person.fullName).subscribe(console.log.bind(console));
-
-person.fullName = "  John  Smith  " // [console] ➜ "John Smith"
 ```
 
 <br>
@@ -124,6 +101,43 @@ vm.deepObservable.array.push({
   firstName: "Clive Staples", // make @observable
   lastName: "Lewis",          // make @observable
 });
+```
+
+<br>
+
+#### <a name="knockout-decorators-computed"></a> @computed
+Accessor decorator that wraps ES6 getter to hidden `ko.computed` or `ko.pureComputed`<br>
+```js
+@computed(options: { pure: boolean });
+@computed;
+```
+By default it creates hidden `ko.pureComputed`<br>
+Setter is not wrapped to hidden `ko.pureComputed` and stays unchanged
+```js
+import { observable, computed } from "knockout-decorators";
+
+class Person {
+  @observable firstName = "";
+  @observable lastName = "";
+
+  @computed
+  get fullName() {
+    return this.firstName + " " + this.lastName;
+  }
+  set fullName(value) {
+    [this.firstName, this.lastName] = value.trim().split(/\s+/g);
+  }
+
+  @computed({ pure: false })
+  get initials() {
+    return this.firstName.substr(0, 1) + "." + this.LastName.substr(0, 1)+ ".";
+  }
+}
+let person = new Person();
+
+ko.pureComputed(() => person.fullName).subscribe(console.log.bind(console));
+
+person.fullName = "  John  Smith  " // [console] ➜ "John Smith"
 ```
 
 <br>

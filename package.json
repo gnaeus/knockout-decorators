@@ -1,6 +1,6 @@
 {
   "name": "knockout-decorators",
-  "version": "0.10.0",
+  "version": "1.0.0",
   "description": "Decorators for use Knockout JS in TypeScript and ESNext environments",
   "main": "dist/knockout-decorators.js",
   "typings": "dist/knockout-decorators.d.ts",
@@ -39,7 +39,7 @@
   "homepage": "https://github.com/gnaeus/knockout-decorators#readme",
   "devDependencies": {
     "@types/jest": "^16.0.1",
-    "@types/knockout": "^3.4.38",
+    "@types/knockout": "^3.4.40",
     "coveralls": "^2.12.0",
     "deepmerge": "^1.3.1",
     "jest-cli": "^17.0.3",

@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2016-2017 Dmitry Panyushkin
  * Available under MIT license
- * Version: 0.10.0
+ * Version: 1.0.0
  */
 import * as ko from "knockout";
 import {
@@ -55,27 +55,50 @@ export function reactive(prototype: Object, key: string | symbol) {
 /*---------------------------------------------------------------------------*/
 
 /**
- * Accessor decorator that wraps ES6 getter to hidden ko.pureComputed
+ * Accessor decorator that wraps ES6 getter to hidden ko.computed or ko.pureComputed
  *
  * Setter is not wrapped to hidden ko.pureComputed and stays unchanged
  *
  * But we can still extend getter @computed by extenders like { rateLimit: 500 }
  */
-export function computed(prototype: Object, key: string | symbol, desc: PropertyDescriptor) {
-    const { get, set } = desc || (desc = getOwnPropertyDescriptor(prototype, key));
-    if (!get) {
-        throw new Error("@computed property '" + key.toString() + "' has no getter");
+export function computed(options: { pure: boolean }): PropertyDecorator;
+/**
+ * Accessor decorator that wraps ES6 getter to hidden ko.pureComputed
+ * 
+ * Setter is not wrapped to hidden ko.pureComputed and stays unchanged
+ *
+ * But we can still extend getter @computed by extenders like { rateLimit: 500 }
+ */
+export function computed(prototype: Object, key: string | symbol, desc: PropertyDescriptor): PropertyDescriptor;
+/**
+ * Accessor decorator that wraps ES6 getter to hidden ko.computed or ko.pureComputed
+ *
+ * Setter is not wrapped to hidden ko.pureComputed and stays unchanged
+ *
+ * But we can still extend getter @computed by extenders like { rateLimit: 500 }
+ */
+export function computed(prototypeOrOptinos: any, propKey?: any, propDesc?: any) {
+    let options = { pure: true };
+    return arguments.length === 1
+        ? (options = prototypeOrOptinos, computedDecorator)
+        : computedDecorator(prototypeOrOptinos, propKey, propDesc);
+
+    function computedDecorator(prototype: Object, key: string | symbol, desc: PropertyDescriptor) {
+        const { get, set } = desc || (desc = getOwnPropertyDescriptor(prototype, key));
+        if (!get) {
+            throw new Error("@computed property '" + key.toString() + "' has no getter");
+        }
+        desc.get = function (this: Object) {
+            const computed = applyExtenders(this, key, ko.computed(get, this, options));
+            defineProperty(this, key, {
+                get: computed,
+                // tslint:disable-next-line:object-literal-shorthand
+                set: set,
+            });
+            return computed();
+        };
+        return desc;
     }
-    desc.get = function (this: Object) {
-        const computed = applyExtenders(this, key, ko.pureComputed(get, this));
-        defineProperty(this, key, {
-            get: computed,
-            // tslint:disable-next-line:object-literal-shorthand
-            set: set,
-        });
-        return computed();
-    };
-    return desc;
 }
 
 /*---------------------------------------------------------------------------*/
