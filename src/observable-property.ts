@@ -3,7 +3,9 @@
  * Available under MIT license
  */
 import * as ko from "knockout";
-import { defineProperty, getPrototypeOf, hasOwnProperty, objectForEach, PATCHED_KEY } from "./common-functions";
+import {
+    defineProperty, getPrototypeOf, hasOwnProperty, isArray, objectForEach, PATCHED_KEY,
+} from "./common-functions";
 import { defineObservableArray } from "./observable-array";
 import { applyExtenders } from "./property-extenders";
 
@@ -31,7 +33,7 @@ export function defineObservableProperty(
 
 export function prepareReactiveValue(value: any) {
     if (typeof value === "object") {
-        if (Array.isArray(value) || value === null) {
+        if (isArray(value) || value === null) {
             // value is Array or null
             return value;
         } else if (hasOwnProperty(value, "constructor")) {
@@ -58,7 +60,7 @@ export function prepareReactiveObject(instance: Object) {
         });
         // define deep observable properties
         objectForEach(instance, (key, value) => {
-            if (Array.isArray(value)) {
+            if (isArray(value)) {
                 defineObservableArray(instance, key, value, true);
             } else {
                 defineObservableProperty(instance, key, value, true);

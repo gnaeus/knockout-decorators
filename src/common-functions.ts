@@ -16,6 +16,9 @@ if (typeof Symbol !== "undefined") {
     SUBSCRIPTIONS_KEY = Symbol(SUBSCRIPTIONS_KEY);
 }
 
+// tslint:disable-next-line:variable-name
+export const ArrayPrototype = Array.prototype;
+
 export function defineProperty(instance: Object, key: any, descriptor: PropertyDescriptor) {
     descriptor.configurable = true;
     Object.defineProperty(instance, key, descriptor);
@@ -23,7 +26,8 @@ export function defineProperty(instance: Object, key: any, descriptor: PropertyD
 
 export const extendObject = ko.utils.extend;
 export const objectForEach = ko.utils.objectForEach;
+export const isArray = Array.isArray.bind(Array);
 export const getPrototypeOf = Object.getPrototypeOf.bind(Object);
 export const getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor.bind(Object);
 export const hasOwnProperty = Function.prototype.call.bind(Object.prototype.hasOwnProperty);
-export const arraySlice = Function.prototype.call.bind(Array.prototype.slice);
+export const arraySlice = Function.prototype.call.bind(ArrayPrototype.slice);

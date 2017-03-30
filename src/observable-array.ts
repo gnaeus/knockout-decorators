@@ -3,7 +3,7 @@
  * Available under MIT license
  */
 import * as ko from "knockout";
-import { arraySlice, defineProperty, hasOwnProperty, PATCHED_KEY } from "./common-functions";
+import { ArrayPrototype, arraySlice, defineProperty, hasOwnProperty, isArray, PATCHED_KEY } from "./common-functions";
 import { prepareReactiveValue } from "./observable-property";
 import { applyExtenders } from "./property-extenders";
 
@@ -36,7 +36,7 @@ export function defineObservableArray(
         const lastValue = obsArray.peek();
         // if we got new value
         if (lastValue !== newValue) {
-            if (Array.isArray(lastValue)) {
+            if (isArray(lastValue)) {
                 // if lastValue array methods were already patched
                 if (hasOwnProperty(lastValue, PATCHED_KEY)) {
                     delete lastValue[PATCHED_KEY];
@@ -46,7 +46,7 @@ export function defineObservableArray(
                     });
                 }
             }
-            if (Array.isArray(newValue)) {
+            if (isArray(newValue)) {
                 // if new value array methods were already connected with another @observable
                 if (hasOwnProperty(newValue, PATCHED_KEY)) {
                     // clone new value to prevent corruption of another @observable (see unit tests)
@@ -79,7 +79,7 @@ export function defineObservableArray(
         arrayMethods.forEach((fnName) => defineProperty(array, fnName, {
             value() {
                 if (insideObsArray) {
-                    return Array.prototype[fnName].apply(array, arguments);
+                    return ArrayPrototype[fnName].apply(array, arguments);
                 }
                 insideObsArray = true;
                 const result = obsArray[fnName].apply(obsArray, arguments);
@@ -103,7 +103,7 @@ export function defineObservableArray(
             defineProperty(array, "push", {
                 value() {
                     if (insideObsArray) {
-                        return Array.prototype.push.apply(array, arguments);
+                        return ArrayPrototype.push.apply(array, arguments);
                     }
                     let args = arraySlice(arguments);
                     for (let i = 0; i < args.length; ++i) {
@@ -119,7 +119,7 @@ export function defineObservableArray(
             defineProperty(array, "unshift", {
                 value() {
                     if (insideObsArray) {
-                        return Array.prototype.unshift.apply(array, arguments);
+                        return ArrayPrototype.unshift.apply(array, arguments);
                     }
                     let args = arraySlice(arguments);
                     for (let i = 0; i < args.length; ++i) {
@@ -135,7 +135,7 @@ export function defineObservableArray(
             defineProperty(array, "splice", {
                 value() {
                     if (insideObsArray) {
-                        return Array.prototype.splice.apply(array, arguments);
+                        return ArrayPrototype.splice.apply(array, arguments);
                     }
 
                     let result: any[];

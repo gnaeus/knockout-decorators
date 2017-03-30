@@ -5,7 +5,7 @@
  */
 import * as ko from "knockout";
 import {
-    defineProperty, extendObject, getOwnPropertyDescriptor, hasOwnProperty, PATCHED_KEY, SUBSCRIPTIONS_KEY,
+    defineProperty, extendObject, getOwnPropertyDescriptor, hasOwnProperty, isArray, PATCHED_KEY, SUBSCRIPTIONS_KEY,
 } from "./common-functions";
 import { defineEventProperty } from "./event-property";
 import { defineObservableArray } from "./observable-array";
@@ -22,7 +22,7 @@ export function observable(prototype: Object, key: string | symbol) {
             throw new Error("@observable property '" + key.toString() + "' was not initialized");
         },
         set(this: Object, value: any) {
-            if (Array.isArray(value)) {
+            if (isArray(value)) {
                 defineObservableArray(this, key, value, false);
             } else {
                 defineObservableProperty(this, key, value, false);
@@ -43,7 +43,7 @@ export function reactive(prototype: Object, key: string | symbol) {
             throw new Error("@reactive property '" + key.toString() + "' was not initialized");
         },
         set(this: Object, value: any) {
-            if (Array.isArray(value)) {
+            if (isArray(value)) {
                 defineObservableArray(this, key, value, true);
             } else {
                 defineObservableProperty(this, key, value, true);
@@ -79,9 +79,12 @@ export function computed(prototype: Object, key: string | symbol, desc: Property
  */
 export function computed(prototypeOrOptinos: any, propKey?: any, propDesc?: any) {
     let options = { pure: true };
-    return arguments.length === 1
-        ? (options = prototypeOrOptinos, computedDecorator)
-        : computedDecorator(prototypeOrOptinos, propKey, propDesc);
+
+    if (arguments.length === 1) {
+        options = prototypeOrOptinos;
+        return computedDecorator;
+    }
+    return computedDecorator(prototypeOrOptinos, propKey, propDesc);
 
     function computedDecorator(prototype: Object, key: string | symbol, desc: PropertyDescriptor) {
         const { get, set } = desc || (desc = getOwnPropertyDescriptor(prototype, key));
@@ -389,7 +392,7 @@ export function subscribe(
         if (event === "arrayChange") {
             const obsArray = dependencyOrEvent() as ObservableArray<any>;
 
-            if (Array.isArray(obsArray) && hasOwnProperty(obsArray, PATCHED_KEY)) {
+            if (isArray(obsArray) && hasOwnProperty(obsArray, PATCHED_KEY)) {
                 subscription = obsArray.subscribe(handler, null, event);
             } else {
                 throw new Error("Can not subscribe to 'arrayChange' because dependency is not an 'observableArray'");
