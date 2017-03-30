@@ -331,26 +331,50 @@ describe("@reactive decorator: initialized by array", () => {
 
     it("should expose knockout-specific methods", () => {
         class ViewModel {
-            @reactive array = [1, 2, 3, 4, 3, 2, 1] as ObservableArray<number>;
+            @reactive first = [1, 2, 3, 4, 3, 2, 1] as ObservableArray<number>;
+            @reactive second = [1, 2, 3, 4, 3, 2, 1] as ObservableArray<number>;
         }
 
         let vm = new ViewModel();
-        let changes: KnockoutArrayChange<number>[] = [];
+        let changesFirst: KnockoutArrayChange<number>[] = [];
+        let changesSecond: KnockoutArrayChange<number>[] = [];
 
-        vm.array.subscribe((val) => { changes.push(...val); }, null, "arrayChange");
+        vm.first.subscribe((val) => { changesFirst.push(...val); }, null, "arrayChange");
+        vm.second.subscribe((val) => { changesSecond.push(...val); }, null, "arrayChange");
 
-        vm.array.remove((val) => val % 2 === 0);
-        vm.array.splice(2, 0, 5);
-        vm.array.replace(5, 7);
+        // test: remove, splice, replace
+        vm.first.remove((val) => val % 2 === 0);
+        vm.first.splice(2, 0, 5);
+        vm.first.replace(5, 7);
 
-        expect(vm.array).toEqual([1, 3, 7, 3, 1]);
-        expect(changes).toEqual([
+        expect(vm.first).toEqual([1, 3, 7, 3, 1]);
+        expect(changesFirst).toEqual([
             { status: "deleted", value: 2, index: 1 },
             { status: "deleted", value: 4, index: 3 },
             { status: "deleted", value: 2, index: 5 },
             { status: "added", value: 5, index: 2 },
             { status: "added", value: 7, index: 2 },
             { status: "deleted", value: 5, index: 2 },
+        ]);
+
+        // test: splice, unshift
+        vm.second.splice(0, 3, -1, -2, -3);
+        vm.second.unshift(-0);
+        vm.second.splice(4, 4);
+
+        expect(vm.second).toEqual([-0, -1, -2, -3]);
+        expect(changesSecond).toEqual([
+            { status: "deleted", value: 1, index: 0 },
+            { status: "added", value: -1, index: 0 },
+            { status: "deleted", value: 2, index: 1 },
+            { status: "added", value: -2, index: 1 },
+            { status: "deleted", value: 3, index: 2 },
+            { status: "added", value: -3, index: 2 },
+            { status: "added", value: -0, index: 0 },
+            { status: "deleted", value: 4, index: 4 },
+            { status: "deleted", value: 3, index: 5 },
+            { status: "deleted", value: 2, index: 6 },
+            { status: "deleted", value: 1, index: 7 },
         ]);
     });
 

@@ -64,7 +64,7 @@ export function reactive(prototype: Object, key: string | symbol) {
 export function computed(options: { pure: boolean }): PropertyDecorator;
 /**
  * Accessor decorator that wraps ES6 getter to hidden ko.pureComputed
- * 
+ *
  * Setter is not wrapped to hidden ko.pureComputed and stays unchanged
  *
  * But we can still extend getter @computed by extenders like { rateLimit: 500 }

@@ -4,7 +4,7 @@
  */
 import * as ko from "knockout";
 import {
-    computed, observable, observableArray, ObservableArray, reactive, subscribe
+    computed, observable, observableArray, ObservableArray, reactive, subscribe,
 } from "../src/knockout-decorators";
 
 describe("subscribe utility function", () => {
