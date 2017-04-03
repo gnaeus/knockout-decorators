@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+
+## [1.0.0] - 2017-04-03
 ### Added
 - `@observable({ deep: true })` option
 - `@observableArray({ deep: true })` option
@@ -98,7 +100,8 @@ class ViewModel {
 - `@subscribe` decorator
 - `@component` decorator
 
-[Unreleased]: https://github.com/gnaeus/knockout-decorators/compare/0.10.0...HEAD
+[Unreleased]: https://github.com/gnaeus/knockout-decorators/compare/1.0.0...HEAD
+[1.0.0]: https://github.com/gnaeus/knockout-decorators/compare/0.10.0...1.0.0
 [0.10.0]: https://github.com/gnaeus/knockout-decorators/compare/0.9.1...0.10.0
 [0.9.1]: https://github.com/gnaeus/knockout-decorators/compare/0.8.0...0.9.1
 [0.8.0]: https://github.com/gnaeus/knockout-decorators/compare/0.7.1...0.8.0

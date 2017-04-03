@@ -1,22 +1,22 @@
 /// <reference types="knockout" />
 /**
+ * Property decorator that creates hidden (shallow or deep) ko.observable with ES6 getter and setter for it
+ * If initialized by Array then hidden ko.observableArray will be created
+ */
+export declare function observable(options: {
+    deep: boolean;
+}): PropertyDecorator;
+/**
  * Property decorator that creates hidden (shallow) ko.observable with ES6 getter and setter for it
  * If initialized by Array then hidden (shallow) ko.observableArray will be created
  */
 export declare function observable(prototype: Object, key: string | symbol): void;
 /**
- * Property decorator that creates hidden (deep) ko.observable with ES6 getter and setter for it
- * If initialized by Array then hidden (deep) ko.observableArray will be created
+ * Property decorator that creates hidden (shallow or deep) ko.observableArray with ES6 getter and setter for it
  */
-export declare function reactive(prototype: Object, key: string | symbol): void;
-/**
- * Accessor decorator that wraps ES6 getter to hidden ko.pureComputed
- *
- * Setter is not wrapped to hidden ko.pureComputed and stays unchanged
- *
- * But we can still extend getter @computed by extenders like { rateLimit: 500 }
- */
-export declare function computed(prototype: Object, key: string | symbol, desc: PropertyDescriptor): PropertyDescriptor;
+export declare function observableArray(options: {
+    deep: boolean;
+}): PropertyDecorator;
 /**
  * Property decorator that creates hidden (shallow) ko.observableArray with ES6 getter and setter for it
  */
@@ -44,6 +44,24 @@ export interface ObservableArray<T> extends Array<T> {
      */
     set(index: number, value: T): T;
 }
+/**
+ * Accessor decorator that wraps ES6 getter to hidden ko.computed or ko.pureComputed
+ *
+ * Setter is not wrapped to hidden ko.pureComputed and stays unchanged
+ *
+ * But we can still extend getter @computed by extenders like { rateLimit: 500 }
+ */
+export declare function computed(options: {
+    pure: boolean;
+}): PropertyDecorator;
+/**
+ * Accessor decorator that wraps ES6 getter to hidden ko.pureComputed
+ *
+ * Setter is not wrapped to hidden ko.pureComputed and stays unchanged
+ *
+ * But we can still extend getter @computed by extenders like { rateLimit: 500 }
+ */
+export declare function computed(prototype: Object, key: string | symbol, desc: PropertyDescriptor): PropertyDescriptor;
 /**
  * Apply extenders to decorated @observable
  */

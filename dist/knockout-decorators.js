@@ -23,16 +23,19 @@ if (typeof Symbol !== "undefined") {
     EXTENDERS_KEY = Symbol(EXTENDERS_KEY);
     SUBSCRIPTIONS_KEY = Symbol(SUBSCRIPTIONS_KEY);
 }
+// tslint:disable-next-line:variable-name
+var ArrayPrototype = Array.prototype;
 function defineProperty(instance, key, descriptor) {
     descriptor.configurable = true;
     Object.defineProperty(instance, key, descriptor);
 }
 var extendObject = ko.utils.extend;
 var objectForEach = ko.utils.objectForEach;
+var isArray = Array.isArray.bind(Array);
 var getPrototypeOf = Object.getPrototypeOf.bind(Object);
 var getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor.bind(Object);
 var hasOwnProperty = Function.prototype.call.bind(Object.prototype.hasOwnProperty);
-var arraySlice = Function.prototype.call.bind(Array.prototype.slice);
+var arraySlice = Function.prototype.call.bind(ArrayPrototype.slice);
 
 /**
  * Copyright (c) 2016-2017 Dmitry Panyushkin
@@ -97,7 +100,7 @@ function defineObservableProperty(instance, key, value, deep) {
     var setter = observable$$1;
     if (deep) {
         setter = function (newValue) {
-            observable$$1(prepareReactiveValue(newValue));
+            observable$$1(prepareDeepValue(newValue));
         };
     }
     defineProperty(instance, key, {
@@ -107,28 +110,29 @@ function defineObservableProperty(instance, key, value, deep) {
     });
     setter(value);
 }
-function prepareReactiveValue(value) {
+function prepareDeepValue(value) {
     if (typeof value === "object") {
-        if (Array.isArray(value) || value === null) {
+        if (isArray(value) || value === null) {
             // value is Array or null
             return value;
         }
-        else if (value.constructor === Object) {
-            // value is plain Object
-            return prepareReactiveObject(value);
-        }
         else if (hasOwnProperty(value, "constructor")) {
+            // there is redefined own property "constructor"
             var prototype = getPrototypeOf(value);
             if (prototype === Object.prototype || prototype === null) {
                 // value is plain Object
-                return prepareReactiveObject(value);
+                return prepareDeepObject(value);
             }
+        }
+        else if (value.constructor === Object) {
+            // value is plain Object
+            return prepareDeepObject(value);
         }
     }
     // value is primitive, function or class instance
     return value;
 }
-function prepareReactiveObject(instance) {
+function prepareDeepObject(instance) {
     if (!hasOwnProperty(instance, PATCHED_KEY)) {
         // mark instance as ObservableObject
         defineProperty(instance, PATCHED_KEY, {
@@ -136,7 +140,7 @@ function prepareReactiveObject(instance) {
         });
         // define deep observable properties
         objectForEach(instance, function (key, value) {
-            if (Array.isArray(value)) {
+            if (isArray(value)) {
                 defineObservableArray(instance, key, value, true);
             }
             else {
@@ -169,7 +173,7 @@ function defineObservableArray(instance, key, value, deep) {
         var lastValue = obsArray.peek();
         // if we got new value
         if (lastValue !== newValue) {
-            if (Array.isArray(lastValue)) {
+            if (isArray(lastValue)) {
                 // if lastValue array methods were already patched
                 if (hasOwnProperty(lastValue, PATCHED_KEY)) {
                     delete lastValue[PATCHED_KEY];
@@ -179,7 +183,7 @@ function defineObservableArray(instance, key, value, deep) {
                     });
                 }
             }
-            if (Array.isArray(newValue)) {
+            if (isArray(newValue)) {
                 // if new value array methods were already connected with another @observable
                 if (hasOwnProperty(newValue, PATCHED_KEY)) {
                     // clone new value to prevent corruption of another @observable (see unit tests)
@@ -187,9 +191,9 @@ function defineObservableArray(instance, key, value, deep) {
                 }
                 // if deep option is set
                 if (deep) {
-                    // make all array items reactive
+                    // make all array items deep observable
                     for (var i = 0; i < newValue.length; ++i) {
-                        newValue[i] = prepareReactiveValue(newValue[i]);
+                        newValue[i] = prepareDeepValue(newValue[i]);
                     }
                 }
                 // mark instance as ObservableArray
@@ -210,7 +214,7 @@ function defineObservableArray(instance, key, value, deep) {
         arrayMethods.forEach(function (fnName) { return defineProperty(array, fnName, {
             value: function () {
                 if (insideObsArray) {
-                    return Array.prototype[fnName].apply(array, arguments);
+                    return ArrayPrototype[fnName].apply(array, arguments);
                 }
                 insideObsArray = true;
                 var result = obsArray[fnName].apply(obsArray, arguments);
@@ -231,11 +235,11 @@ function defineObservableArray(instance, key, value, deep) {
             defineProperty(array, "push", {
                 value: function () {
                     if (insideObsArray) {
-                        return Array.prototype.push.apply(array, arguments);
+                        return ArrayPrototype.push.apply(array, arguments);
                     }
                     var args = arraySlice(arguments);
                     for (var i = 0; i < args.length; ++i) {
-                        args[i] = prepareReactiveValue(args[i]);
+                        args[i] = prepareDeepValue(args[i]);
                     }
                     insideObsArray = true;
                     var result = obsArray.push.apply(obsArray, args);
@@ -246,11 +250,11 @@ function defineObservableArray(instance, key, value, deep) {
             defineProperty(array, "unshift", {
                 value: function () {
                     if (insideObsArray) {
-                        return Array.prototype.unshift.apply(array, arguments);
+                        return ArrayPrototype.unshift.apply(array, arguments);
                     }
                     var args = arraySlice(arguments);
                     for (var i = 0; i < args.length; ++i) {
-                        args[i] = prepareReactiveValue(args[i]);
+                        args[i] = prepareDeepValue(args[i]);
                     }
                     insideObsArray = true;
                     var result = obsArray.unshift.apply(obsArray, args);
@@ -261,7 +265,7 @@ function defineObservableArray(instance, key, value, deep) {
             defineProperty(array, "splice", {
                 value: function () {
                     if (insideObsArray) {
-                        return Array.prototype.splice.apply(array, arguments);
+                        return ArrayPrototype.splice.apply(array, arguments);
                     }
                     var result;
                     insideObsArray = true;
@@ -273,13 +277,13 @@ function defineObservableArray(instance, key, value, deep) {
                             break;
                         }
                         case 3: {
-                            result = obsArray.splice(arguments[0], arguments[1], prepareReactiveValue(arguments[2]));
+                            result = obsArray.splice(arguments[0], arguments[1], prepareDeepValue(arguments[2]));
                             break;
                         }
                         default: {
                             var args = arraySlice(arguments);
                             for (var i = 2; i < args.length; ++i) {
-                                args[i] = prepareReactiveValue(args[i]);
+                                args[i] = prepareDeepValue(args[i]);
                             }
                             result = obsArray.splice.apply(obsArray, arguments);
                             break;
@@ -292,7 +296,7 @@ function defineObservableArray(instance, key, value, deep) {
             defineProperty(array, "replace", {
                 value: function (oldItem, newItem) {
                     insideObsArray = true;
-                    var result = obsArray.replace(oldItem, prepareReactiveValue(newItem));
+                    var result = obsArray.replace(oldItem, prepareDeepValue(newItem));
                     insideObsArray = false;
                     return result;
                 },
@@ -304,7 +308,7 @@ function defineObservableArray(instance, key, value, deep) {
                     obsArray.valueWillMutate();
                     mutator(nativeArray);
                     for (var i = 0; i < nativeArray.length; ++i) {
-                        nativeArray[i] = prepareReactiveValue(nativeArray[i]);
+                        nativeArray[i] = prepareDeepValue(nativeArray[i]);
                     }
                     // it is defined for ko.observableArray
                     obsArray.valueHasMutated();
@@ -312,7 +316,7 @@ function defineObservableArray(instance, key, value, deep) {
             });
             defineProperty(array, "set", {
                 value: function (index, newItem) {
-                    return obsArray.splice(index, 1, prepareReactiveValue(newItem))[0];
+                    return obsArray.splice(index, 1, prepareDeepValue(newItem))[0];
                 },
             });
         }
@@ -338,63 +342,79 @@ function defineObservableArray(instance, key, value, deep) {
 /**
  * Copyright (c) 2016-2017 Dmitry Panyushkin
  * Available under MIT license
- * Version: 0.10.0
+ * Version: 1.0.0
  */
 /**
- * Property decorator that creates hidden (shallow) ko.observable with ES6 getter and setter for it
- * If initialized by Array then hidden (shallow) ko.observableArray will be created
+ * Property decorator that creates hidden (shallow or deep) ko.observable with ES6 getter and setter for it
+ * If initialized by Array then hidden (shallow or deep) ko.observableArray will be created
  */
-function observable$1(prototype, key) {
-    defineProperty(prototype, key, {
+function observable$1(prototypeOrOptions, key) {
+    observableArrayOption = false;
+    deepObservableOption = false;
+    if (arguments.length === 1) {
+        deepObservableOption = prototypeOrOptions.deep;
+        return observableDecorator;
+    }
+    return observableDecorator(prototypeOrOptions, key);
+}
+/**
+ * Property decorator that creates hidden (shallow or deep) ko.observableArray with ES6 getter and setter for it
+ */
+function observableArray$1(prototypeOrOptions, key) {
+    observableArrayOption = true;
+    deepObservableOption = false;
+    if (arguments.length === 1) {
+        deepObservableOption = prototypeOrOptions.deep;
+        return observableDecorator;
+    }
+    return observableDecorator(prototypeOrOptions, key);
+}
+// observableDecorator options
+var observableArrayOption;
+var deepObservableOption;
+function observableDecorator(prototype, propKey) {
+    var array = observableArrayOption;
+    var deep = deepObservableOption;
+    defineProperty(prototype, propKey, {
         get: function () {
-            throw new Error("@observable property '" + key.toString() + "' was not initialized");
+            throw new Error("@observable property '" + propKey.toString() + "' was not initialized");
         },
         set: function (value) {
-            if (Array.isArray(value)) {
-                defineObservableArray(this, key, value, false);
+            if (array || isArray(value)) {
+                defineObservableArray(this, propKey, value, deep);
             }
             else {
-                defineObservableProperty(this, key, value, false);
+                defineObservableProperty(this, propKey, value, deep);
             }
         },
     });
 }
-/*---------------------------------------------------------------------------*/
 /**
- * Property decorator that creates hidden (deep) ko.observable with ES6 getter and setter for it
- * If initialized by Array then hidden (deep) ko.observableArray will be created
- */
-function reactive(prototype, key) {
-    defineProperty(prototype, key, {
-        get: function () {
-            throw new Error("@reactive property '" + key.toString() + "' was not initialized");
-        },
-        set: function (value) {
-            if (Array.isArray(value)) {
-                defineObservableArray(this, key, value, true);
-            }
-            else {
-                defineObservableProperty(this, key, value, true);
-            }
-        },
-    });
-}
-/*---------------------------------------------------------------------------*/
-/**
- * Accessor decorator that wraps ES6 getter to hidden ko.pureComputed
+ * Accessor decorator that wraps ES6 getter to hidden ko.computed or ko.pureComputed
  *
  * Setter is not wrapped to hidden ko.pureComputed and stays unchanged
  *
  * But we can still extend getter @computed by extenders like { rateLimit: 500 }
  */
-function computed$1(prototype, key, desc) {
-    var _a = desc || (desc = getOwnPropertyDescriptor(prototype, key)), get = _a.get, set = _a.set;
+function computed$1(prototypeOrOptinos, key, propDesc) {
+    computedDecoratorOptions = { pure: true };
+    if (arguments.length === 1) {
+        computedDecoratorOptions = prototypeOrOptinos;
+        return computedDecorator;
+    }
+    return computedDecorator(prototypeOrOptinos, key, propDesc);
+}
+// computedDecorator options
+var computedDecoratorOptions;
+function computedDecorator(prototype, propKey, desc) {
+    var options = computedDecoratorOptions;
+    var _a = desc || (desc = getOwnPropertyDescriptor(prototype, propKey)), get = _a.get, set = _a.set;
     if (!get) {
-        throw new Error("@computed property '" + key.toString() + "' has no getter");
+        throw new Error("@computed property '" + propKey.toString() + "' has no getter");
     }
     desc.get = function () {
-        var computed$$1 = applyExtenders(this, key, ko.pureComputed(get, this));
-        defineProperty(this, key, {
+        var computed$$1 = applyExtenders(this, propKey, ko.computed(get, this, options));
+        defineProperty(this, propKey, {
             get: computed$$1,
             // tslint:disable-next-line:object-literal-shorthand
             set: set,
@@ -402,20 +422,6 @@ function computed$1(prototype, key, desc) {
         return computed$$1();
     };
     return desc;
-}
-/*---------------------------------------------------------------------------*/
-/**
- * Property decorator that creates hidden (shallow) ko.observableArray with ES6 getter and setter for it
- */
-function observableArray$1(prototype, key) {
-    defineProperty(prototype, key, {
-        get: function () {
-            throw new Error("@observableArray property '" + key.toString() + "' was not initialized");
-        },
-        set: function (value) {
-            defineObservableArray(this, key, value, false);
-        },
-    });
 }
 /**
  * Apply extenders to decorated @observable
@@ -517,7 +523,7 @@ function subscribe(dependencyOrEvent, callback, options) {
         }
     }
     else {
-        // overload: subscribe to @observable, @reactive or @computed
+        // overload: subscribe to @observable or @computed
         var event_2 = options && options.event || "change";
         var handler = void 0;
         var subscription_2;
@@ -532,7 +538,7 @@ function subscribe(dependencyOrEvent, callback, options) {
         }
         if (event_2 === "arrayChange") {
             var obsArray = dependencyOrEvent();
-            if (Array.isArray(obsArray) && hasOwnProperty(obsArray, PATCHED_KEY)) {
+            if (isArray(obsArray) && hasOwnProperty(obsArray, PATCHED_KEY)) {
                 subscription_2 = obsArray.subscribe(handler, null, event_2);
             }
             else {
@@ -594,6 +600,7 @@ function Disposable(
                 subscriptions.forEach(function (subscription) {
                     subscription.dispose();
                 });
+                delete this[SUBSCRIPTIONS_KEY];
             }
         };
         /** Subscribe callback to `@observable` or `@computed` dependency changes or to some `@event` */
@@ -612,9 +619,8 @@ function Disposable(
 }
 
 exports.observable = observable$1;
-exports.reactive = reactive;
-exports.computed = computed$1;
 exports.observableArray = observableArray$1;
+exports.computed = computed$1;
 exports.extend = extend;
 exports.component = component;
 exports.autobind = autobind;
