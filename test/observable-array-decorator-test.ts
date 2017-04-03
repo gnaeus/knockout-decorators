@@ -13,7 +13,7 @@ describe("@observableArray decorator", () => {
 
         let vm = new ViewModel();
 
-        expect(() => vm.array).toThrowError("@observableArray property 'array' was not initialized");
+        expect(() => vm.array).toThrowError("@observable property 'array' was not initialized");
     });
 
     it("should define hidden observableArray", () => {

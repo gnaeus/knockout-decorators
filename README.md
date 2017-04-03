@@ -57,7 +57,7 @@ If initialized by Array then hidden `ko.observableArray` will be created (see [@
 @observable(options: { deep: boolean });
 @observable;
 ```
-By default it creates shallow observable
+By default, shallow observable will be created
 ```js
 import { observable } from "knockout-decorators";
 
@@ -144,6 +144,11 @@ person.fullName = "  John  Smith  " // [console] ➜ "John Smith"
 
 #### <a name="knockout-decorators-observableArray"></a> @observableArray
 Property decorator that creates hidden `ko.observableArray` with ES6 getter and setter for it
+```js
+@observableArray(options: { deep: boolean });
+@observableArray;
+```
+By default, shallow observableArray will be created
 ```js
 import { observableArray } from "knockout-decorators";
 

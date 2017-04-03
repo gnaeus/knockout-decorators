@@ -3,7 +3,7 @@
  * Available under MIT license
  */
 import * as ko from "knockout";
-import { observable, ObservableArray, subscribe, unwrap } from "../src/knockout-decorators";
+import { observable, observableArray, ObservableArray, subscribe, unwrap } from "../src/knockout-decorators";
 
 describe("@observable({ deep: true }) decorator", () => {
     it("should throw on uninitialized properties", () => {
@@ -249,6 +249,20 @@ describe("@observable({ deep: true }) decorator: initialized by array", () => {
     it("should define deep observableArray property", () => {
         class ViewModel {
             @observable({ deep: true })
+            array: any[] = [];
+        }
+
+        let vm = new ViewModel();
+
+        let array = Object.getOwnPropertyDescriptor(vm, "array").get;
+
+        expect(ko.isObservable(array)).toBeTruthy();
+        expect(Object.getPrototypeOf(array)).toBe(ko.observableArray.fn);
+    });
+
+    it("should define deep @observableArray property", () => {
+        class ViewModel {
+            @observableArray({ deep: true })
             array: any[] = [];
         }
 

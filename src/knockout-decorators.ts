@@ -23,97 +23,57 @@ export function observable(options: { deep: boolean }): PropertyDecorator;
  */
 export function observable(prototype: Object, key: string | symbol): void;
 /**
- * Property decorator that creates hidden (shallow) ko.observable with ES6 getter and setter for it
- * If initialized by Array then hidden (shallow) ko.observableArray will be created
+ * Property decorator that creates hidden (shallow or deep) ko.observable with ES6 getter and setter for it
+ * If initialized by Array then hidden (shallow or deep) ko.observableArray will be created
  */
 export function observable(prototypeOrOptions: any, key?: any) {
-    let deep = false;
+    observableArrayOption = false;
+    deepObservableOption = false;
     if (arguments.length === 1) {
-        deep = prototypeOrOptions.deep;
+        deepObservableOption = prototypeOrOptions.deep;
         return observableDecorator;
     }
     return observableDecorator(prototypeOrOptions, key);
-
-    function observableDecorator(prototype: Object, propKey: string | symbol) {
-        defineProperty(prototype, propKey, {
-            get() {
-                throw new Error("@observable property '" + propKey.toString() + "' was not initialized");
-            },
-            set(this: Object, value: any) {
-                if (isArray(value)) {
-                    defineObservableArray(this, propKey, value, deep);
-                } else {
-                    defineObservableProperty(this, propKey, value, deep);
-                }
-            },
-        });
-    }
 }
 
-/*---------------------------------------------------------------------------*/
-
 /**
- * Accessor decorator that wraps ES6 getter to hidden ko.computed or ko.pureComputed
- *
- * Setter is not wrapped to hidden ko.pureComputed and stays unchanged
- *
- * But we can still extend getter @computed by extenders like { rateLimit: 500 }
+ * Property decorator that creates hidden (shallow or deep) ko.observableArray with ES6 getter and setter for it
  */
-export function computed(options: { pure: boolean }): PropertyDecorator;
-/**
- * Accessor decorator that wraps ES6 getter to hidden ko.pureComputed
- *
- * Setter is not wrapped to hidden ko.pureComputed and stays unchanged
- *
- * But we can still extend getter @computed by extenders like { rateLimit: 500 }
- */
-export function computed(prototype: Object, key: string | symbol, desc: PropertyDescriptor): PropertyDescriptor;
-/**
- * Accessor decorator that wraps ES6 getter to hidden ko.computed or ko.pureComputed
- *
- * Setter is not wrapped to hidden ko.pureComputed and stays unchanged
- *
- * But we can still extend getter @computed by extenders like { rateLimit: 500 }
- */
-export function computed(prototypeOrOptinos: any, key?: any, propDesc?: any) {
-    let options = { pure: true };
-
-    if (arguments.length === 1) {
-        options = prototypeOrOptinos;
-        return computedDecorator;
-    }
-    return computedDecorator(prototypeOrOptinos, key, propDesc);
-
-    function computedDecorator(prototype: Object, propKey: string | symbol, desc: PropertyDescriptor) {
-        const { get, set } = desc || (desc = getOwnPropertyDescriptor(prototype, propKey));
-        if (!get) {
-            throw new Error("@computed property '" + propKey.toString() + "' has no getter");
-        }
-        desc.get = function (this: Object) {
-            const computed = applyExtenders(this, propKey, ko.computed(get, this, options));
-            defineProperty(this, propKey, {
-                get: computed,
-                // tslint:disable-next-line:object-literal-shorthand
-                set: set,
-            });
-            return computed();
-        };
-        return desc;
-    }
-}
-
-/*---------------------------------------------------------------------------*/
-
+export function observableArray(options: { deep: boolean }): PropertyDecorator;
 /**
  * Property decorator that creates hidden (shallow) ko.observableArray with ES6 getter and setter for it
  */
-export function observableArray(prototype: Object, key: string | symbol) {
-    defineProperty(prototype, key, {
+export function observableArray(prototype: Object, key: string | symbol): void;
+/**
+ * Property decorator that creates hidden (shallow or deep) ko.observableArray with ES6 getter and setter for it
+ */
+export function observableArray(prototypeOrOptions: any, key?: any) {
+    observableArrayOption = true;
+    deepObservableOption = false;
+    if (arguments.length === 1) {
+        deepObservableOption = prototypeOrOptions.deep;
+        return observableDecorator;
+    }
+    return observableDecorator(prototypeOrOptions, key);
+}
+
+// observableDecorator options
+let observableArrayOption: boolean;
+let deepObservableOption: boolean;
+
+function observableDecorator(prototype: Object, propKey: string | symbol) {
+    let array = observableArrayOption;
+    let deep = deepObservableOption;
+    defineProperty(prototype, propKey, {
         get() {
-            throw new Error("@observableArray property '" + key.toString() + "' was not initialized");
+            throw new Error("@observable property '" + propKey.toString() + "' was not initialized");
         },
-        set(this: Object, value: any[]) {
-            defineObservableArray(this, key, value, false);
+        set(this: Object, value: any) {
+            if (array || isArray(value)) {
+                defineObservableArray(this, propKey, value, deep);
+            } else {
+                defineObservableProperty(this, propKey, value, deep);
+            }
         },
     });
 }
@@ -147,6 +107,62 @@ export interface ObservableArray<T> extends Array<T> {
      * Replace value at some index and return old value
      */
     set(index: number, value: T): T;
+}
+
+/*---------------------------------------------------------------------------*/
+
+/**
+ * Accessor decorator that wraps ES6 getter to hidden ko.computed or ko.pureComputed
+ *
+ * Setter is not wrapped to hidden ko.pureComputed and stays unchanged
+ *
+ * But we can still extend getter @computed by extenders like { rateLimit: 500 }
+ */
+export function computed(options: { pure: boolean }): PropertyDecorator;
+/**
+ * Accessor decorator that wraps ES6 getter to hidden ko.pureComputed
+ *
+ * Setter is not wrapped to hidden ko.pureComputed and stays unchanged
+ *
+ * But we can still extend getter @computed by extenders like { rateLimit: 500 }
+ */
+export function computed(prototype: Object, key: string | symbol, desc: PropertyDescriptor): PropertyDescriptor;
+/**
+ * Accessor decorator that wraps ES6 getter to hidden ko.computed or ko.pureComputed
+ *
+ * Setter is not wrapped to hidden ko.pureComputed and stays unchanged
+ *
+ * But we can still extend getter @computed by extenders like { rateLimit: 500 }
+ */
+export function computed(prototypeOrOptinos: any, key?: any, propDesc?: any) {
+    computedDecoratorOptions = { pure: true };
+
+    if (arguments.length === 1) {
+        computedDecoratorOptions = prototypeOrOptinos;
+        return computedDecorator;
+    }
+    return computedDecorator(prototypeOrOptinos, key, propDesc);
+}
+
+// computedDecorator options
+let computedDecoratorOptions: { pure: boolean };
+
+function computedDecorator(prototype: Object, propKey: string | symbol, desc: PropertyDescriptor) {
+    let options = computedDecoratorOptions;
+    const { get, set } = desc || (desc = getOwnPropertyDescriptor(prototype, propKey));
+    if (!get) {
+        throw new Error("@computed property '" + propKey.toString() + "' has no getter");
+    }
+    desc.get = function (this: Object) {
+        const computed = applyExtenders(this, propKey, ko.computed(get, this, options));
+        defineProperty(this, propKey, {
+            get: computed,
+            // tslint:disable-next-line:object-literal-shorthand
+            set: set,
+        });
+        return computed();
+    };
+    return desc;
 }
 
 /*---------------------------------------------------------------------------*/

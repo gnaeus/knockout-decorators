@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased]
 ### Added
 - `@observable({ deep: true })` option
+- `@observableArray({ deep: true })` option
 - `@computed({ pure: false })` option
 
 ### Removed
