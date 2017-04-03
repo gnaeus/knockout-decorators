@@ -13,43 +13,41 @@ import { defineObservableProperty } from "./observable-property";
 import { applyExtenders, defineExtenders } from "./property-extenders";
 
 /**
+ * Property decorator that creates hidden (shallow or deep) ko.observable with ES6 getter and setter for it
+ * If initialized by Array then hidden ko.observableArray will be created
+ */
+export function observable(options: { deep: boolean }): PropertyDecorator;
+/**
  * Property decorator that creates hidden (shallow) ko.observable with ES6 getter and setter for it
  * If initialized by Array then hidden (shallow) ko.observableArray will be created
  */
-export function observable(prototype: Object, key: string | symbol) {
-    defineProperty(prototype, key, {
-        get() {
-            throw new Error("@observable property '" + key.toString() + "' was not initialized");
-        },
-        set(this: Object, value: any) {
-            if (isArray(value)) {
-                defineObservableArray(this, key, value, false);
-            } else {
-                defineObservableProperty(this, key, value, false);
-            }
-        },
-    });
-}
-
-/*---------------------------------------------------------------------------*/
-
+export function observable(prototype: Object, key: string | symbol): void;
 /**
- * Property decorator that creates hidden (deep) ko.observable with ES6 getter and setter for it
- * If initialized by Array then hidden (deep) ko.observableArray will be created
+ * Property decorator that creates hidden (shallow) ko.observable with ES6 getter and setter for it
+ * If initialized by Array then hidden (shallow) ko.observableArray will be created
  */
-export function reactive(prototype: Object, key: string | symbol) {
-    defineProperty(prototype, key, {
-        get() {
-            throw new Error("@reactive property '" + key.toString() + "' was not initialized");
-        },
-        set(this: Object, value: any) {
-            if (isArray(value)) {
-                defineObservableArray(this, key, value, true);
-            } else {
-                defineObservableProperty(this, key, value, true);
-            }
-        },
-    });
+export function observable(prototypeOrOptions: any, key?: any) {
+    let deep = false;
+    if (arguments.length === 1) {
+        deep = prototypeOrOptions.deep;
+        return observableDecorator;
+    }
+    return observableDecorator(prototypeOrOptions, key);
+
+    function observableDecorator(prototype: Object, propKey: string | symbol) {
+        defineProperty(prototype, propKey, {
+            get() {
+                throw new Error("@observable property '" + propKey.toString() + "' was not initialized");
+            },
+            set(this: Object, value: any) {
+                if (isArray(value)) {
+                    defineObservableArray(this, propKey, value, deep);
+                } else {
+                    defineObservableProperty(this, propKey, value, deep);
+                }
+            },
+        });
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -77,23 +75,23 @@ export function computed(prototype: Object, key: string | symbol, desc: Property
  *
  * But we can still extend getter @computed by extenders like { rateLimit: 500 }
  */
-export function computed(prototypeOrOptinos: any, propKey?: any, propDesc?: any) {
+export function computed(prototypeOrOptinos: any, key?: any, propDesc?: any) {
     let options = { pure: true };
 
     if (arguments.length === 1) {
         options = prototypeOrOptinos;
         return computedDecorator;
     }
-    return computedDecorator(prototypeOrOptinos, propKey, propDesc);
+    return computedDecorator(prototypeOrOptinos, key, propDesc);
 
-    function computedDecorator(prototype: Object, key: string | symbol, desc: PropertyDescriptor) {
-        const { get, set } = desc || (desc = getOwnPropertyDescriptor(prototype, key));
+    function computedDecorator(prototype: Object, propKey: string | symbol, desc: PropertyDescriptor) {
+        const { get, set } = desc || (desc = getOwnPropertyDescriptor(prototype, propKey));
         if (!get) {
-            throw new Error("@computed property '" + key.toString() + "' has no getter");
+            throw new Error("@computed property '" + propKey.toString() + "' has no getter");
         }
         desc.get = function (this: Object) {
-            const computed = applyExtenders(this, key, ko.computed(get, this, options));
-            defineProperty(this, key, {
+            const computed = applyExtenders(this, propKey, ko.computed(get, this, options));
+            defineProperty(this, propKey, {
                 get: computed,
                 // tslint:disable-next-line:object-literal-shorthand
                 set: set,
@@ -374,7 +372,7 @@ export function subscribe(
             return event.subscribe(callback);
         }
     } else {
-        // overload: subscribe to @observable, @reactive or @computed
+        // overload: subscribe to @observable or @computed
         const event = options && options.event || "change";
 
         let handler: (value: any) => void;

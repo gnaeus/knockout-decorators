@@ -3,7 +3,7 @@
  * Available under MIT license
  */
 import * as ko from "knockout";
-import { computed, extend, observable, observableArray, reactive } from "../src/knockout-decorators";
+import { computed, extend, observable, observableArray } from "../src/knockout-decorators";
 
 describe("@extend decorator", () => {
     ko.extenders["reverse"] = (target: KnockoutObservable<any>, options: "read" | "write") => {
@@ -53,10 +53,11 @@ describe("@extend decorator", () => {
         expect(vm.observable).toBe("fedcba");
     });
 
-    it("should extend @reactive", () => {
+    it("should extend deep @observable", () => {
         class ViewModel {
             @extend({ reverse: "write" })
-            @reactive observable = "abcdef";
+            @observable({ deep: true })
+            observable = "abcdef";
         }
 
         let vm = new ViewModel();

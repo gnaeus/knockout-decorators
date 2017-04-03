@@ -18,7 +18,7 @@ export function defineObservableProperty(
 
     if (deep) {
         setter = function (newValue: any) {
-            observable(prepareReactiveValue(newValue));
+            observable(prepareDeepValue(newValue));
         };
     }
 
@@ -31,7 +31,7 @@ export function defineObservableProperty(
     setter(value);
 }
 
-export function prepareReactiveValue(value: any) {
+export function prepareDeepValue(value: any) {
     if (typeof value === "object") {
         if (isArray(value) || value === null) {
             // value is Array or null
@@ -41,18 +41,18 @@ export function prepareReactiveValue(value: any) {
             const prototype = getPrototypeOf(value);
             if (prototype === Object.prototype || prototype === null) {
                 // value is plain Object
-                return prepareReactiveObject(value);
+                return prepareDeepObject(value);
             }
         } else if (value.constructor === Object) {
             // value is plain Object
-            return prepareReactiveObject(value);
+            return prepareDeepObject(value);
         }
     }
     // value is primitive, function or class instance
     return value;
 }
 
-export function prepareReactiveObject(instance: Object) {
+export function prepareDeepObject(instance: Object) {
     if (!hasOwnProperty(instance, PATCHED_KEY)) {
         // mark instance as ObservableObject
         defineProperty(instance, PATCHED_KEY, {

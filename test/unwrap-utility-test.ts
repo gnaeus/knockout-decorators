@@ -3,7 +3,7 @@
  * Available under MIT license
  */
 import * as ko from "knockout";
-import { computed, extend, observable, observableArray, reactive, unwrap } from "../src/knockout-decorators";
+import { computed, extend, observable, observableArray, unwrap } from "../src/knockout-decorators";
 
 describe("unwrap utility function", () => {
     it("should return hidden observable", () => {
@@ -20,7 +20,8 @@ describe("unwrap utility function", () => {
 
     it("should return hidden deep observable", () => {
         class Test {
-            @reactive object = {
+            @observable({ deep: true })
+            object = {
                 property: "test test test",
             };
         }
@@ -49,7 +50,8 @@ describe("unwrap utility function", () => {
 
     it("should return hidden deep observableArray", () => {
         class ViewModel {
-            @reactive array = [{
+            @observable({ deep: true })
+            array = [{
                 property: "test test test",
             }];
         }

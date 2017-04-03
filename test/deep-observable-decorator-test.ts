@@ -3,22 +3,24 @@
  * Available under MIT license
  */
 import * as ko from "knockout";
-import { ObservableArray, reactive, subscribe, unwrap } from "../src/knockout-decorators";
+import { observable, ObservableArray, subscribe, unwrap } from "../src/knockout-decorators";
 
-describe("@reactive decorator", () => {
+describe("@observable({ deep: true }) decorator", () => {
     it("should throw on uninitialized properties", () => {
         class ViewModel {
-            @reactive field: any;
+            @observable({ deep: true })
+            field: any;
         }
 
         let vm = new ViewModel();
 
-        expect(() => vm.field).toThrowError("@reactive property 'field' was not initialized");
+        expect(() => vm.field).toThrowError("@observable property 'field' was not initialized");
     });
 
     it("should combine deep observable objects and arrays", () => {
         class ViewModel {
-            @reactive deepObservable = {       // like @observable
+            @observable({ deep: true })
+            deepObservable = {       // like @observable
                 firstName: "Clive Staples",    // like @observable
                 lastName: "Lewis",             // like @observable
 
@@ -61,7 +63,8 @@ describe("@reactive decorator", () => {
 
     it("should be serializable to JSON", () => {
         class ViewModel {
-            @reactive object = {
+            @observable({ deep: true })
+            object = {
                 property: "test",
                 reference: {
                     nested: 123,
@@ -80,10 +83,11 @@ describe("@reactive decorator", () => {
     });
 });
 
-describe("@reactive decorator: initialized by object", () => {
+describe("@observable({ deep: true }) decorator: initialized by object", () => {
     it("should define deep observable object property", () => {
         class ViewModel {
-            @reactive object = {
+            @observable({ deep: true })
+            object = {
                 first: 123,
                 second: "foo",
                 reference: {
@@ -111,7 +115,8 @@ describe("@reactive decorator: initialized by object", () => {
 
     it("should track deep observable object properties changes", () => {
         class ViewModel {
-            @reactive object = {
+            @observable({ deep: true })
+            object = {
                 first: 123,
                 second: "foo",
                 reference: {
@@ -140,7 +145,8 @@ describe("@reactive decorator: initialized by object", () => {
 
     it("should modify plain objects", () => {
         class ViewModel {
-            @reactive field: Object = null;
+            @observable({ deep: true })
+            field: Object = null;
         }
 
         let vm = new ViewModel();
@@ -152,7 +158,8 @@ describe("@reactive decorator: initialized by object", () => {
 
     it("should modify plain objects without prototype", () => {
         class ViewModel {
-            @reactive field: Object = null;
+            @observable({ deep: true })
+            field: Object = null;
         }
 
         let vm = new ViewModel();
@@ -166,7 +173,8 @@ describe("@reactive decorator: initialized by object", () => {
 
     it("should modify plain objects with redefined 'constructor' property", () => {
         class ViewModel {
-            @reactive field: Object = null;
+            @observable({ deep: true })
+            field: Object = null;
         }
 
         let vm = new ViewModel();
@@ -180,7 +188,8 @@ describe("@reactive decorator: initialized by object", () => {
         class Model { }
 
         class ViewModel {
-            @reactive model: Object = null;
+            @observable({ deep: true })
+            model: Object = null;
         }
 
         let vm = new ViewModel();
@@ -196,7 +205,8 @@ describe("@reactive decorator: initialized by object", () => {
         class Model { }
 
         class ViewModel {
-            @reactive model: Object = null;
+            @observable({ deep: true })
+            model: Object = null;
         }
 
         let vm = new ViewModel();
@@ -216,7 +226,8 @@ describe("@reactive decorator: initialized by object", () => {
         };
 
         class ViewModel {
-            @reactive object: Circular = null;
+            @observable({ deep: true })
+            object: Circular = null;
         }
 
         let vm = new ViewModel();
@@ -234,10 +245,11 @@ describe("@reactive decorator: initialized by object", () => {
     });
 });
 
-describe("@reactive decorator: initialized by array", () => {
+describe("@observable({ deep: true }) decorator: initialized by array", () => {
     it("should define deep observableArray property", () => {
         class ViewModel {
-            @reactive array: any[] = [];
+            @observable({ deep: true })
+            array: any[] = [];
         }
 
         let vm = new ViewModel();
@@ -250,7 +262,8 @@ describe("@reactive decorator: initialized by array", () => {
 
     it("should track deep observableArray changes", () => {
         class ViewModel {
-            @reactive array: { x: number, y: number }[] = [];
+            @observable({ deep: true })
+            array: { x: number, y: number }[] = [];
         }
 
         let vm = new ViewModel();
@@ -266,7 +279,8 @@ describe("@reactive decorator: initialized by array", () => {
 
     it("should modify plain object array items", () => {
         class ViewModel {
-            @reactive array: Object[] = [];
+            @observable({ deep: true })
+            array: Object[] = [];
         }
 
         let vm = new ViewModel();
@@ -280,7 +294,8 @@ describe("@reactive decorator: initialized by array", () => {
         class Model { }
 
         class ViewModel {
-            @reactive array: Model[] = [];
+            @observable({ deep: true })
+            array: Model[] = [];
         }
 
         let vm = new ViewModel();
@@ -297,7 +312,8 @@ describe("@reactive decorator: initialized by array", () => {
         };
 
         class ViewModel {
-            @reactive array: Circular[] = [];
+            @observable({ deep: true })
+            array: Circular[] = [];
         }
 
         let vm = new ViewModel();
@@ -331,8 +347,10 @@ describe("@reactive decorator: initialized by array", () => {
 
     it("should expose knockout-specific methods", () => {
         class ViewModel {
-            @reactive first = [1, 2, 3, 4, 3, 2, 1] as ObservableArray<number>;
-            @reactive second = [1, 2, 3, 4, 3, 2, 1] as ObservableArray<number>;
+            @observable({ deep: true })
+            first = [1, 2, 3, 4, 3, 2, 1] as ObservableArray<number>;
+            @observable({ deep: true })
+            second = [1, 2, 3, 4, 3, 2, 1] as ObservableArray<number>;
         }
 
         let vm = new ViewModel();
@@ -380,7 +398,8 @@ describe("@reactive decorator: initialized by array", () => {
 
     it("should define optimized splice method", () => {
         class ViewModel {
-            @reactive array = [] as ObservableArray<number>;
+            @observable({ deep: true })
+            array = [] as ObservableArray<number>;
         }
 
         let vm = new ViewModel();
@@ -395,7 +414,8 @@ describe("@reactive decorator: initialized by array", () => {
 
     it("should clear array methods on previous observableArray value", () => {
         class ViewModel {
-            @reactive array = [1, 2, 3];
+            @observable({ deep: true })
+            array = [1, 2, 3];
         }
 
         let vm = new ViewModel();
@@ -415,8 +435,10 @@ describe("@reactive decorator: initialized by array", () => {
 
     it("should clone array if it is @observableArray from another field", () => {
         class ViewModel {
-            @reactive arrayFirst = [1, 2] as ObservableArray<number>;
-            @reactive arraySecond = [3, 4] as ObservableArray<number>;
+            @observable({ deep: true })
+            arrayFirst = [1, 2] as ObservableArray<number>;
+            @observable({ deep: true })
+            arraySecond = [3, 4] as ObservableArray<number>;
         }
 
         let vm = new ViewModel();
@@ -448,7 +470,8 @@ describe("@reactive decorator: initialized by array", () => {
 
     it("should have 'mutate' method", () => {
         class ViewModel {
-            @reactive array = [1, 2, 3] as ObservableArray<any>;
+            @observable({ deep: true })
+            array = [1, 2, 3] as ObservableArray<any>;
         }
 
         let vm = new ViewModel();
@@ -469,7 +492,8 @@ describe("@reactive decorator: initialized by array", () => {
 
     it("should have 'set' method", () => {
         class ViewModel {
-            @reactive array = [1, 2, 3] as ObservableArray<any>;
+            @observable({ deep: true })
+            array = [1, 2, 3] as ObservableArray<any>;
         }
 
         let vm = new ViewModel();

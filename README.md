@@ -34,7 +34,6 @@ class PersonView {
 ---
 ## Documentation
  * [@observable](#knockout-decorators-observable)
- * [@reactive](#knockout-decorators-reactive)
  * [@computed](#knockout-decorators-computed)
  * [@observableArray](#knockout-decorators-observableArray)
  * [@extend](#knockout-decorators-extend)
@@ -55,6 +54,11 @@ class PersonView {
 Property decorator that creates hidden `ko.observable` with ES6 getter and setter for it<br>
 If initialized by Array then hidden `ko.observableArray` will be created (see [@observableArray](#knockout-decorators-observableArray))
 ```js
+@observable(options: { deep: boolean });
+@observable;
+```
+By default it creates shallow observable
+```js
 import { observable } from "knockout-decorators";
 
 class Model {
@@ -66,18 +70,14 @@ let model = new Model();
 ko.computed(() => { console.log(model.field); }); // [console] ➜ 123
 model.field = 456;                                // [console] ➜ 456
 ```
-
-<br>
-
-#### <a name="knockout-decorators-reactive"></a> @reactive
-Like [@observable](#knockout-decorators-observable), but creates "deep observable" property (see example below)<br>
-If initialized by Array then hidden `ko.observableArray` will be created (see [@observableArray](#knockout-decorators-observableArray))
-
+If `{ deep: true }` option is provided then all nested object properties
+are recursively converted to `@observable`
 ```js
-import { reactive } from "knockout-decorators";
+import { observable } from "knockout-decorators";
 
 class ViewModel {
-  @reactive deepObservable = {  // like @observable
+  @observable({ deep: true })
+  deepObservable = {            // like @observable
     firstName: "Clive Staples", // like @observable
     lastName: "Lewis",          // like @observable
 
@@ -208,7 +208,7 @@ console.log(oldValue);    // [console] ➜ 3
 <br>
 
 #### <a name="knockout-decorators-extend"></a> @extend
-Apply extenders to decorated `@observable`, `@reactive`, `@observableArray` or `@computed`
+Apply extenders to decorated `@observable`, `@observableArray` or `@computed`
 ```js
 @extend(extenders: Object);
 @extend(extendersFactory: () => Object);

@@ -4,7 +4,7 @@
  */
 import * as ko from "knockout";
 import {
-    computed, observable, observableArray, ObservableArray, reactive, subscribe,
+    computed, observable, observableArray, ObservableArray, subscribe,
 } from "../src/knockout-decorators";
 
 describe("subscribe utility function", () => {
@@ -27,11 +27,12 @@ describe("subscribe utility function", () => {
         expect(vm.plainField).toBe(123);
     });
 
-    it("should subscribe given callback to decorated @reactive", () => {
+    it("should subscribe given callback to decorated deep @observable", () => {
         class ViewModel {
             plainField: number;
 
-            @reactive object = {
+            @observable({ deep: true })
+            object = {
                 field: 0,
             };
 

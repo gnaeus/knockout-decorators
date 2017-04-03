@@ -4,7 +4,7 @@
  */
 import * as ko from "knockout";
 import { ArrayPrototype, arraySlice, defineProperty, hasOwnProperty, isArray, PATCHED_KEY } from "./common-functions";
-import { prepareReactiveValue } from "./observable-property";
+import { prepareDeepValue } from "./observable-property";
 import { applyExtenders } from "./property-extenders";
 
 type ObsArray = KnockoutObservableArray<any> & { [fnName: string]: Function };
@@ -54,9 +54,9 @@ export function defineObservableArray(
                 }
                 // if deep option is set
                 if (deep) {
-                    // make all array items reactive
+                    // make all array items deep observable
                     for (let i = 0; i < newValue.length; ++i) {
-                        newValue[i] = prepareReactiveValue(newValue[i]);
+                        newValue[i] = prepareDeepValue(newValue[i]);
                     }
                 }
                 // mark instance as ObservableArray
@@ -107,7 +107,7 @@ export function defineObservableArray(
                     }
                     let args = arraySlice(arguments);
                     for (let i = 0; i < args.length; ++i) {
-                        args[i] = prepareReactiveValue(args[i]);
+                        args[i] = prepareDeepValue(args[i]);
                     }
                     insideObsArray = true;
                     const result = obsArray.push.apply(obsArray, args);
@@ -123,7 +123,7 @@ export function defineObservableArray(
                     }
                     let args = arraySlice(arguments);
                     for (let i = 0; i < args.length; ++i) {
-                        args[i] = prepareReactiveValue(args[i]);
+                        args[i] = prepareDeepValue(args[i]);
                     }
                     insideObsArray = true;
                     const result = obsArray.unshift.apply(obsArray, args);
@@ -150,14 +150,14 @@ export function defineObservableArray(
                         }
                         case 3: {
                             result = obsArray.splice(
-                                arguments[0], arguments[1], prepareReactiveValue(arguments[2]),
+                                arguments[0], arguments[1], prepareDeepValue(arguments[2]),
                             );
                             break;
                         }
                         default: {
                             const args = arraySlice(arguments);
                             for (let i = 2; i < args.length; ++i) {
-                                args[i] = prepareReactiveValue(args[i]);
+                                args[i] = prepareDeepValue(args[i]);
                             }
                             result = obsArray.splice.apply(obsArray, arguments);
                             break;
@@ -172,7 +172,7 @@ export function defineObservableArray(
             defineProperty(array, "replace", {
                 value(oldItem: any, newItem: any) {
                     insideObsArray = true;
-                    const result = obsArray.replace(oldItem, prepareReactiveValue(newItem));
+                    const result = obsArray.replace(oldItem, prepareDeepValue(newItem));
                     insideObsArray = false;
                     return result;
                 },
@@ -185,7 +185,7 @@ export function defineObservableArray(
                     (obsArray.valueWillMutate as Function)();
                     mutator(nativeArray);
                     for (let i = 0; i < nativeArray.length; ++i) {
-                        nativeArray[i] = prepareReactiveValue(nativeArray[i]);
+                        nativeArray[i] = prepareDeepValue(nativeArray[i]);
                     }
                     // it is defined for ko.observableArray
                     (obsArray.valueHasMutated as Function)();
@@ -194,7 +194,7 @@ export function defineObservableArray(
 
             defineProperty(array, "set", {
                 value(index: number, newItem: any) {
-                    return obsArray.splice(index, 1, prepareReactiveValue(newItem))[0];
+                    return obsArray.splice(index, 1, prepareDeepValue(newItem))[0];
                 },
             });
         } else {

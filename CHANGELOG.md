@@ -6,7 +6,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 ### Added
+- `@observable({ deep: true })` option
 - `@computed({ pure: false })` option
+
+### Removed
+- `@reactive` decorator
+
+In v1.0.0 `@reactive` decorator was replaced by `@observable({ deep: true })` option
 
 ## [0.10.0] - 2017-03-29
 ### Added

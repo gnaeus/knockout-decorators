@@ -5,12 +5,12 @@
 import * as ko from "knockout";
 import { ObservableArrayProxy } from "../../src/experimental/observable-array-proxy";
 import { subscribe, unwrap } from "../../src/knockout-decorators";
-import { prepareReactiveValue } from "../../src/observable-property";
+import { prepareDeepValue } from "../../src/observable-property";
 
 describe("deep ObservableArray", () => {
     function makeProxy<T>(array: T[]): T[] & KnockoutObservableArray<T> {
         return new ObservableArrayProxy(
-            ko.observableArray(array), prepareReactiveValue,
+            ko.observableArray(array), prepareDeepValue,
         ) as any;
     }
 

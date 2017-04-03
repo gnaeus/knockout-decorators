@@ -3,7 +3,7 @@
  * Available under MIT license
  */
 import * as ko from "knockout";
-import { computed, observable, observableArray, reactive } from "../src/knockout-decorators";
+import { computed, observable, observableArray } from "../src/knockout-decorators";
 
 describe("@computed decorator", () => {
     it("should throw on properties without getter", () => {
@@ -93,9 +93,10 @@ describe("@computed decorator", () => {
         expect(result).toEqual([49, 64, 81]);
     });
 
-    it("should track @reactive (deep observable) changes", () => {
+    it("should track deep @observable changes", () => {
         class Calc {
-            @reactive object = {
+            @observable({ deep: true })
+            object = {
                 number: 0,
             };
 
