@@ -47,6 +47,7 @@
     "rollup-plugin-typescript": "^0.8.1",
     "rollup-plugin-uglify": "^1.0.1",
     "shx": "^0.2.1",
+    "ts-jest": "^19.0.14",
     "tslib": "^1.6.0",
     "tslint": "^4.4.2",
     "typescript": "^2.2.1"
@@ -64,12 +65,15 @@
       "lcov",
       "text"
     ],
+    "globals": {
+      "__TS_CONFIG__": "test/tsconfig.json"
+    },
     "moduleFileExtensions": [
       "js",
       "ts"
     ],
     "transform": {
-      ".*\\.ts$": "jest-transformer.js"
+      ".*\\.ts$": "node_modules/ts-jest/preprocessor.js"
     },
     "testRegex": "/test/.*(test|benchmark)\\.ts$"
   }
