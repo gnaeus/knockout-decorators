@@ -10,8 +10,8 @@ describe("@autobind decorator", () => {
             @autobind method() { return this; }
         }
 
-        let instance = new Test();
-        let method = instance.method;
+        const instance = new Test();
+        const method = instance.method;
 
         expect(method()).toBe(instance);
     });
@@ -21,7 +21,7 @@ describe("@autobind decorator", () => {
             @autobind method() { return this; }
         }
 
-        let instance = new Test();
+        const instance = new Test();
 
         expect(instance.method).not.toBe(Test.prototype.method);
         expect(Test.prototype.method()).toBe(Test.prototype);

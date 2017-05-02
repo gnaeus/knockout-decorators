@@ -11,9 +11,9 @@ describe("unwrap utility function", () => {
             @observable property = "";
         }
 
-        let instance = new Test();
+        const instance = new Test();
 
-        let observableProperty = unwrap<string>(instance, "property");
+        const observableProperty = unwrap<string>(instance, "property");
 
         expect(ko.isObservable(observableProperty)).toBeTruthy();
     });
@@ -26,10 +26,10 @@ describe("unwrap utility function", () => {
             };
         }
 
-        let instance = new Test();
+        const instance = new Test();
 
-        let observableObject = unwrap<Object>(instance, "object");
-        let observableProperty = unwrap<string>(instance.object, "property");
+        const observableObject = unwrap<Object>(instance, "object");
+        const observableProperty = unwrap<string>(instance.object, "property");
 
         expect(ko.isObservable(observableObject)).toBeTruthy();
         expect(ko.isObservable(observableProperty)).toBeTruthy();
@@ -40,9 +40,9 @@ describe("unwrap utility function", () => {
             @observableArray array: any[] = [];
         }
 
-        let vm = new ViewModel();
+        const vm = new ViewModel();
 
-        let obsArray = unwrap(vm, "array");
+        const obsArray = unwrap(vm, "array");
 
         expect(ko.isObservable(obsArray)).toBeTruthy();
         expect(Object.getPrototypeOf(obsArray)).toBe(ko.observableArray.fn);
@@ -56,10 +56,10 @@ describe("unwrap utility function", () => {
             }];
         }
 
-        let vm = new ViewModel();
+        const vm = new ViewModel();
 
-        let obsArray = unwrap(vm, "array");
-        let observableProperty = unwrap<string>(vm.array[0], "property");
+        const obsArray = unwrap(vm, "array");
+        const observableProperty = unwrap<string>(vm.array[0], "property");
 
         expect(ko.isObservable(obsArray)).toBeTruthy();
         expect(Object.getPrototypeOf(obsArray)).toBe(ko.observableArray.fn);
@@ -72,9 +72,9 @@ describe("unwrap utility function", () => {
             @observable property = "";
         }
 
-        let instance = new Test();
+        const instance = new Test();
 
-        let observableProperty = unwrap<string>(instance, "property");
+        const observableProperty = unwrap<string>(instance, "property");
         expect(observableProperty()).toBe("");
 
         instance.property = "property value";
@@ -105,7 +105,7 @@ describe("unwrap utility function", () => {
             }
         }
 
-        let instance = new Test();
+        const instance = new Test();
         expect(instance.unwrap("property").isValid).toBe(false);
 
         instance.property = "foo bar";
@@ -121,9 +121,9 @@ describe("unwrap utility function", () => {
             }
         }
 
-        let instance = new Test();
+        const instance = new Test();
 
-        let computedField = unwrap<string>(instance, "computedField");
+        const computedField = unwrap<string>(instance, "computedField");
 
         expect(ko.isComputed(computedField)).toBeTruthy();
     });
@@ -145,12 +145,12 @@ describe("unwrap utility function", () => {
             }
         }
 
-        let instance = new Derived();
+        const instance = new Derived();
 
-        let observableField = unwrap<string>(instance, "observableField");
-        let computedField = unwrap<string>(instance, "computedField");
-        let observableDerivedField = unwrap<string>(instance, "observableDerivedField");
-        let computedDerivedField = unwrap<string>(instance, "computedDerivedField");
+        const observableField = unwrap<string>(instance, "observableField");
+        const computedField = unwrap<string>(instance, "computedField");
+        const observableDerivedField = unwrap<string>(instance, "observableDerivedField");
+        const computedDerivedField = unwrap<string>(instance, "computedDerivedField");
 
         expect(ko.isObservable(observableField)).toBeTruthy();
         expect(ko.isComputed(computedField)).toBeTruthy();

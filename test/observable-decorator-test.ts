@@ -11,7 +11,7 @@ describe("@observable decorator", () => {
             @observable text: any;
         }
 
-        let vm = new ViewModel();
+        const vm = new ViewModel();
 
         expect(() => vm.text).toThrowError("@observable property 'text' was not initialized");
     });
@@ -21,9 +21,9 @@ describe("@observable decorator", () => {
             @observable text = "";
         }
 
-        let vm = new ViewModel();
+        const vm = new ViewModel();
 
-        let text = Object.getOwnPropertyDescriptor(vm, "text").get;
+        const text = Object.getOwnPropertyDescriptor(vm, "text").get;
 
         expect(ko.isObservable(text)).toBeTruthy();
     });
@@ -33,9 +33,9 @@ describe("@observable decorator", () => {
             @observable array: any[] = [];
         }
 
-        let vm = new ViewModel();
+        const vm = new ViewModel();
 
-        let array = Object.getOwnPropertyDescriptor(vm, "array").get;
+        const array = Object.getOwnPropertyDescriptor(vm, "array").get;
 
         expect(ko.isObservable(array)).toBeTruthy();
         expect(Object.getPrototypeOf(array)).toBe(ko.observableArray.fn);
@@ -46,7 +46,7 @@ describe("@observable decorator", () => {
             @observable text = "";
         }
 
-        let vm = new ViewModel();
+        const vm = new ViewModel();
 
         let changedText;
         ko.pureComputed(() => vm.text).subscribe((value) => { changedText = value; });
@@ -61,9 +61,9 @@ describe("@observable decorator", () => {
             @observable field: Object = null;
         }
 
-        let vm = new ViewModel();
+        const vm = new ViewModel();
 
-        let frozenObject = Object.freeze({ foo: "bar" });
+        const frozenObject = Object.freeze({ foo: "bar" });
         vm.field = frozenObject;
 
         expect(vm.field).toBe(frozenObject);

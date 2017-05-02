@@ -10,7 +10,7 @@ describe("@event decorator", () => {
             @event myEvent: () => void;
         }
 
-        let publisher = new Publisher();
+        const publisher = new Publisher();
 
         // tslint:disable-next-line:no-unused-expression
         publisher.myEvent;
@@ -32,10 +32,10 @@ describe("@event decorator", () => {
             }
         }
 
-        let publisher = new Publisher();
+        const publisher = new Publisher();
 
-        let subscriber1 = new Subscriber();
-        let subscriber2 = new Subscriber();
+        const subscriber1 = new Subscriber();
+        const subscriber2 = new Subscriber();
 
         subscribe(publisher.simpleEvent, subscriber1.onSimpleEvent);
         subscribe(publisher.simpleEvent, subscriber2.onSimpleEvent);
@@ -62,10 +62,10 @@ describe("@event decorator", () => {
             }
         }
 
-        let publisher = new Publisher();
+        const publisher = new Publisher();
 
-        let subscriber1 = new Subscriber();
-        let subscriber2 = new Subscriber();
+        const subscriber1 = new Subscriber();
+        const subscriber2 = new Subscriber();
 
         subscribe(publisher.complexEvent, subscriber1.onComplexEvent);
         subscribe(publisher.complexEvent, subscriber2.onComplexEvent);
@@ -90,13 +90,13 @@ describe("@event decorator", () => {
             }
         }
 
-        let publisher = new Publisher();
+        const publisher = new Publisher();
 
-        let subscriber1 = new Subscriber();
-        let subscriber2 = new Subscriber();
+        const subscriber1 = new Subscriber();
+        const subscriber2 = new Subscriber();
 
-        let subscription1 = subscribe(publisher.simpleEvent, subscriber1.onSimpleEvent);
-        let subscription2 = subscribe(publisher.simpleEvent, subscriber2.onSimpleEvent);
+        const subscription1 = subscribe(publisher.simpleEvent, subscriber1.onSimpleEvent);
+        const subscription2 = subscribe(publisher.simpleEvent, subscriber2.onSimpleEvent);
 
         subscription1.dispose();
 
@@ -120,8 +120,8 @@ describe("@event decorator", () => {
             }
         }
 
-        let publisher = new Publisher();
-        let subscriber = new Subscriber();
+        const publisher = new Publisher();
+        const subscriber = new Subscriber();
 
         subscribe(publisher.simpleEvent, subscriber.onSimpleEvent, { once: true });
 
@@ -147,8 +147,8 @@ describe("@event decorator", () => {
             }
         }
 
-        let publisher = new Publisher();
-        let subscriber = new Subscriber();
+        const publisher = new Publisher();
+        const subscriber = new Subscriber();
 
         subscribe(publisher.simpleEvent, subscriber.onSimpleEvent, { once: true });
 
@@ -173,8 +173,8 @@ describe("@event decorator", () => {
             }
         }
 
-        let publisher = new Publisher();
-        let subscriber = new Subscriber();
+        const publisher = new Publisher();
+        const subscriber = new Subscriber();
 
         subscribe(publisher.untypedEvent, subscriber.onUntypedEvent);
 
@@ -190,7 +190,7 @@ describe("@event decorator", () => {
             @event untypedEvent: any;
         }
 
-        let publisher = new Publisher();
+        const publisher = new Publisher();
 
         expect(() => { publisher.untypedEvent = null; }).toThrow();
     });
@@ -209,8 +209,8 @@ describe("@event decorator", () => {
             }
         }
 
-        let publisher = new Publisher();
-        let subscriber = new Subscriber();
+        const publisher = new Publisher();
+        const subscriber = new Subscriber();
 
         publisher.myEvent.subscribe(subscriber.onEvent);
 

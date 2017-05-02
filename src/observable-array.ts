@@ -105,7 +105,7 @@ export function defineObservableArray(
                     if (insideObsArray) {
                         return ArrayPrototype.push.apply(array, arguments);
                     }
-                    let args = arraySlice(arguments);
+                    const args = arraySlice(arguments);
                     for (let i = 0; i < args.length; ++i) {
                         args[i] = prepareDeepValue(args[i]);
                     }
@@ -121,7 +121,7 @@ export function defineObservableArray(
                     if (insideObsArray) {
                         return ArrayPrototype.unshift.apply(array, arguments);
                     }
-                    let args = arraySlice(arguments);
+                    const args = arraySlice(arguments);
                     for (let i = 0; i < args.length; ++i) {
                         args[i] = prepareDeepValue(args[i]);
                     }
@@ -215,35 +215,4 @@ export function defineObservableArray(
             });
         }
     }
-}
-
-export interface ObservableArray<T> extends Array<T> {
-    replace(oldItem: T, newItem: T): void;
-
-    remove(item: T): T[];
-    remove(removeFunction: (item: T) => boolean): T[];
-
-    removeAll(): T[];
-    removeAll(items: T[]): T[];
-
-    destroy(item: T): void;
-    destroy(destroyFunction: (item: T) => boolean): void;
-
-    destroyAll(): void;
-    destroyAll(items: T[]): void;
-
-    subscribe(callback: (val: T[]) => void): KnockoutSubscription;
-    subscribe(callback: (val: T[]) => void, callbackTarget: any): KnockoutSubscription;
-    subscribe(callback: (val: any[]) => void, callbackTarget: any, event: string): KnockoutSubscription;
-
-    /**
-     * Run mutator function that can write to array at some index (`array[index] = value;`)
-     * Then notify about observableArray changes
-     */
-    mutate(mutator: (arrayValue: T[]) => void): void;
-
-    /**
-     * Replace value at some index and return old value
-     */
-    set(index: number, value: T): T;
 }

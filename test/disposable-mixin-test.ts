@@ -32,7 +32,7 @@ describe("Disposable mixin", () => {
         expect(ViewModel.prototype.dispose).toBeInstanceOf(Function);
         expect(ViewModel.prototype.subscribe).toBeInstanceOf(Function);
 
-        let vm = new ViewModel(5);
+        const vm = new ViewModel(5);
 
         expect(vm.baseField).toBe(500);
         expect(vm.baseMethod()).toBe("test");
@@ -52,7 +52,7 @@ describe("Disposable mixin", () => {
             }
         }
 
-        let vm = new ViewModel();
+        const vm = new ViewModel();
         vm.observableField = 123;
 
         expect(vm.plainField).toBe(123);
@@ -76,8 +76,8 @@ describe("Disposable mixin", () => {
             }
         }
 
-        let publisher = new Publisher();
-        let subscriber = new Subscriber(publisher.event);
+        const publisher = new Publisher();
+        const subscriber = new Subscriber(publisher.event);
 
         publisher.event(publisher, "event argument");
 
@@ -93,13 +93,13 @@ describe("Disposable mixin", () => {
             }
         }
 
-        let vm = new ViewModel();
-        let koObservable = ko.observable();
+        const vm = new ViewModel();
+        const koObservable = ko.observable();
 
         // tslint:disable-next-line:no-empty
-        let givenSubscription = vm.subscribe(() => vm.observable, () => { });
+        const givenSubscription = vm.subscribe(() => vm.observable, () => { });
         // tslint:disable-next-line:no-empty
-        let koSubscription = koObservable.subscribe(() => { });
+        const koSubscription = koObservable.subscribe(() => { });
 
         expect(Object.hasOwnProperty.call(givenSubscription, "dispose")).toBeTruthy();
         expect(Object.getPrototypeOf(givenSubscription)).toBe(Object.getPrototypeOf(koSubscription));
@@ -124,7 +124,7 @@ describe("Disposable mixin", () => {
             }
         }
 
-        let vm = new ViewModel();
+        const vm = new ViewModel();
         vm.observable = 123;
         vm.event(123);
 
@@ -149,10 +149,10 @@ describe("Disposable mixin", () => {
             }
         }
 
-        let vm = new ViewModel();
+        const vm = new ViewModel();
 
-        let koObservable = vm.unwrap("observable");
-        let koComputed = vm.unwrap("computed");
+        const koObservable = vm.unwrap("observable");
+        const koComputed = vm.unwrap("computed");
 
         expect(ko.isObservable(koObservable)).toBeTruthy();
         expect(ko.isComputed(koComputed)).toBeTruthy();
@@ -161,7 +161,7 @@ describe("Disposable mixin", () => {
     it("should not define hidden subscriptions if subscriptions are not defined", () => {
         class ViewModel extends Disposable() { }
 
-        let vm = new ViewModel();
+        const vm = new ViewModel();
 
         expect(hasOwnProperty(vm, SUBSCRIPTIONS_KEY)).toBeFalsy();
     });
@@ -169,7 +169,7 @@ describe("Disposable mixin", () => {
     it("should have dispose function without side effects if subscriptions are not defined", () => {
         class ViewModel extends Disposable() { }
 
-        let vm = Object.freeze(new ViewModel());
+        const vm = Object.freeze(new ViewModel());
 
         vm.dispose();
     });
@@ -182,7 +182,7 @@ describe("Disposable mixin", () => {
             }
         }
 
-        let vm = new ViewModel();
+        const vm = new ViewModel();
 
         expect(Array.isArray(vm[SUBSCRIPTIONS_KEY])).toBeTruthy();
         expect(vm[SUBSCRIPTIONS_KEY].length).toBe(1);

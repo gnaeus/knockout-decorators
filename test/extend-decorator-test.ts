@@ -48,7 +48,7 @@ describe("@extend decorator", () => {
             @observable observable = "abcdef";
         }
 
-        let vm = new ViewModel();
+        const vm = new ViewModel();
 
         expect(vm.observable).toBe("fedcba");
     });
@@ -60,7 +60,7 @@ describe("@extend decorator", () => {
             observable = "abcdef";
         }
 
-        let vm = new ViewModel();
+        const vm = new ViewModel();
 
         expect(vm.observable).toBe("fedcba");
     });
@@ -71,7 +71,7 @@ describe("@extend decorator", () => {
             @observableArray array = [1, 2, 3, 4];
         }
 
-        let vm = new ViewModel();
+        const vm = new ViewModel();
 
         expect(vm.array).toEqual([4, 3, 2, 1]);
     });
@@ -86,7 +86,7 @@ describe("@extend decorator", () => {
             }
         }
 
-        let vm = new ViewModel();
+        const vm = new ViewModel();
 
         expect(vm.observable).toBe("fedcba");
     });
@@ -98,7 +98,7 @@ describe("@extend decorator", () => {
             @observable observable = "abcdef";
         }
 
-        let vm = new ViewModel();
+        const vm = new ViewModel();
 
         expect(vm.observable).toBe("FEDCBA");
     });
@@ -114,7 +114,7 @@ describe("@extend decorator", () => {
             @observable derived = "abcdef";
         }
 
-        let vm = new Derived();
+        const vm = new Derived();
 
         expect(vm.base).toBe("fedcba");
         expect(vm.derived).toBe("ABCDEF");
@@ -130,7 +130,7 @@ describe("@extend decorator", () => {
             }
         }
 
-        let vm = new ViewModel();
+        const vm = new ViewModel();
         let result: string;
 
         ko.computed(() => { result = vm.computed; });

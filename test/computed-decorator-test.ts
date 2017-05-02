@@ -13,7 +13,7 @@ describe("@computed decorator", () => {
                     // ...
                 }
             }
-            // tslint:disable-next-line:no-unused-new
+            // tslint:disable-next-line:no-unused-expression
             new ViewModel();
         }).toThrowError("@computed property 'onlySetter' has no getter");
     });
@@ -27,8 +27,8 @@ describe("@computed decorator", () => {
             }
         }
 
-        let calc = new Calc();
-        let temp = calc.square;
+        const calc = new Calc();
+        const temp = calc.square;
 
         expect(Object.hasOwnProperty.call(calc, "square")).toBeTruthy();
     });
@@ -42,7 +42,7 @@ describe("@computed decorator", () => {
             }
         }
 
-        let calc: any = new Calc();
+        const calc: any = new Calc();
         // get @computed property
         // tslint:disable-next-line:no-unused-expression
         calc.square;
@@ -60,7 +60,7 @@ describe("@computed decorator", () => {
             }
         }
 
-        let calc = new Calc();
+        const calc = new Calc();
         let result: number;
 
         // subscribe to .square changes
@@ -81,7 +81,7 @@ describe("@computed decorator", () => {
             }
         }
 
-        let calc = new Calc();
+        const calc = new Calc();
         let result: number[];
 
         // subscribe to .squares changes
@@ -105,7 +105,7 @@ describe("@computed decorator", () => {
             }
         }
 
-        let calc = new Calc();
+        const calc = new Calc();
         let result: number;
 
         // subscribe to .square changes
@@ -127,7 +127,7 @@ describe("@computed decorator", () => {
             set name(value) { [this.firstName, this.lastName] = value.trim().split(/\s+/g); }
         }
 
-        let user = new User();
+        const user = new User();
 
         let fullName;
         ko.computed(() => { fullName = user.name; });
@@ -148,11 +148,11 @@ describe("@computed decorator", () => {
             }
         }
 
-        let model = new Model();
+        const model = new Model();
         // tslint:disable-next-line:no-unused-expression
         model.property;
 
-        let hidden = Object.getOwnPropertyDescriptor(model, "property").get;
+        const hidden = Object.getOwnPropertyDescriptor(model, "property").get;
 
         expect(ko.isComputed(hidden)).toBeTruthy();
         expect(ko["isPureComputed"](hidden)).toBeFalsy();
@@ -166,11 +166,11 @@ describe("@computed decorator", () => {
             }
         }
 
-        let model = new Model();
+        const model = new Model();
         // tslint:disable-next-line:no-unused-expression
         model.property;
 
-        let hidden = Object.getOwnPropertyDescriptor(model, "property").get;
+        const hidden = Object.getOwnPropertyDescriptor(model, "property").get;
 
         expect(ko["isPureComputed"](hidden)).toBeTruthy();
     });
@@ -182,11 +182,11 @@ describe("@computed decorator", () => {
             }
         }
 
-        let model = new Model();
+        const model = new Model();
         // tslint:disable-next-line:no-unused-expression
         model.property;
 
-        let hidden = Object.getOwnPropertyDescriptor(model, "property").get;
+        const hidden = Object.getOwnPropertyDescriptor(model, "property").get;
 
         expect(ko["isPureComputed"](hidden)).toBeTruthy();
     });

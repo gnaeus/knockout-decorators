@@ -50,10 +50,10 @@ describe("@component decorator", () => {
                 expect(viewModel.constructor).toBe(Object);
             }
 
-            let { createViewModel } = viewModel as any;
+            const { createViewModel } = viewModel as any;
             expect(createViewModel instanceof Function).toBeTruthy();
 
-            let vm = createViewModel(1, { element: 2, templateNodes: 3 });
+            const vm = createViewModel(1, { element: 2, templateNodes: 3 });
             expect(vm.params).toBe(1);
             expect(vm.element).toBe(2);
             expect(vm.templateNodes).toBe(3);

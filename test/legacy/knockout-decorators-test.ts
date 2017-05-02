@@ -26,7 +26,7 @@ describe("legacy environments", () => {
                 computed(ViewModel.prototype, "property", void 0),
             );
 
-            let vm = new ViewModel();
+            const vm = new ViewModel();
             // tslint:disable-next-line:no-unused-expression
             vm.property;
 
@@ -55,8 +55,8 @@ describe("legacy environments", () => {
                 autobind(ViewModel.prototype, "getProperty", void 0),
             );
 
-            let vm = new ViewModel();
-            let getProperty = vm.getProperty;
+            const vm = new ViewModel();
+            const getProperty = vm.getProperty;
 
             expect(getProperty()).toBe(vm.property);
         });

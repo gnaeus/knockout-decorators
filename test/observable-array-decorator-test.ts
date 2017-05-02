@@ -11,7 +11,7 @@ describe("@observableArray decorator", () => {
             @observableArray array: any[];
         }
 
-        let vm = new ViewModel();
+        const vm = new ViewModel();
 
         expect(() => vm.array).toThrowError("@observable property 'array' was not initialized");
     });
@@ -21,9 +21,9 @@ describe("@observableArray decorator", () => {
             @observableArray array: any[] = [];
         }
 
-        let vm = new ViewModel();
+        const vm = new ViewModel();
 
-        let array = Object.getOwnPropertyDescriptor(vm, "array").get;
+        const array = Object.getOwnPropertyDescriptor(vm, "array").get;
 
         expect(ko.isObservable(array)).toBeTruthy();
         expect(Object.getPrototypeOf(array)).toBe(ko.observableArray.fn);
@@ -34,11 +34,11 @@ describe("@observableArray decorator", () => {
             @observableArray array: number[] = [];
         }
 
-        let vm = new ViewModel();
+        const vm = new ViewModel();
         let syncArr: any[];
         ko.computed(() => { syncArr = vm.array; });
 
-        let arr = [1, 2, 3];
+        const arr = [1, 2, 3];
         vm.array = arr;
 
         expect(syncArr).toBe(arr);
@@ -49,15 +49,15 @@ describe("@observableArray decorator", () => {
             @observableArray array: number[] = [];
         }
 
-        let vm = new ViewModel();
+        const vm = new ViewModel();
 
         let syncArr: any[];
         ko.computed(() => { syncArr = vm.array; });
 
-        let arr = [1, 2, 3];
+        const arr = [1, 2, 3];
         vm.array = arr;
 
-        let removed = vm.array.splice(1, 1);
+        const removed = vm.array.splice(1, 1);
 
         expect(syncArr).toBe(arr);
         expect(removed).toEqual([2]);
@@ -69,8 +69,8 @@ describe("@observableArray decorator", () => {
             @observableArray array = [1, 2, 3, 4, 3, 2, 1] as ObservableArray<number>;
         }
 
-        let vm = new ViewModel();
-        let changes: KnockoutArrayChange<number>[] = [];
+        const vm = new ViewModel();
+        const changes: KnockoutArrayChange<number>[] = [];
 
         vm.array.subscribe((val) => { changes.push(...val); }, null, "arrayChange");
 
@@ -94,8 +94,8 @@ describe("@observableArray decorator", () => {
             @observableArray array = [1, 2, 3];
         }
 
-        let vm = new ViewModel();
-        let previous = vm.array;
+        const vm = new ViewModel();
+        const previous = vm.array;
         vm.array = [4, 5, 6];
 
         expect(previous).not.toBe(vm.array);
@@ -115,9 +115,9 @@ describe("@observableArray decorator", () => {
             @observableArray arraySecond = [3, 4] as ObservableArray<number>;
         }
 
-        let vm = new ViewModel();
-        let changesFirst: KnockoutArrayChange<number>[] = [];
-        let changesSecond: KnockoutArrayChange<number>[] = [];
+        const vm = new ViewModel();
+        const changesFirst: KnockoutArrayChange<number>[] = [];
+        const changesSecond: KnockoutArrayChange<number>[] = [];
 
         vm.arrayFirst.subscribe((val) => { changesFirst.push(...val); }, null, "arrayChange");
         vm.arraySecond.subscribe((val) => { changesSecond.push(...val); }, null, "arrayChange");
@@ -147,8 +147,8 @@ describe("@observableArray decorator", () => {
             @observableArray array = [1, 2, 3] as ObservableArray<any>;
         }
 
-        let vm = new ViewModel();
-        let changes: KnockoutArrayChange<number>[] = [];
+        const vm = new ViewModel();
+        const changes: KnockoutArrayChange<number>[] = [];
 
         vm.array.subscribe((val) => { changes.push(...val); }, null, "arrayChange");
 
@@ -168,12 +168,12 @@ describe("@observableArray decorator", () => {
             @observableArray array = [1, 2, 3] as ObservableArray<any>;
         }
 
-        let vm = new ViewModel();
-        let changes: KnockoutArrayChange<number>[] = [];
+        const vm = new ViewModel();
+        const changes: KnockoutArrayChange<number>[] = [];
 
         vm.array.subscribe((val) => { changes.push(...val); }, null, "arrayChange");
 
-        let oldValue = vm.array.set(1, 4);
+        const oldValue = vm.array.set(1, 4);
 
         expect(oldValue).toBe(2);
         expect(vm.array).toEqual([1, 4, 3]);
@@ -188,7 +188,7 @@ describe("@observableArray decorator", () => {
             @observableArray array = [] as ObservableArray<any>;
         }
 
-        let vm = new ViewModel();
+        const vm = new ViewModel();
 
         // check property is valid
         expect(Array.isArray(vm.array)).toBeTruthy();

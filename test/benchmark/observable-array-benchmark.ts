@@ -8,14 +8,14 @@ import { observableArray } from "../../src/knockout-decorators";
 
 describe("Observable Array Benchmark", () => {
     function benchNative(count: number) {
-        let source = new Array(count);
+        const source = new Array(count);
         for (let i = 0; i < count; ++i) {
             source[i] = i;
         }
-        let arr = source;
+        const arr = source;
         // tslint:disable-next-line:prefer-for-of
         for (let i = 0; i < arr.length; ++i) {
-            let temp = arr[0];
+            const temp = arr[0];
             for (let j = 0; j < arr.length - 1; ++j) {
                 arr[j] = arr[j + 1];
             }
@@ -36,14 +36,14 @@ describe("Observable Array Benchmark", () => {
     });
 
     function benchKnockout(count: number) {
-        let source = new Array(count);
+        const source = new Array(count);
         for (let i = 0; i < count; ++i) {
             source[i] = i;
         }
-        let arr = ko.observableArray(source);
+        const arr = ko.observableArray(source);
         // tslint:disable-next-line:prefer-for-of
         for (let i = 0; i < arr().length; ++i) {
-            let temp = arr()[0];
+            const temp = arr()[0];
             for (let j = 0; j < arr().length - 1; ++j) {
                 arr.splice(j, 1, arr()[j + 1]);
             }
@@ -64,17 +64,17 @@ describe("Observable Array Benchmark", () => {
     });
 
     function benchDecorator(count: number) {
-        let source = new Array(count);
+        const source = new Array(count);
         for (let i = 0; i < count; ++i) {
             source[i] = i;
         }
         class ViewModel {
             @observableArray arr = source;
         }
-        let vm = new ViewModel();
+        const vm = new ViewModel();
         // tslint:disable-next-line:prefer-for-of
         for (let i = 0; i < vm.arr.length; ++i) {
-            let temp = vm.arr[0];
+            const temp = vm.arr[0];
             for (let j = 0; j < vm.arr.length - 1; ++j) {
                 vm.arr.splice(j, 1, vm.arr[j + 1]);
             }
@@ -95,14 +95,14 @@ describe("Observable Array Benchmark", () => {
     });
 
     function benchProxy(count: number) {
-        let source = new Array(count);
+        const source = new Array(count);
         for (let i = 0; i < count; ++i) {
             source[i] = i;
         }
-        let arr = makeProxy(source);
+        const arr = makeProxy(source);
         // tslint:disable-next-line:prefer-for-of
         for (let i = 0; i < arr.length; ++i) {
-            let temp = arr[0];
+            const temp = arr[0];
             for (let j = 0; j < arr.length - 1; ++j) {
                 arr[j] = arr[j + 1];
             }

@@ -2,12 +2,15 @@
     "extends": "tslint:recommended",
     "rules": {
         "array-type": [true, "array"],
+        "ban-types": [false],
         "interface-name": [true, "never-prefix"],
         "max-classes-per-file": [false],
         "member-access": [false],
         "no-string-literal": false,
         "object-literal-sort-keys": false,
         "only-arrow-functions": [false],
-        "variable-name": [true, "ban-keywords", "check-format", "allow-leading-underscore"]
+        "space-before-function-paren": [true, {"anonymous": "always", "named": "never", "asyncArrow": "always"}],
+        "variable-name": [true, "ban-keywords", "check-format", "allow-leading-underscore"],
+        "unified-signatures": false
     }
 }

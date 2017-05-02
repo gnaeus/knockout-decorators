@@ -21,7 +21,7 @@ describe("subscribe utility function", () => {
             }
         }
 
-        let vm = new ViewModel();
+        const vm = new ViewModel();
         vm.observableField = 123;
 
         expect(vm.plainField).toBe(123);
@@ -43,7 +43,7 @@ describe("subscribe utility function", () => {
             }
         }
 
-        let vm = new ViewModel();
+        const vm = new ViewModel();
         vm.object.field = 123;
 
         expect(vm.plainField).toBe(123);
@@ -62,7 +62,7 @@ describe("subscribe utility function", () => {
             }
         }
 
-        let vm = new ViewModel();
+        const vm = new ViewModel();
         vm.observableArray.push(1, 2, 3);
 
         expect(vm.plainArray).toEqual([1, 2, 3]);
@@ -85,7 +85,7 @@ describe("subscribe utility function", () => {
             }
         }
 
-        let vm = new ViewModel();
+        const vm = new ViewModel();
 
         vm.observableField = 123;
 
@@ -105,7 +105,7 @@ describe("subscribe utility function", () => {
             }
         }
 
-        let vm = new ViewModel();
+        const vm = new ViewModel();
         vm.observableField = 123;
         vm.observableField = 456;
 
@@ -117,8 +117,8 @@ describe("subscribe utility function", () => {
             @observableArray array = [1, 2, 3, 4, 3, 2, 1] as ObservableArray<number>;
         }
 
-        let vm = new ViewModel();
-        let changes: KnockoutArrayChange<number>[] = [];
+        const vm = new ViewModel();
+        const changes: KnockoutArrayChange<number>[] = [];
 
         subscribe(() => vm.array, (val) => {
             changes.push(...val);
@@ -144,7 +144,7 @@ describe("subscribe utility function", () => {
             array = [1, 2, 3];
         }
 
-        let vm = new ViewModel();
+        const vm = new ViewModel();
 
         expect(() => {
             // tslint:disable-next-line:no-empty
@@ -165,7 +165,7 @@ describe("subscribe utility function", () => {
             }
         }
 
-        let vm = new ViewModel();
+        const vm = new ViewModel();
         vm.observableField = 123;
         vm.observableField = 456;
 
@@ -177,8 +177,8 @@ describe("subscribe utility function", () => {
             @observableArray array = [1, 2, 3, 4, 3, 2, 1] as ObservableArray<number>;
         }
 
-        let vm = new ViewModel();
-        let changes: KnockoutArrayChange<number>[] = [];
+        const vm = new ViewModel();
+        const changes: KnockoutArrayChange<number>[] = [];
 
         subscribe(() => vm.array, (val) => {
             changes.push(...val);
@@ -210,7 +210,7 @@ describe("subscribe utility function", () => {
             }
         }
 
-        let vm = new ViewModel();
+        const vm = new ViewModel();
         vm.observableField = 123;
         vm.observableField = 456;
 
@@ -218,12 +218,12 @@ describe("subscribe utility function", () => {
     });
 
     it("should return subscription to hidden ko.computed", () => {
-        let koObservable = ko.observable();
+        const koObservable = ko.observable();
 
         // tslint:disable-next-line:no-empty
-        let givenSubscription = subscribe(() => koObservable(), () => {});
+        const givenSubscription = subscribe(() => koObservable(), () => {});
         // tslint:disable-next-line:no-empty
-        let koSubscription = koObservable.subscribe(() => {});
+        const koSubscription = koObservable.subscribe(() => {});
 
         expect(Object.hasOwnProperty.call(givenSubscription, "dispose")).toBeTruthy();
 
@@ -231,11 +231,11 @@ describe("subscribe utility function", () => {
     });
 
     it("should dispose hidden ko.computed with returned subscription", () => {
-        let koObservable = ko.observable();
+        const koObservable = ko.observable();
 
         let sideEffectValue;
 
-        let subscription = subscribe(() => {
+        const subscription = subscribe(() => {
             return sideEffectValue = koObservable();
         // tslint:disable-next-line:no-empty
         }, () => {});

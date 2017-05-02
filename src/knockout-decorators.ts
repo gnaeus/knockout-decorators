@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2016-2017 Dmitry Panyushkin
  * Available under MIT license
- * Version: 1.0.0
+ * Version: 1.0.1
  */
 import * as ko from "knockout";
 import {
@@ -62,8 +62,8 @@ let observableArrayOption: boolean;
 let deepObservableOption: boolean;
 
 function observableDecorator(prototype: Object, propKey: string | symbol) {
-    let array = observableArrayOption;
-    let deep = deepObservableOption;
+    const array = observableArrayOption;
+    const deep = deepObservableOption;
     defineProperty(prototype, propKey, {
         get() {
             throw new Error("@observable property '" + propKey.toString() + "' was not initialized");
@@ -148,7 +148,7 @@ export function computed(prototypeOrOptinos: any, key?: any, propDesc?: any) {
 let computedDecoratorOptions: { pure: boolean };
 
 function computedDecorator(prototype: Object, propKey: string | symbol, desc: PropertyDescriptor) {
-    let options = computedDecoratorOptions;
+    const options = computedDecoratorOptions;
     const { get, set } = desc || (desc = getOwnPropertyDescriptor(prototype, propKey));
     if (!get) {
         throw new Error("@computed property '" + propKey.toString() + "' has no getter");

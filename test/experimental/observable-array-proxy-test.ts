@@ -15,7 +15,7 @@ describe("deep ObservableArray", () => {
     }
 
     it("should proxy methods from native Array", () => {
-        let arr = makeProxy([1, 2, 3]);
+        const arr = makeProxy([1, 2, 3]);
 
         arr.push(4, 5, 6);
 
@@ -23,7 +23,7 @@ describe("deep ObservableArray", () => {
     });
 
     it("should proxy index accessors from native Array", () => {
-        let arr = makeProxy([1, 2, 3]);
+        const arr = makeProxy([1, 2, 3]);
 
         arr[0] = 4;
         arr[1] = 5;
@@ -33,7 +33,7 @@ describe("deep ObservableArray", () => {
     });
 
     it("should track changes from method calls", () => {
-        let arr = makeProxy([1, 2, 3]);
+        const arr = makeProxy([1, 2, 3]);
 
         let changesCount = 0;
         subscribe(() => arr.slice(), () => { changesCount++; });
@@ -44,7 +44,7 @@ describe("deep ObservableArray", () => {
     });
 
     it("should track changes from index accessors", () => {
-        let arr = makeProxy([1, 2, 3]);
+        const arr = makeProxy([1, 2, 3]);
 
         let changesCount = 0;
         subscribe(() => arr.slice(), () => { changesCount++; });
@@ -57,13 +57,13 @@ describe("deep ObservableArray", () => {
     });
 
     it("should define deep observable properties on inner values", () => {
-        let arr = makeProxy([]);
+        const arr = makeProxy([]);
 
         arr.push({ first: 123 });
         arr.push({ second: "test" });
 
-        let first = unwrap<number>(arr[0], "first");
-        let second = unwrap<string>(arr[1], "second");
+        const first = unwrap<number>(arr[0], "first");
+        const second = unwrap<string>(arr[1], "second");
 
         expect(ko.isObservable(first)).toBeTruthy();
         expect(ko.isObservable(second)).toBeTruthy();
@@ -73,9 +73,9 @@ describe("deep ObservableArray", () => {
     });
 
     it("should be serializable to JSON", () => {
-        let arr = makeProxy([1, 2, 3]);
+        const arr = makeProxy([1, 2, 3]);
 
-        let json = JSON.stringify(arr);
+        const json = JSON.stringify(arr);
 
         expect(json).toBe("[1,2,3]");
     });

@@ -12,7 +12,7 @@ describe("@observable({ deep: true }) decorator", () => {
             field: any;
         }
 
-        let vm = new ViewModel();
+        const vm = new ViewModel();
 
         expect(() => vm.field).toThrowError("@observable property 'field' was not initialized");
     });
@@ -75,9 +75,9 @@ describe("@observable({ deep: true }) decorator", () => {
             };
         }
 
-        let vm = new ViewModel();
+        const vm = new ViewModel();
 
-        let json = JSON.stringify(vm);
+        const json = JSON.stringify(vm);
 
         expect(json).toBe('{"object":{"property":\"test\","reference":{"nested":123},"array":[{"x":0,"y":0}]}}');
     });
@@ -96,12 +96,12 @@ describe("@observable({ deep: true }) decorator: initialized by object", () => {
             };
         }
 
-        let vm = new ViewModel();
+        const vm = new ViewModel();
 
-        let first = unwrap<number>(vm.object, "first");
-        let second = unwrap<string>(vm.object, "second");
-        let reference = unwrap<Object>(vm.object, "reference");
-        let nested = unwrap<number>(vm.object.reference, "nested");
+        const first = unwrap<number>(vm.object, "first");
+        const second = unwrap<string>(vm.object, "second");
+        const reference = unwrap<Object>(vm.object, "reference");
+        const nested = unwrap<number>(vm.object.reference, "nested");
 
         expect(ko.isObservable(first)).toBeTruthy();
         expect(ko.isObservable(second)).toBeTruthy();
@@ -125,7 +125,7 @@ describe("@observable({ deep: true }) decorator: initialized by object", () => {
             };
         }
 
-        let vm = new ViewModel();
+        const vm = new ViewModel();
 
         let first: number;
         let second: string;
@@ -149,9 +149,9 @@ describe("@observable({ deep: true }) decorator: initialized by object", () => {
             field: Object = null;
         }
 
-        let vm = new ViewModel();
+        const vm = new ViewModel();
 
-        let frozenObject = Object.freeze({ foo: "bar" });
+        const frozenObject = Object.freeze({ foo: "bar" });
 
         expect(() => { vm.field = frozenObject; }).toThrow();
     });
@@ -162,7 +162,7 @@ describe("@observable({ deep: true }) decorator: initialized by object", () => {
             field: Object = null;
         }
 
-        let vm = new ViewModel();
+        const vm = new ViewModel();
 
         let frozenObject = Object.create(null);
         frozenObject.foo = "bar";
@@ -177,9 +177,9 @@ describe("@observable({ deep: true }) decorator: initialized by object", () => {
             field: Object = null;
         }
 
-        let vm = new ViewModel();
+        const vm = new ViewModel();
 
-        let frozenObject: any = Object.freeze({ constructor: "bar" });
+        const frozenObject: any = Object.freeze({ constructor: "bar" });
 
         expect(() => { vm.field = frozenObject; }).toThrow();
     });
@@ -192,9 +192,9 @@ describe("@observable({ deep: true }) decorator: initialized by object", () => {
             model: Object = null;
         }
 
-        let vm = new ViewModel();
+        const vm = new ViewModel();
 
-        let frozenObject = Object.freeze(new Model());
+        const frozenObject = Object.freeze(new Model());
 
         vm.model = frozenObject;
 
@@ -209,7 +209,7 @@ describe("@observable({ deep: true }) decorator: initialized by object", () => {
             model: Object = null;
         }
 
-        let vm = new ViewModel();
+        const vm = new ViewModel();
 
         let frozenObject = new Model();
         frozenObject.constructor = Object;
@@ -221,16 +221,16 @@ describe("@observable({ deep: true }) decorator: initialized by object", () => {
     });
 
     it("should work with circular references", () => {
-        type Circular = {
+        interface Circular {
             reference: Circular;
-        };
+        }
 
         class ViewModel {
             @observable({ deep: true })
             object: Circular = null;
         }
 
-        let vm = new ViewModel();
+        const vm = new ViewModel();
 
         const circular = {
             reference: null as Circular,
@@ -252,9 +252,9 @@ describe("@observable({ deep: true }) decorator: initialized by array", () => {
             array: any[] = [];
         }
 
-        let vm = new ViewModel();
+        const vm = new ViewModel();
 
-        let array = Object.getOwnPropertyDescriptor(vm, "array").get;
+        const array = Object.getOwnPropertyDescriptor(vm, "array").get;
 
         expect(ko.isObservable(array)).toBeTruthy();
         expect(Object.getPrototypeOf(array)).toBe(ko.observableArray.fn);
@@ -266,9 +266,9 @@ describe("@observable({ deep: true }) decorator: initialized by array", () => {
             array: any[] = [];
         }
 
-        let vm = new ViewModel();
+        const vm = new ViewModel();
 
-        let array = Object.getOwnPropertyDescriptor(vm, "array").get;
+        const array = Object.getOwnPropertyDescriptor(vm, "array").get;
 
         expect(ko.isObservable(array)).toBeTruthy();
         expect(Object.getPrototypeOf(array)).toBe(ko.observableArray.fn);
@@ -280,7 +280,7 @@ describe("@observable({ deep: true }) decorator: initialized by array", () => {
             array: { x: number, y: number }[] = [];
         }
 
-        let vm = new ViewModel();
+        const vm = new ViewModel();
 
         let changesCount = 0;
         subscribe(() => vm.array, () => { changesCount++; });
@@ -297,9 +297,9 @@ describe("@observable({ deep: true }) decorator: initialized by array", () => {
             array: Object[] = [];
         }
 
-        let vm = new ViewModel();
+        const vm = new ViewModel();
 
-        let frozenObject = Object.freeze({ foo: "bar" });
+        const frozenObject = Object.freeze({ foo: "bar" });
 
         expect(() => { vm.array.push(frozenObject); }).toThrow();
     });
@@ -312,25 +312,25 @@ describe("@observable({ deep: true }) decorator: initialized by array", () => {
             array: Model[] = [];
         }
 
-        let vm = new ViewModel();
+        const vm = new ViewModel();
 
-        let frozenObject = Object.freeze(new Model());
+        const frozenObject = Object.freeze(new Model());
         vm.array.push(frozenObject);
 
         expect(vm.array[0]).toBe(frozenObject);
     });
 
     it("should work with circular references", () => {
-        type Circular = {
+        interface Circular {
             array: Circular[];
-        };
+        }
 
         class ViewModel {
             @observable({ deep: true })
             array: Circular[] = [];
         }
 
-        let vm = new ViewModel();
+        const vm = new ViewModel();
 
         const circular = {
             array: [] as Circular[],
@@ -346,7 +346,7 @@ describe("@observable({ deep: true }) decorator: initialized by array", () => {
         let firstLevelChanged = false;
         subscribe(() => vm.array, () => { firstLevelChanged = true; });
 
-        let nested = vm.array[0];
+        const nested = vm.array[0];
         let secondLevelChanged = false;
         subscribe(() => nested.array, () => { secondLevelChanged = true; });
 
@@ -367,9 +367,9 @@ describe("@observable({ deep: true }) decorator: initialized by array", () => {
             second = [1, 2, 3, 4, 3, 2, 1] as ObservableArray<number>;
         }
 
-        let vm = new ViewModel();
-        let changesFirst: KnockoutArrayChange<number>[] = [];
-        let changesSecond: KnockoutArrayChange<number>[] = [];
+        const vm = new ViewModel();
+        const changesFirst: KnockoutArrayChange<number>[] = [];
+        const changesSecond: KnockoutArrayChange<number>[] = [];
 
         vm.first.subscribe((val) => { changesFirst.push(...val); }, null, "arrayChange");
         vm.second.subscribe((val) => { changesSecond.push(...val); }, null, "arrayChange");
@@ -416,7 +416,7 @@ describe("@observable({ deep: true }) decorator: initialized by array", () => {
             array = [] as ObservableArray<number>;
         }
 
-        let vm = new ViewModel();
+        const vm = new ViewModel();
 
         vm.array.splice(0, 0, 1, 2, 3);
         vm.array.splice(4, 0, 4);
@@ -432,8 +432,8 @@ describe("@observable({ deep: true }) decorator: initialized by array", () => {
             array = [1, 2, 3];
         }
 
-        let vm = new ViewModel();
-        let previous = vm.array;
+        const vm = new ViewModel();
+        const previous = vm.array;
         vm.array = [4, 5, 6];
 
         expect(previous).not.toBe(vm.array);
@@ -455,9 +455,9 @@ describe("@observable({ deep: true }) decorator: initialized by array", () => {
             arraySecond = [3, 4] as ObservableArray<number>;
         }
 
-        let vm = new ViewModel();
-        let changesFirst: KnockoutArrayChange<number>[] = [];
-        let changesSecond: KnockoutArrayChange<number>[] = [];
+        const vm = new ViewModel();
+        const changesFirst: KnockoutArrayChange<number>[] = [];
+        const changesSecond: KnockoutArrayChange<number>[] = [];
 
         vm.arrayFirst.subscribe((val) => { changesFirst.push(...val); }, null, "arrayChange");
         vm.arraySecond.subscribe((val) => { changesSecond.push(...val); }, null, "arrayChange");
@@ -488,8 +488,8 @@ describe("@observable({ deep: true }) decorator: initialized by array", () => {
             array = [1, 2, 3] as ObservableArray<any>;
         }
 
-        let vm = new ViewModel();
-        let changes: KnockoutArrayChange<number>[] = [];
+        const vm = new ViewModel();
+        const changes: KnockoutArrayChange<number>[] = [];
 
         vm.array.subscribe((val) => { changes.push(...val); }, null, "arrayChange");
 
@@ -510,12 +510,12 @@ describe("@observable({ deep: true }) decorator: initialized by array", () => {
             array = [1, 2, 3] as ObservableArray<any>;
         }
 
-        let vm = new ViewModel();
-        let changes: KnockoutArrayChange<number>[] = [];
+        const vm = new ViewModel();
+        const changes: KnockoutArrayChange<number>[] = [];
 
         vm.array.subscribe((val) => { changes.push(...val); }, null, "arrayChange");
 
-        let oldValue = vm.array.set(1, 4);
+        const oldValue = vm.array.set(1, 4);
 
         expect(oldValue).toBe(2);
         expect(vm.array).toEqual([1, 4, 3]);
