@@ -8,10 +8,11 @@
     "strictNullChecks": true,
     "suppressImplicitAnyIndexErrors": true,
     "experimentalDecorators": true,
-    "lib": [
-      "dom", "es5", "es2015.symbol"
-    ],
-    "target": "es5"
+    "lib": ["dom", "es5", "es2015.symbol"],
+    "target": "es5",
+    "plugins": [{
+      "name": "tslint-language-service"
+    }]
   },
   "exclude": [
     "node_modules",
