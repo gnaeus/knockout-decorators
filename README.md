@@ -533,6 +533,7 @@ class Derived extends Disposable(Base) {
   }
   
   constructor() {
+    super();
     // subscribe to computed changes
     // and store created subscription in hidden class property 
     this.subscribe(() => this.upperCase, (value) => {
