@@ -7,7 +7,7 @@
     "suppressImplicitAnyIndexErrors": true,
     "experimentalDecorators": true,
     "importHelpers": true,
-    "lib": ["dom", "es5", "es2015.symbol"],
+    "lib": ["dom", "es5", "es2015.symbol", "es2015.promise"],
     "target": "es5",
     "plugins": [{
       "name": "tslint-language-service"

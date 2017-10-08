@@ -3,7 +3,7 @@
  * Available under MIT license
  */
 import * as ko from "knockout";
-import { computed, extend, observable, observableArray } from "../src/knockout-decorators";
+import { computed, extend, observable, observableArray, subscribe } from "../src/knockout-decorators";
 
 describe("@extend decorator", () => {
     ko.extenders["reverse"] = (target: KnockoutObservable<any>, options: "read" | "write") => {
@@ -139,5 +139,45 @@ describe("@extend decorator", () => {
 
         expect(vm.observable).toBe("abcdef");
         expect(result).toBe("dcba");
+    });
+
+    it("should work with 'subscribe' utility function", () => {
+        class ViewModel {
+            @extend({ reverse: "read" })
+            @observable observable = "";
+        }
+
+        const vm = new ViewModel();
+        let result: string;
+
+        subscribe(() => vm.observable, (value) => {
+            result = value;
+        });
+
+        vm.observable = "abcdef";
+
+        expect(result).toBe("fedcba");
+    });
+
+    it("should work with 'subscribe' utility function", async () => {
+        class ViewModel {
+            @extend({ rateLimit: 50 })
+            @observable observable = "";
+        }
+
+        const vm = new ViewModel();
+        let result: string;
+
+        subscribe(() => vm.observable, (value) => {
+            result = value;
+        });
+
+        vm.observable = "abcdef";
+
+        await new Promise((resolve) => {
+            setTimeout(resolve, 80);
+        });
+
+        expect(result).toBe("abcdef");
     });
 });
