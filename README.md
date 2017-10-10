@@ -244,6 +244,19 @@ class ViewModel {
 }
 ```
 
+__Caveats__
+
+`@extend({ notify: "always" })` will not work with: [`subscribe()`](#knockout-decorators-subscribe) function.  
+Instead we can use [`unwrap()`](#knockout-decorators-unwrap). __But other extenders should work.__
+
+```js
+const vm = new ViewModel();
+// this subscription will run only when `vm.first` actually changed
+subscribe(() => vm.first, (val) => { console.log(val); });
+// use `unwrap()` function to get RAW ko.observable()
+unwrap(vm, "first").subscribe((val) => { console.log(val); });
+```
+
 <br>
 
 #### <a name="knockout-decorators-component"></a> @component
