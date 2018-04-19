@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [1.1.0] - 2018-04-20
+### Added
+ - ES6-module buld
+
 ## [1.0.0] - 2017-04-03
 ### Added
 - `@observable({ deep: true })` option
@@ -100,7 +104,8 @@ class ViewModel {
 - `@subscribe` decorator
 - `@component` decorator
 
-[Unreleased]: https://github.com/gnaeus/knockout-decorators/compare/1.0.0...HEAD
+[Unreleased]: https://github.com/gnaeus/knockout-decorators/compare/1.1.0...HEAD
+[1.1.0]: https://github.com/gnaeus/knockout-decorators/compare/1.0.0...1.1.0
 [1.0.0]: https://github.com/gnaeus/knockout-decorators/compare/0.10.0...1.0.0
 [0.10.0]: https://github.com/gnaeus/knockout-decorators/compare/0.9.1...0.10.0
 [0.9.1]: https://github.com/gnaeus/knockout-decorators/compare/0.8.0...0.9.1
