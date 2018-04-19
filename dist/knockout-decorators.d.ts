@@ -70,9 +70,7 @@ export declare function extend(extenders: Object): PropertyDecorator;
  * Apply extenders to decorated @observable
  */
 export declare function extend(extendersFactory: () => Object): PropertyDecorator;
-export interface ComponentConstructor {
-    new (params?: any, element?: Node, templateNodes?: Node[]): any;
-}
+export declare type ComponentConstructor = new (params?: any, element?: Node, templateNodes?: Node[]) => any;
 export declare type ComponentDecorator = (constructor: ComponentConstructor) => void;
 export declare type TemplateConfig = (string | Node[] | DocumentFragment | {
     require: string;
@@ -188,7 +186,12 @@ export interface Disposable {
 /**
  * Mixin which add `subscribe()` instance method and implement `dispose()` method,
  * that disposes all subscription created by `subscribe()`
+ */
+export declare function Disposable(): new () => Disposable;
+/**
+ * Mixin which add `subscribe()` instance method and implement `dispose()` method,
+ * that disposes all subscription created by `subscribe()`
  * @param Base {Function} Base class to extend
  */
-export declare function Disposable<T extends new (...args: any[]) => {}>(Base?: T): (new (...args: any[]) => Disposable) & T;
+export declare function Disposable<T extends Function>(Base: T): new (...args: any[]) => Disposable & T;
 export as namespace KnockoutDecorators;
