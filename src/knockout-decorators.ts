@@ -500,20 +500,30 @@ export interface Disposable {
 /**
  * Mixin which add `subscribe()` instance method and implement `dispose()` method,
  * that disposes all subscription created by `subscribe()`
+ */
+export function Disposable(): new () => Disposable;
+/**
+ * Mixin which add `subscribe()` instance method and implement `dispose()` method,
+ * that disposes all subscription created by `subscribe()`
  * @param Base {Function} Base class to extend
  */
-export function Disposable<T extends new (...args: any[]) => {}>(
+export function Disposable<T extends Function>(
+    // tslint:disable-next-line:variable-name
+    Base: T,
+): new (...args: any[]) => Disposable & T
+/**
+ * Mixin which add `subscribe()` instance method and implement `dispose()` method,
+ * that disposes all subscription created by `subscribe()`
+ * @param Base {Function} Base class to extend
+ */
+export function Disposable<T extends new (...args: any[]) => any>(
     // tslint:disable-next-line:variable-name
     Base?: T,
-): (new (...args: any[]) => Disposable) & T {
+) {
     if (typeof Base === "undefined") {
         Base = class { } as T;
     }
     return class extends Base {
-        constructor(...args: any[]) {
-            super(...args);
-        }
-
         /** Dispose all subscriptions from this class */
         dispose() {
             const subscriptions: KnockoutSubscription[] = this[SUBSCRIPTIONS_KEY];

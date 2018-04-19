@@ -1,18 +1,29 @@
 {
+  "compileOnSave": false,
   "compilerOptions": {
-    "noImplicitAny": true,
-    "noImplicitThis": true,
+    "strict": true,
+    "strictPropertyInitialization": false,
     "noImplicitReturns": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "strictNullChecks": true,
     "suppressImplicitAnyIndexErrors": true,
     "experimentalDecorators": true,
-    "lib": ["dom", "es5", "es2015.symbol"],
+    "sourceMap": true,
+    "allowSyntheticDefaultImports": true,
+    "moduleResolution": "node",
+    "module": "es6",
     "target": "es5",
-    "plugins": [{
-      "name": "tslint-language-service"
-    }]
+    "lib": [
+      "dom",
+      "es5",
+      "es2015.iterable",
+      "es2015.symbol"
+    ],
+    "plugins": [
+      {
+        "name": "tslint-language-service"
+      }
+    ]
   },
   "exclude": [
     "node_modules",

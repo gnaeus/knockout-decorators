@@ -1,16 +1,23 @@
 {
   "compilerOptions": {
-    "noImplicitAny": true,
-    "noImplicitThis": true,
+    "strict": true,
+    "strictPropertyInitialization": false,
     "noImplicitReturns": true,
     "noUnusedParameters": true,
     "suppressImplicitAnyIndexErrors": true,
     "experimentalDecorators": true,
     "importHelpers": true,
-    "lib": ["dom", "es5", "es2015.symbol", "es2015.promise"],
+    "lib": [
+      "dom",
+      "es5",
+      "es2015.symbol",
+      "es2015.promise"
+    ],
     "target": "es5",
-    "plugins": [{
-      "name": "tslint-language-service"
-    }]
+    "plugins": [
+      {
+        "name": "tslint-language-service"
+      }
+    ]
   }
 }
