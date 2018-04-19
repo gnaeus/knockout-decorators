@@ -2,6 +2,7 @@
  * Copyright (c) 2016-2017 Dmitry Panyushkin
  * Available under MIT license
  */
+Symbol = undefined as any;
 import * as ko from "knockout";
 import { observable, observableArray, ObservableArray, subscribe, unwrap } from "../src/knockout-decorators";
 

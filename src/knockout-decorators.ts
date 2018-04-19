@@ -134,7 +134,7 @@ export function computed(prototype: Object, key: string | symbol, desc: Property
  *
  * But we can still extend getter @computed by extenders like { rateLimit: 500 }
  */
-export function computed(prototypeOrOptinos: any, key?: any, propDesc?: any) {
+export function computed(prototypeOrOptinos: any, key?: any, propDesc?: any): any {
     computedDecoratorOptions = { pure: true };
 
     if (arguments.length === 1) {
@@ -187,13 +187,11 @@ export function extend(extendersOrFactory: Object | Function) {
 
 /*---------------------------------------------------------------------------*/
 
-export interface ComponentConstructor {
-    new (
-        params?: any,
-        element?: Node,
-        templateNodes?: Node[],
-    ): any;
-}
+export type ComponentConstructor = new (
+    params?: any,
+    element?: Node,
+    templateNodes?: Node[],
+) => any;
 
 export type ComponentDecorator = (constructor: ComponentConstructor) => void;
 

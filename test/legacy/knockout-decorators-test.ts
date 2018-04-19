@@ -1,4 +1,4 @@
-Symbol = void 0;
+Symbol = undefined as any;
 
 import * as ko from "knockout";
 import * as common from "../../src/common-functions";

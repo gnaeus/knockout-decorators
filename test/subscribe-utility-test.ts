@@ -2,6 +2,7 @@
  * Copyright (c) 2016-2017 Dmitry Panyushkin
  * Available under MIT license
  */
+Symbol = undefined as any;
 import * as ko from "knockout";
 import {
     computed, observable, observableArray, ObservableArray, subscribe,
@@ -148,7 +149,7 @@ describe("subscribe utility function", () => {
 
         expect(() => {
             // tslint:disable-next-line:no-empty
-            subscribe(() => vm.array, () => {}, { event: "arrayChange" });
+            subscribe(() => vm.array, () => { }, { event: "arrayChange" });
         }).toThrow();
     });
 
@@ -221,9 +222,9 @@ describe("subscribe utility function", () => {
         const koObservable = ko.observable();
 
         // tslint:disable-next-line:no-empty
-        const givenSubscription = subscribe(() => koObservable(), () => {});
+        const givenSubscription = subscribe(() => koObservable(), () => { });
         // tslint:disable-next-line:no-empty
-        const koSubscription = koObservable.subscribe(() => {});
+        const koSubscription = koObservable.subscribe(() => { });
 
         expect(Object.hasOwnProperty.call(givenSubscription, "dispose")).toBeTruthy();
 
@@ -237,8 +238,8 @@ describe("subscribe utility function", () => {
 
         const subscription = subscribe(() => {
             return sideEffectValue = koObservable();
-        // tslint:disable-next-line:no-empty
-        }, () => {});
+            // tslint:disable-next-line:no-empty
+        }, () => { });
 
         koObservable(123);
         subscription.dispose();
