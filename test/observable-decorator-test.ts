@@ -23,7 +23,7 @@ describe("@observable decorator", () => {
 
     const vm = new ViewModel();
 
-    const text = Object.getOwnPropertyDescriptor(vm, "text").get;
+    const text = Object.getOwnPropertyDescriptor(vm, "text")!.get;
 
     expect(ko.isObservable(text)).toBeTruthy();
   });
@@ -35,7 +35,7 @@ describe("@observable decorator", () => {
 
     const vm = new ViewModel();
 
-    const array = Object.getOwnPropertyDescriptor(vm, "array").get;
+    const array = Object.getOwnPropertyDescriptor(vm, "array")!.get;
 
     expect(ko.isObservable(array)).toBeTruthy();
     expect(Object.getPrototypeOf(array)).toBe(ko.observableArray.fn);
@@ -58,7 +58,7 @@ describe("@observable decorator", () => {
 
   it("should not modify property value", () => {
     class ViewModel {
-      @observable field: Object = null;
+      @observable field: object | null = null;
     }
 
     const vm = new ViewModel();

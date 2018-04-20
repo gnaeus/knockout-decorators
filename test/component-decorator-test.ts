@@ -15,15 +15,16 @@ function reuqire(path: string) { return path; }
 describe("@component decorator", () => {
   it("should register components", () => {
     @component("my-component")
-    class MyComponent {}
+    class MyComponent { }
 
     expect(ko.components.isRegistered("my-component")).toBeTruthy();
   });
 
   it("should register synchoronous by default", () => {
     @component("my-component")
-    class MyComponent {}
+    class MyComponent { }
 
+    // @ts-ignore: bug in @types/knockout
     ko.components.defaultLoader.getConfig("my-component", ({ synchronous }: ComponentConfig) => {
       expect(synchronous).toBe(true);
     });
@@ -31,8 +32,9 @@ describe("@component decorator", () => {
 
   it("should register constructor as view model if it has 0 or 1 args", () => {
     @component("my-component")
-    class MyComponent {}
+    class MyComponent { }
 
+    // @ts-ignore: bug in @types/knockout
     ko.components.defaultLoader.getConfig("my-component", ({ viewModel }) => {
       expect(viewModel).toBe(MyComponent);
     });
@@ -41,9 +43,10 @@ describe("@component decorator", () => {
   it("should create view model factory if constructor has 2 or 3 args", () => {
     @component("my-component")
     class MyComponent {
-      constructor(public params: any, public element: any, public templateNodes: any) {}
+      constructor(public params: any, public element: any, public templateNodes: any) { }
     }
 
+    // @ts-ignore: bug in @types/knockout
     ko.components.defaultLoader.getConfig("my-component", ({ viewModel }) => {
       expect(viewModel).toBeDefined();
       if (viewModel !== void 0) {
@@ -65,8 +68,9 @@ describe("@component decorator", () => {
       template: "<div></div>",
       synchronous: false,
     })
-    class MyComponent {}
+    class MyComponent { }
 
+    // @ts-ignore: bug in @types/knockout
     ko.components.defaultLoader.getConfig("my-component", ({ template, synchronous }: ComponentConfig) => {
       expect(template).toBe("<div></div>");
       expect(synchronous).toBe(false);
@@ -75,8 +79,9 @@ describe("@component decorator", () => {
 
   it("should work with (name, template) overload", () => {
     @component("my-component", "<div></div>")
-    class MyComponent {}
+    class MyComponent { }
 
+    // @ts-ignore: bug in @types/knockout
     ko.components.defaultLoader.getConfig("my-component", ({ template }) => {
       expect(template).toBe("<div></div>");
     });
@@ -84,8 +89,9 @@ describe("@component decorator", () => {
 
   it("should work with (name, template, options) overload", () => {
     @component("my-component", { require: "my-template" }, { synchronous: false })
-    class MyComponent {}
+    class MyComponent { }
 
+    // @ts-ignore: bug in @types/knockout
     ko.components.defaultLoader.getConfig("my-component", ({ template, synchronous }: ComponentConfig) => {
       expect(template).toEqual({ require: "my-template" });
       expect(synchronous).toBe(false);
@@ -94,8 +100,9 @@ describe("@component decorator", () => {
 
   it("should work with (name, template, styles) overload", () => {
     @component("my-component", "<div></div>", reuqire("./my-component.css"))
-    class MyComponent {}
+    class MyComponent { }
 
+    // @ts-ignore: bug in @types/knockout
     ko.components.defaultLoader.getConfig("my-component", ({ template }) => {
       expect(template).toBe("<div></div>");
     });
@@ -105,9 +112,10 @@ describe("@component decorator", () => {
     @component("my-component", "<div></div>", reuqire("./my-component.css"), {
       additionalData: { foo: "bar" },
     })
-    class MyComponent {}
+    class MyComponent { }
 
-    ko.components.defaultLoader.getConfig("my-component", (config) => {
+    // @ts-ignore: bug in @types/knockout
+    ko.components.defaultLoader.getConfig("my-component", (config: ComponentConfig) => {
       expect(config.template).toBe("<div></div>");
       expect(config["additionalData"]).toEqual({ foo: "bar" });
     });

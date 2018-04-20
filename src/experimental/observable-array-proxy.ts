@@ -54,10 +54,10 @@ export class ObservableArrayProxy<T> extends ArrayStub {
       for (let i = ObservableArrayProxy._maxLength; i < length; i++) {
         defineProperty(ObservableArrayProxy.prototype, i.toString(), {
           enumerable: true,
-          get<T>(this: ObservableArrayProxy<T>) {
+          get(this: ObservableArrayProxy<any>) {
             return this._observableArray()[i];
           },
-          set<T>(this: ObservableArrayProxy<T>, value: T) {
+          set(this: ObservableArrayProxy<any>, value: any) {
             if (this._preapreArrayItem) {
               value = this._preapreArrayItem(value);
             }

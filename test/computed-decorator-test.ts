@@ -61,7 +61,7 @@ describe("@computed decorator", () => {
     }
 
     const calc = new Calc();
-    let result: number;
+    let result: number = NaN;
 
     // subscribe to .square changes
     ko.computed(() => { result = calc.square; });
@@ -82,7 +82,7 @@ describe("@computed decorator", () => {
     }
 
     const calc = new Calc();
-    let result: number[];
+    let result: number[] = [];
 
     // subscribe to .squares changes
     ko.computed(() => { result = calc.squares; });
@@ -106,7 +106,7 @@ describe("@computed decorator", () => {
     }
 
     const calc = new Calc();
-    let result: number;
+    let result: number = NaN;
 
     // subscribe to .square changes
     ko.computed(() => { result = calc.square; });
@@ -152,7 +152,7 @@ describe("@computed decorator", () => {
     // tslint:disable-next-line:no-unused-expression
     model.property;
 
-    const hidden = Object.getOwnPropertyDescriptor(model, "property").get;
+    const hidden = Object.getOwnPropertyDescriptor(model, "property")!.get;
 
     expect(ko.isComputed(hidden)).toBeTruthy();
     expect(ko["isPureComputed"](hidden)).toBeFalsy();
@@ -170,7 +170,7 @@ describe("@computed decorator", () => {
     // tslint:disable-next-line:no-unused-expression
     model.property;
 
-    const hidden = Object.getOwnPropertyDescriptor(model, "property").get;
+    const hidden = Object.getOwnPropertyDescriptor(model, "property")!.get;
 
     expect(ko["isPureComputed"](hidden)).toBeTruthy();
   });
@@ -186,7 +186,7 @@ describe("@computed decorator", () => {
     // tslint:disable-next-line:no-unused-expression
     model.property;
 
-    const hidden = Object.getOwnPropertyDescriptor(model, "property").get;
+    const hidden = Object.getOwnPropertyDescriptor(model, "property")!.get;
 
     expect(ko["isPureComputed"](hidden)).toBeTruthy();
   });

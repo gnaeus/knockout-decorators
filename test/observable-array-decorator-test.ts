@@ -24,7 +24,7 @@ describe("@observableArray decorator", () => {
 
     const vm = new ViewModel();
 
-    const array = Object.getOwnPropertyDescriptor(vm, "array").get;
+    const array = Object.getOwnPropertyDescriptor(vm, "array")!.get;
 
     expect(ko.isObservable(array)).toBeTruthy();
     expect(Object.getPrototypeOf(array)).toBe(ko.observableArray.fn);
@@ -36,7 +36,7 @@ describe("@observableArray decorator", () => {
     }
 
     const vm = new ViewModel();
-    let syncArr: any[];
+    let syncArr: any[] = [];
     ko.computed(() => { syncArr = vm.array; });
 
     const arr = [1, 2, 3];
@@ -52,7 +52,7 @@ describe("@observableArray decorator", () => {
 
     const vm = new ViewModel();
 
-    let syncArr: any[];
+    let syncArr: any[] = [];
     ko.computed(() => { syncArr = vm.array; });
 
     const arr = [1, 2, 3];
@@ -186,31 +186,31 @@ describe("@observableArray decorator", () => {
 
   it("sould write null values to property", () => {
     class ViewModel {
-      @observableArray array = [] as ObservableArray<any>;
+      @observableArray array = [] as any as ObservableArray<any> | null;
     }
 
     const vm = new ViewModel();
 
     // check property is valid
     expect(Array.isArray(vm.array)).toBeTruthy();
-    expect(ko.isObservable(Object.getOwnPropertyDescriptor(vm, "array").get)).toBeTruthy();
+    expect(ko.isObservable(Object.getOwnPropertyDescriptor(vm, "array")!.get)).toBeTruthy();
 
     // set null
     vm.array = null;
 
     expect(vm.array).toBe(null);
-    expect(ko.isObservable(Object.getOwnPropertyDescriptor(vm, "array").get)).toBeTruthy();
+    expect(ko.isObservable(Object.getOwnPropertyDescriptor(vm, "array")!.get)).toBeTruthy();
 
     // set same value
     vm.array = vm.array;
 
     expect(vm.array).toBe(null);
-    expect(ko.isObservable(Object.getOwnPropertyDescriptor(vm, "array").get)).toBeTruthy();
+    expect(ko.isObservable(Object.getOwnPropertyDescriptor(vm, "array")!.get)).toBeTruthy();
 
     // set an array
     vm.array = [] as any;
 
     expect(Array.isArray(vm.array)).toBeTruthy();
-    expect(ko.isObservable(Object.getOwnPropertyDescriptor(vm, "array").get)).toBeTruthy();
+    expect(ko.isObservable(Object.getOwnPropertyDescriptor(vm, "array")!.get)).toBeTruthy();
   });
 });

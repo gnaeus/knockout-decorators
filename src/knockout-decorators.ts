@@ -126,7 +126,7 @@ export function computed(options: { pure: boolean }): PropertyDecorator;
  *
  * But we can still extend getter @computed by extenders like { rateLimit: 500 }
  */
-export function computed(prototype: Object, key: string | symbol, desc: PropertyDescriptor): PropertyDescriptor;
+export function computed(prototype: Object, key: string | symbol, desc?: PropertyDescriptor): PropertyDescriptor;
 /**
  * Accessor decorator that wraps ES6 getter to hidden ko.computed or ko.pureComputed
  *
@@ -154,13 +154,13 @@ function computedDecorator(prototype: Object, propKey: string | symbol, desc: Pr
     throw new Error("@computed property '" + propKey.toString() + "' has no getter");
   }
   desc.get = function (this: Object) {
-    const computed = applyExtenders(this, propKey, ko.computed(get, this, options));
+    const koComputed = applyExtenders(this, propKey, ko.computed(get, this, options));
     defineProperty(this, propKey, {
-      get: computed,
+      get: koComputed,
       // tslint:disable-next-line:object-literal-shorthand
       set: set,
     });
-    return computed();
+    return koComputed();
   };
   return desc;
 }
@@ -279,7 +279,7 @@ export function component(
  * Like https://github.com/jayphelps/core-decorators.js @autobind but less smart and complex
  * Do NOT use with ES6 inheritance!
  */
-export function autobind(prototype: Object, key: string | symbol, desc: PropertyDescriptor) {
+export function autobind(prototype: Object, key: string | symbol, desc?: PropertyDescriptor) {
   const { value, configurable, enumerable } = desc || (desc = getOwnPropertyDescriptor(prototype, key));
   return {
     // tslint:disable-next-line:object-literal-shorthand
@@ -374,20 +374,20 @@ export function subscribe(
 
   if (hasOwnProperty(dependencyOrEvent, "subscribe")) {
     // overload: subscribe to @event property
-    const event = dependencyOrEvent as EventType;
+    const eventFunc = dependencyOrEvent as EventType;
 
     if (once) {
-      const subscription = event.subscribe(function () {
+      const subscription = eventFunc.subscribe(function () {
         subscription.dispose();
         callback.apply(null, arguments);
       });
       return subscription;
     } else {
-      return event.subscribe(callback);
+      return eventFunc.subscribe(callback);
     }
   } else {
     // overload: subscribe to @observable or @computed
-    const event = options && options.event || "change";
+    const eventFunc = options && options.event || "change";
 
     let handler: (value: any) => void;
     let subscription: KnockoutSubscription;
@@ -401,24 +401,24 @@ export function subscribe(
       handler = callback;
     }
 
-    if (event === "arrayChange") {
+    if (eventFunc === "arrayChange") {
       const obsArray = dependencyOrEvent() as ObservableArray<any>;
 
       if (isArray(obsArray) && hasOwnProperty(obsArray, PATCHED_KEY)) {
-        subscription = obsArray.subscribe(handler, null, event);
+        subscription = obsArray.subscribe(handler, null, eventFunc);
       } else {
         throw new Error("Can not subscribe to 'arrayChange' because dependency is not an 'observableArray'");
       }
     } else {
-      const computed = ko.computed(dependencyOrEvent as () => any);
+      const koComputed = ko.computed(dependencyOrEvent as () => any);
 
-      subscription = computed.subscribe(handler, null, event);
+      subscription = koComputed.subscribe(handler, null, eventFunc);
 
       const originalDispose = subscription.dispose;
       // dispose hidden computed with subscription
       subscription.dispose = function (this: KnockoutSubscription) {
         originalDispose.call(this);
-        computed.dispose();
+        koComputed.dispose();
       };
     }
     return subscription;
@@ -510,7 +510,7 @@ export function Disposable(): new () => Disposable;
 export function Disposable<T extends Function>(
   // tslint:disable-next-line:variable-name
   Base: T,
-): new (...args: any[]) => Disposable & T
+): (new (...args: any[]) => Disposable) & T;
 /**
  * Mixin which add `subscribe()` instance method and implement `dispose()` method,
  * that disposes all subscription created by `subscribe()`

@@ -30,7 +30,7 @@ describe("legacy environments", () => {
       // tslint:disable-next-line:no-unused-expression
       vm.property;
 
-      expect(ko.isComputed(Object.getOwnPropertyDescriptor(vm, "property").get)).toBeTruthy();
+      expect(ko.isComputed(Object.getOwnPropertyDescriptor(vm, "property")!.get)).toBeTruthy();
     });
   });
 

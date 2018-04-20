@@ -21,15 +21,15 @@ describe("@observable({ deep: true }) decorator", () => {
   it("should combine deep observable objects and arrays", () => {
     class ViewModel {
       @observable({ deep: true })
-      deepObservable = {              // like @observable
-        firstName: "Clive Staples",   // like @observable
-        lastName: "Lewis",            // like @observable
+      deepObservable = {                    // like @observable
+        firstName: "Clive Staples",         // like @observable
+        lastName: "Lewis",                  // like @observable
 
-        array: [] as any[],           // like @observableArray
+        array: [] as any[],                 // like @observableArray
 
-        object: {                     // like @observable({ deep: true })
-          foo: "bar",                 // like @observable
-          reference: null as Object,  // like @observable({ deep: true })
+        object: {                           // like @observable({ deep: true })
+          foo: "bar",                       // like @observable
+          reference: null as object | null, // like @observable({ deep: true })
         },
       };
     }
@@ -128,9 +128,9 @@ describe("@observable({ deep: true }) decorator: initialized by object", () => {
 
     const vm = new ViewModel();
 
-    let first: number;
-    let second: string;
-    let nested: number;
+    let first: number = NaN;
+    let second: string = "";
+    let nested: number = NaN;
     subscribe(() => vm.object.first, (value) => { first = value; });
     subscribe(() => vm.object.second, (value) => { second = value; });
     subscribe(() => vm.object.reference.nested, (value) => { nested = value; });
@@ -147,7 +147,7 @@ describe("@observable({ deep: true }) decorator: initialized by object", () => {
   it("should modify plain objects", () => {
     class ViewModel {
       @observable({ deep: true })
-      field: Object = null;
+      field: object | null = null;
     }
 
     const vm = new ViewModel();
@@ -160,7 +160,7 @@ describe("@observable({ deep: true }) decorator: initialized by object", () => {
   it("should modify plain objects without prototype", () => {
     class ViewModel {
       @observable({ deep: true })
-      field: Object = null;
+      field: object | null = null;
     }
 
     const vm = new ViewModel();
@@ -175,7 +175,7 @@ describe("@observable({ deep: true }) decorator: initialized by object", () => {
   it("should modify plain objects with redefined 'constructor' property", () => {
     class ViewModel {
       @observable({ deep: true })
-      field: Object = null;
+      field: object | null = null;
     }
 
     const vm = new ViewModel();
@@ -190,7 +190,7 @@ describe("@observable({ deep: true }) decorator: initialized by object", () => {
 
     class ViewModel {
       @observable({ deep: true })
-      model: Object = null;
+      model: object | null = null;
     }
 
     const vm = new ViewModel();
@@ -207,7 +207,7 @@ describe("@observable({ deep: true }) decorator: initialized by object", () => {
 
     class ViewModel {
       @observable({ deep: true })
-      model: Object = null;
+      model: object | null = null;
     }
 
     const vm = new ViewModel();
@@ -223,18 +223,18 @@ describe("@observable({ deep: true }) decorator: initialized by object", () => {
 
   it("should work with circular references", () => {
     interface Circular {
-      reference: Circular;
+      reference: Circular | null;
     }
 
     class ViewModel {
       @observable({ deep: true })
-      object: Circular = null;
+      object: Circular | null = null;
     }
 
     const vm = new ViewModel();
 
     const circular = {
-      reference: null as Circular,
+      reference: null as Circular | null,
     };
     circular.reference = circular;
 
@@ -255,7 +255,7 @@ describe("@observable({ deep: true }) decorator: initialized by array", () => {
 
     const vm = new ViewModel();
 
-    const array = Object.getOwnPropertyDescriptor(vm, "array").get;
+    const array = Object.getOwnPropertyDescriptor(vm, "array")!.get;
 
     expect(ko.isObservable(array)).toBeTruthy();
     expect(Object.getPrototypeOf(array)).toBe(ko.observableArray.fn);
@@ -269,7 +269,7 @@ describe("@observable({ deep: true }) decorator: initialized by array", () => {
 
     const vm = new ViewModel();
 
-    const array = Object.getOwnPropertyDescriptor(vm, "array").get;
+    const array = Object.getOwnPropertyDescriptor(vm, "array")!.get;
 
     expect(ko.isObservable(array)).toBeTruthy();
     expect(Object.getPrototypeOf(array)).toBe(ko.observableArray.fn);
@@ -414,7 +414,7 @@ describe("@observable({ deep: true }) decorator: initialized by array", () => {
   it("should define optimized splice method", () => {
     class ViewModel {
       @observable({ deep: true })
-      array = [] as ObservableArray<number>;
+      array = [] as any as ObservableArray<number>;
     }
 
     const vm = new ViewModel();

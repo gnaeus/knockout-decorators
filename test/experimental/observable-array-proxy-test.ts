@@ -57,7 +57,7 @@ describe("deep ObservableArray", () => {
   });
 
   it("should define deep observable properties on inner values", () => {
-    const arr = makeProxy([]);
+    const arr = makeProxy<object>([]);
 
     arr.push({ first: 123 });
     arr.push({ second: "test" });

@@ -132,7 +132,7 @@ describe("@extend decorator", () => {
     }
 
     const vm = new ViewModel();
-    let result: string;
+    let result: string = "";
 
     ko.computed(() => { result = vm.computed; });
 
@@ -149,7 +149,7 @@ describe("@extend decorator", () => {
     }
 
     const vm = new ViewModel();
-    let result: string;
+    let result: string = "";
 
     subscribe(() => vm.observable, (value) => {
       result = value;
@@ -167,7 +167,7 @@ describe("@extend decorator", () => {
     }
 
     const vm = new ViewModel();
-    let result: string;
+    let result: string = "";
 
     subscribe(() => vm.observable, (value) => {
       result = value;

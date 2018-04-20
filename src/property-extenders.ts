@@ -42,7 +42,7 @@ export function defineExtenders(
     });
   }
   // get existing Extenders array or create new array
-  const extenders = dictionary[key] || (dictionary[key] = []);
+  const currentExtenders = dictionary[key] || (dictionary[key] = []);
   // add new Extenders
-  extenders.push(extendersOrFactory);
+  currentExtenders.push(extendersOrFactory);
 }

@@ -66,9 +66,9 @@ describe("Disposable mixin", () => {
     class Subscriber extends Disposable() {
       eventHandled: boolean = false;
 
-      constructor(event: (sender: Publisher, argument: string) => void) {
+      constructor(myEvent: (sender: Publisher, argument: string) => void) {
         super();
-        this.subscribe(event, (sender: Publisher, argument: string) => {
+        this.subscribe(myEvent, (sender: Publisher, argument: string) => {
           this.eventHandled = true;
           expect(sender).toBe(publisher);
           expect(argument).toBe("event argument");
