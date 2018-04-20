@@ -6,188 +6,188 @@ import * as ko from "knockout";
 import { computed, observable, observableArray } from "../src/knockout-decorators";
 
 describe("@computed decorator", () => {
-    it("should throw on properties without getter", () => {
-        expect(() => {
-            class ViewModel {
-                @computed set onlySetter(_: any) {
-                    // ...
-                }
-            }
-            // tslint:disable-next-line:no-unused-expression
-            new ViewModel();
-        }).toThrowError("@computed property 'onlySetter' has no getter");
-    });
-
-    it("should lazily create properties on instance", () => {
-        class Calc {
-            @observable number: number = 0;
-
-            @computed get square() {
-                return this.number * this.number;
-            }
+  it("should throw on properties without getter", () => {
+    expect(() => {
+      class ViewModel {
+        @computed set onlySetter(_: any) {
+          // ...
         }
+      }
+      // tslint:disable-next-line:no-unused-expression
+      new ViewModel();
+    }).toThrowError("@computed property 'onlySetter' has no getter");
+  });
 
-        const calc = new Calc();
-        const temp = calc.square;
+  it("should lazily create properties on instance", () => {
+    class Calc {
+      @observable number: number = 0;
 
-        expect(Object.hasOwnProperty.call(calc, "square")).toBeTruthy();
-    });
+      @computed get square() {
+        return this.number * this.number;
+      }
+    }
 
-    it("should throw when trying to redefine @computed without setter", () => {
-        class Calc {
-            @observable number: number = 0;
+    const calc = new Calc();
+    const temp = calc.square;
 
-            @computed get square() {
-                return this.number * this.number;
-            }
-        }
+    expect(Object.hasOwnProperty.call(calc, "square")).toBeTruthy();
+  });
 
-        const calc: any = new Calc();
-        // get @computed property
-        // tslint:disable-next-line:no-unused-expression
-        calc.square;
+  it("should throw when trying to redefine @computed without setter", () => {
+    class Calc {
+      @observable number: number = 0;
 
-        // get @computed property
-        expect(() => { calc.square = 123; }).toThrow();
-    });
+      @computed get square() {
+        return this.number * this.number;
+      }
+    }
 
-    it("should track @observable changes", () => {
-        class Calc {
-            @observable number: number = 0;
+    const calc: any = new Calc();
+    // get @computed property
+    // tslint:disable-next-line:no-unused-expression
+    calc.square;
 
-            @computed get square() {
-                return this.number * this.number;
-            }
-        }
+    // get @computed property
+    expect(() => { calc.square = 123; }).toThrow();
+  });
 
-        const calc = new Calc();
-        let result: number;
+  it("should track @observable changes", () => {
+    class Calc {
+      @observable number: number = 0;
 
-        // subscribe to .square changes
-        ko.computed(() => { result = calc.square; });
+      @computed get square() {
+        return this.number * this.number;
+      }
+    }
 
-        // change observable
-        calc.number = 15;
+    const calc = new Calc();
+    let result: number;
 
-        expect(result).toBe(225);
-    });
+    // subscribe to .square changes
+    ko.computed(() => { result = calc.square; });
 
-    it("should track @observableArray changes", () => {
-        class Calc {
-            @observableArray numbers: number[] = [];
+    // change observable
+    calc.number = 15;
 
-            @computed get squares() {
-                return this.numbers.map((x) => x * x);
-            }
-        }
+    expect(result).toBe(225);
+  });
 
-        const calc = new Calc();
-        let result: number[];
+  it("should track @observableArray changes", () => {
+    class Calc {
+      @observableArray numbers: number[] = [];
 
-        // subscribe to .squares changes
-        ko.computed(() => { result = calc.squares; });
+      @computed get squares() {
+        return this.numbers.map((x) => x * x);
+      }
+    }
 
-        // change observableArray
-        calc.numbers.push(7, 8, 9);
+    const calc = new Calc();
+    let result: number[];
 
-        expect(result).toEqual([49, 64, 81]);
-    });
+    // subscribe to .squares changes
+    ko.computed(() => { result = calc.squares; });
 
-    it("should track deep @observable changes", () => {
-        class Calc {
-            @observable({ deep: true })
-            object = {
-                number: 0,
-            };
+    // change observableArray
+    calc.numbers.push(7, 8, 9);
 
-            @computed get square() {
-                return this.object.number * this.object.number;
-            }
-        }
+    expect(result).toEqual([49, 64, 81]);
+  });
 
-        const calc = new Calc();
-        let result: number;
+  it("should track deep @observable changes", () => {
+    class Calc {
+      @observable({ deep: true })
+      object = {
+        number: 0,
+      };
 
-        // subscribe to .square changes
-        ko.computed(() => { result = calc.square; });
+      @computed get square() {
+        return this.object.number * this.object.number;
+      }
+    }
 
-        // change observable
-        calc.object.number = 15;
+    const calc = new Calc();
+    let result: number;
 
-        expect(result).toBe(225);
-    });
+    // subscribe to .square changes
+    ko.computed(() => { result = calc.square; });
 
-    it("should work with writeable computed", () => {
-        class User {
-            @observable firstName = "";
-            @observable lastName = "";
+    // change observable
+    calc.object.number = 15;
 
-            @computed
-            get name() { return this.firstName + " " + this.lastName; }
-            set name(value) { [this.firstName, this.lastName] = value.trim().split(/\s+/g); }
-        }
+    expect(result).toBe(225);
+  });
 
-        const user = new User();
+  it("should work with writeable computed", () => {
+    class User {
+      @observable firstName = "";
+      @observable lastName = "";
 
-        let fullName;
-        ko.computed(() => { fullName = user.name; });
+      @computed
+      get name() { return this.firstName + " " + this.lastName; }
+      set name(value) { [this.firstName, this.lastName] = value.trim().split(/\s+/g); }
+    }
 
-        user.name = " John Smith ";
+    const user = new User();
 
-        expect(fullName).toBe("John Smith");
-        expect(user.firstName).toBe("John");
-        expect(user.lastName).toBe("Smith");
-        expect(user.name).toBe("John Smith");
-    });
+    let fullName;
+    ko.computed(() => { fullName = user.name; });
 
-    it("should define hidden ko.computed", () => {
-        class Model {
-            @computed({ pure: false })
-            get property() {
-                return 0;
-            }
-        }
+    user.name = " John Smith ";
 
-        const model = new Model();
-        // tslint:disable-next-line:no-unused-expression
-        model.property;
+    expect(fullName).toBe("John Smith");
+    expect(user.firstName).toBe("John");
+    expect(user.lastName).toBe("Smith");
+    expect(user.name).toBe("John Smith");
+  });
 
-        const hidden = Object.getOwnPropertyDescriptor(model, "property").get;
+  it("should define hidden ko.computed", () => {
+    class Model {
+      @computed({ pure: false })
+      get property() {
+        return 0;
+      }
+    }
 
-        expect(ko.isComputed(hidden)).toBeTruthy();
-        expect(ko["isPureComputed"](hidden)).toBeFalsy();
-    });
+    const model = new Model();
+    // tslint:disable-next-line:no-unused-expression
+    model.property;
 
-    it("should define hidden ko.pureComputed", () => {
-        class Model {
-            @computed({ pure: true })
-            get property() {
-                return 0;
-            }
-        }
+    const hidden = Object.getOwnPropertyDescriptor(model, "property").get;
 
-        const model = new Model();
-        // tslint:disable-next-line:no-unused-expression
-        model.property;
+    expect(ko.isComputed(hidden)).toBeTruthy();
+    expect(ko["isPureComputed"](hidden)).toBeFalsy();
+  });
 
-        const hidden = Object.getOwnPropertyDescriptor(model, "property").get;
+  it("should define hidden ko.pureComputed", () => {
+    class Model {
+      @computed({ pure: true })
+      get property() {
+        return 0;
+      }
+    }
 
-        expect(ko["isPureComputed"](hidden)).toBeTruthy();
-    });
+    const model = new Model();
+    // tslint:disable-next-line:no-unused-expression
+    model.property;
 
-    it("should define hidden ko.pureComputed by default", () => {
-        class Model {
-            @computed get property() {
-                return 0;
-            }
-        }
+    const hidden = Object.getOwnPropertyDescriptor(model, "property").get;
 
-        const model = new Model();
-        // tslint:disable-next-line:no-unused-expression
-        model.property;
+    expect(ko["isPureComputed"](hidden)).toBeTruthy();
+  });
 
-        const hidden = Object.getOwnPropertyDescriptor(model, "property").get;
+  it("should define hidden ko.pureComputed by default", () => {
+    class Model {
+      @computed get property() {
+        return 0;
+      }
+    }
 
-        expect(ko["isPureComputed"](hidden)).toBeTruthy();
-    });
+    const model = new Model();
+    // tslint:disable-next-line:no-unused-expression
+    model.property;
+
+    const hidden = Object.getOwnPropertyDescriptor(model, "property").get;
+
+    expect(ko["isPureComputed"](hidden)).toBeTruthy();
+  });
 });

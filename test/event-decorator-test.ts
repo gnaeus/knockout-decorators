@@ -5,219 +5,219 @@
 import { autobind, event, EventType, subscribe } from "../src/knockout-decorators";
 
 describe("@event decorator", () => {
-    it("should lazily create properties on instance", () => {
-        class Publisher {
-            @event myEvent: () => void;
-        }
+  it("should lazily create properties on instance", () => {
+    class Publisher {
+      @event myEvent: () => void;
+    }
 
-        const publisher = new Publisher();
+    const publisher = new Publisher();
 
-        // tslint:disable-next-line:no-unused-expression
-        publisher.myEvent;
+    // tslint:disable-next-line:no-unused-expression
+    publisher.myEvent;
 
-        expect(Object.hasOwnProperty.call(publisher, "myEvent")).toBeTruthy();
-    });
+    expect(Object.hasOwnProperty.call(publisher, "myEvent")).toBeTruthy();
+  });
 
-    it("should handle events without arguments", () => {
-        class Publisher {
-            @event simpleEvent: () => void;
-        }
+  it("should handle events without arguments", () => {
+    class Publisher {
+      @event simpleEvent: () => void;
+    }
 
-        class Subscriber {
-            eventHandled = false;
+    class Subscriber {
+      eventHandled = false;
 
-            @autobind
-            onSimpleEvent() {
-                this.eventHandled = true;
-            }
-        }
+      @autobind
+      onSimpleEvent() {
+        this.eventHandled = true;
+      }
+    }
 
-        const publisher = new Publisher();
+    const publisher = new Publisher();
 
-        const subscriber1 = new Subscriber();
-        const subscriber2 = new Subscriber();
+    const subscriber1 = new Subscriber();
+    const subscriber2 = new Subscriber();
 
-        subscribe(publisher.simpleEvent, subscriber1.onSimpleEvent);
-        subscribe(publisher.simpleEvent, subscriber2.onSimpleEvent);
+    subscribe(publisher.simpleEvent, subscriber1.onSimpleEvent);
+    subscribe(publisher.simpleEvent, subscriber2.onSimpleEvent);
 
+    publisher.simpleEvent();
+
+    expect(subscriber1.eventHandled).toBe(true);
+    expect(subscriber2.eventHandled).toBe(true);
+  });
+
+  it("should handle events with arguments", () => {
+    class Publisher {
+      @event complexEvent: (sender: Publisher, argument: string) => void;
+    }
+
+    class Subscriber {
+      eventHandled = false;
+
+      @autobind
+      onComplexEvent(sender: Publisher, argument: string) {
+        this.eventHandled = true;
+        expect(sender).toBe(publisher);
+        expect(argument).toBe("event argument");
+      }
+    }
+
+    const publisher = new Publisher();
+
+    const subscriber1 = new Subscriber();
+    const subscriber2 = new Subscriber();
+
+    subscribe(publisher.complexEvent, subscriber1.onComplexEvent);
+    subscribe(publisher.complexEvent, subscriber2.onComplexEvent);
+
+    publisher.complexEvent(publisher, "event argument");
+
+    expect(subscriber1.eventHandled).toBe(true);
+    expect(subscriber2.eventHandled).toBe(true);
+  });
+
+  it("should make disposable subscriptions", () => {
+    class Publisher {
+      @event simpleEvent: () => void;
+    }
+
+    class Subscriber {
+      eventHandled = false;
+
+      @autobind
+      onSimpleEvent() {
+        this.eventHandled = true;
+      }
+    }
+
+    const publisher = new Publisher();
+
+    const subscriber1 = new Subscriber();
+    const subscriber2 = new Subscriber();
+
+    const subscription1 = subscribe(publisher.simpleEvent, subscriber1.onSimpleEvent);
+    const subscription2 = subscribe(publisher.simpleEvent, subscriber2.onSimpleEvent);
+
+    subscription1.dispose();
+
+    publisher.simpleEvent();
+
+    expect(subscriber1.eventHandled).toBe(false);
+    expect(subscriber2.eventHandled).toBe(true);
+  });
+
+  it("should dispose subscriptions after first run", () => {
+    class Publisher {
+      @event simpleEvent: () => void;
+    }
+
+    class Subscriber {
+      runningCount = 0;
+
+      @autobind
+      onSimpleEvent() {
+        this.runningCount++;
+      }
+    }
+
+    const publisher = new Publisher();
+    const subscriber = new Subscriber();
+
+    subscribe(publisher.simpleEvent, subscriber.onSimpleEvent, { once: true });
+
+    publisher.simpleEvent();
+    publisher.simpleEvent();
+    publisher.simpleEvent();
+
+    expect(subscriber.runningCount).toBe(1);
+  });
+
+  it("should dispose recursive subscriptions after first run", () => {
+    class Publisher {
+      @event simpleEvent: () => void;
+    }
+
+    class Subscriber {
+      runningCount = 0;
+
+      @autobind
+      onSimpleEvent() {
         publisher.simpleEvent();
+        this.runningCount++;
+      }
+    }
 
-        expect(subscriber1.eventHandled).toBe(true);
-        expect(subscriber2.eventHandled).toBe(true);
-    });
+    const publisher = new Publisher();
+    const subscriber = new Subscriber();
 
-    it("should handle events with arguments", () => {
-        class Publisher {
-            @event complexEvent: (sender: Publisher, argument: string) => void;
-        }
+    subscribe(publisher.simpleEvent, subscriber.onSimpleEvent, { once: true });
 
-        class Subscriber {
-            eventHandled = false;
+    publisher.simpleEvent();
+    publisher.simpleEvent();
+    publisher.simpleEvent();
 
-            @autobind
-            onComplexEvent(sender: Publisher, argument: string) {
-                this.eventHandled = true;
-                expect(sender).toBe(publisher);
-                expect(argument).toBe("event argument");
-            }
-        }
+    expect(subscriber.runningCount).toBe(1);
+  });
 
-        const publisher = new Publisher();
+  it("should define event without signature", () => {
+    class Publisher {
+      @event untypedEvent: any;
+    }
 
-        const subscriber1 = new Subscriber();
-        const subscriber2 = new Subscriber();
+    class Subscriber {
+      runningCount = 0;
 
-        subscribe(publisher.complexEvent, subscriber1.onComplexEvent);
-        subscribe(publisher.complexEvent, subscriber2.onComplexEvent);
+      @autobind
+      onUntypedEvent() {
+        this.runningCount++;
+      }
+    }
 
-        publisher.complexEvent(publisher, "event argument");
+    const publisher = new Publisher();
+    const subscriber = new Subscriber();
 
-        expect(subscriber1.eventHandled).toBe(true);
-        expect(subscriber2.eventHandled).toBe(true);
-    });
+    subscribe(publisher.untypedEvent, subscriber.onUntypedEvent);
 
-    it("should make disposable subscriptions", () => {
-        class Publisher {
-            @event simpleEvent: () => void;
-        }
+    publisher.untypedEvent();
+    publisher.untypedEvent(123);
+    publisher.untypedEvent("test");
 
-        class Subscriber {
-            eventHandled = false;
+    expect(subscriber.runningCount).toBe(3);
+  });
 
-            @autobind
-            onSimpleEvent() {
-                this.eventHandled = true;
-            }
-        }
+  it("should throw when trying to redefine @event property", () => {
+    class Publisher {
+      @event untypedEvent: any;
+    }
 
-        const publisher = new Publisher();
+    const publisher = new Publisher();
 
-        const subscriber1 = new Subscriber();
-        const subscriber2 = new Subscriber();
+    expect(() => { publisher.untypedEvent = null; }).toThrow();
+  });
 
-        const subscription1 = subscribe(publisher.simpleEvent, subscriber1.onSimpleEvent);
-        const subscription2 = subscribe(publisher.simpleEvent, subscriber2.onSimpleEvent);
+  it("should create subscribable events", () => {
+    class Publisher {
+      @event myEvent: EventType;
+    }
 
-        subscription1.dispose();
+    class Subscriber {
+      passedArguments: any[] = [];
 
-        publisher.simpleEvent();
+      @autobind
+      onEvent(arg: any) {
+        this.passedArguments.push(arg);
+      }
+    }
 
-        expect(subscriber1.eventHandled).toBe(false);
-        expect(subscriber2.eventHandled).toBe(true);
-    });
+    const publisher = new Publisher();
+    const subscriber = new Subscriber();
 
-    it("should dispose subscriptions after first run", () => {
-        class Publisher {
-            @event simpleEvent: () => void;
-        }
+    publisher.myEvent.subscribe(subscriber.onEvent);
 
-        class Subscriber {
-            runningCount = 0;
+    publisher.myEvent();
+    publisher.myEvent(123);
+    publisher.myEvent("test");
 
-            @autobind
-            onSimpleEvent() {
-                this.runningCount++;
-            }
-        }
-
-        const publisher = new Publisher();
-        const subscriber = new Subscriber();
-
-        subscribe(publisher.simpleEvent, subscriber.onSimpleEvent, { once: true });
-
-        publisher.simpleEvent();
-        publisher.simpleEvent();
-        publisher.simpleEvent();
-
-        expect(subscriber.runningCount).toBe(1);
-    });
-
-    it("should dispose recursive subscriptions after first run", () => {
-        class Publisher {
-            @event simpleEvent: () => void;
-        }
-
-        class Subscriber {
-            runningCount = 0;
-
-            @autobind
-            onSimpleEvent() {
-                publisher.simpleEvent();
-                this.runningCount++;
-            }
-        }
-
-        const publisher = new Publisher();
-        const subscriber = new Subscriber();
-
-        subscribe(publisher.simpleEvent, subscriber.onSimpleEvent, { once: true });
-
-        publisher.simpleEvent();
-        publisher.simpleEvent();
-        publisher.simpleEvent();
-
-        expect(subscriber.runningCount).toBe(1);
-    });
-
-    it("should define event without signature", () => {
-        class Publisher {
-            @event untypedEvent: any;
-        }
-
-        class Subscriber {
-            runningCount = 0;
-
-            @autobind
-            onUntypedEvent() {
-                this.runningCount++;
-            }
-        }
-
-        const publisher = new Publisher();
-        const subscriber = new Subscriber();
-
-        subscribe(publisher.untypedEvent, subscriber.onUntypedEvent);
-
-        publisher.untypedEvent();
-        publisher.untypedEvent(123);
-        publisher.untypedEvent("test");
-
-        expect(subscriber.runningCount).toBe(3);
-    });
-
-    it("should throw when trying to redefine @event property", () => {
-        class Publisher {
-            @event untypedEvent: any;
-        }
-
-        const publisher = new Publisher();
-
-        expect(() => { publisher.untypedEvent = null; }).toThrow();
-    });
-
-    it("should create subscribable events", () => {
-        class Publisher {
-            @event myEvent: EventType;
-        }
-
-        class Subscriber {
-            passedArguments: any[] = [];
-
-            @autobind
-            onEvent(arg: any) {
-                this.passedArguments.push(arg);
-            }
-        }
-
-        const publisher = new Publisher();
-        const subscriber = new Subscriber();
-
-        publisher.myEvent.subscribe(subscriber.onEvent);
-
-        publisher.myEvent();
-        publisher.myEvent(123);
-        publisher.myEvent("test");
-
-        expect(subscriber.passedArguments).toEqual([void 0, 123, "test"]);
-    });
+    expect(subscriber.passedArguments).toEqual([void 0, 123, "test"]);
+  });
 });
