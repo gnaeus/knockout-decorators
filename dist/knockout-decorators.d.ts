@@ -61,7 +61,7 @@ export declare function computed(options: {
  *
  * But we can still extend getter @computed by extenders like { rateLimit: 500 }
  */
-export declare function computed(prototype: Object, key: string | symbol, desc: PropertyDescriptor): PropertyDescriptor;
+export declare function computed(prototype: Object, key: string | symbol, desc?: PropertyDescriptor): PropertyDescriptor;
 /**
  * Apply extenders to decorated @observable
  */
@@ -93,7 +93,7 @@ export declare function component(name: string, template: TemplateConfig, styles
  * Like https://github.com/jayphelps/core-decorators.js @autobind but less smart and complex
  * Do NOT use with ES6 inheritance!
  */
-export declare function autobind(prototype: Object, key: string | symbol, desc: PropertyDescriptor): PropertyDescriptor;
+export declare function autobind(prototype: Object, key: string | symbol, desc?: PropertyDescriptor): PropertyDescriptor;
 /**
  * Define hidden ko.subscribable, that notifies subscribers when decorated method is invoked
  */
@@ -193,5 +193,5 @@ export declare function Disposable(): new () => Disposable;
  * that disposes all subscription created by `subscribe()`
  * @param Base {Function} Base class to extend
  */
-export declare function Disposable<T extends Function>(Base: T): new (...args: any[]) => Disposable & T;
+export declare function Disposable<T extends Function>(Base: T): (new (...args: any[]) => Disposable) & T;
 export as namespace KnockoutDecorators;

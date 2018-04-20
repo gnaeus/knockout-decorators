@@ -106,9 +106,9 @@
             });
         }
         // get existing Extenders array or create new array
-        var extenders = dictionary[key] || (dictionary[key] = []);
+        var currentExtenders = dictionary[key] || (dictionary[key] = []);
         // add new Extenders
-        extenders.push(extendersOrFactory);
+        currentExtenders.push(extendersOrFactory);
     }
 
     /**
@@ -428,13 +428,13 @@
             throw new Error("@computed property '" + propKey.toString() + "' has no getter");
         }
         desc.get = function () {
-            var computed = applyExtenders(this, propKey, ko.computed(get, this, options));
+            var koComputed = applyExtenders(this, propKey, ko.computed(get, this, options));
             defineProperty(this, propKey, {
-                get: computed,
+                get: koComputed,
                 // tslint:disable-next-line:object-literal-shorthand
                 set: set,
             });
-            return computed();
+            return koComputed();
         };
         return desc;
     }
@@ -525,21 +525,21 @@
         var once = options && options.once || false;
         if (hasOwnProperty(dependencyOrEvent, "subscribe")) {
             // overload: subscribe to @event property
-            var event_1 = dependencyOrEvent;
+            var eventFunc = dependencyOrEvent;
             if (once) {
-                var subscription_1 = event_1.subscribe(function () {
+                var subscription_1 = eventFunc.subscribe(function () {
                     subscription_1.dispose();
                     callback.apply(null, arguments);
                 });
                 return subscription_1;
             }
             else {
-                return event_1.subscribe(callback);
+                return eventFunc.subscribe(callback);
             }
         }
         else {
             // overload: subscribe to @observable or @computed
-            var event_2 = options && options.event || "change";
+            var eventFunc = options && options.event || "change";
             var handler = void 0;
             var subscription_2;
             if (once) {
@@ -551,23 +551,23 @@
             else {
                 handler = callback;
             }
-            if (event_2 === "arrayChange") {
+            if (eventFunc === "arrayChange") {
                 var obsArray = dependencyOrEvent();
                 if (isArray(obsArray) && hasOwnProperty(obsArray, PATCHED_KEY)) {
-                    subscription_2 = obsArray.subscribe(handler, null, event_2);
+                    subscription_2 = obsArray.subscribe(handler, null, eventFunc);
                 }
                 else {
                     throw new Error("Can not subscribe to 'arrayChange' because dependency is not an 'observableArray'");
                 }
             }
             else {
-                var computed_1 = ko.computed(dependencyOrEvent);
-                subscription_2 = computed_1.subscribe(handler, null, event_2);
+                var koComputed_1 = ko.computed(dependencyOrEvent);
+                subscription_2 = koComputed_1.subscribe(handler, null, eventFunc);
                 var originalDispose_1 = subscription_2.dispose;
                 // dispose hidden computed with subscription
                 subscription_2.dispose = function () {
                     originalDispose_1.call(this);
-                    computed_1.dispose();
+                    koComputed_1.dispose();
                 };
             }
             return subscription_2;

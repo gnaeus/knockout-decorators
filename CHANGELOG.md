@@ -6,7 +6,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
-## [1.1.0] - 2018-04-20
+## [1.1.1] - 2018-04-20
+### Fixed
+ - Type Definitions
+ - Some TSLint issues
+
+## [1.1.0] - 2018-04-19
 ### Added
  - ES6-module buld
 
@@ -104,7 +109,8 @@ class ViewModel {
 - `@subscribe` decorator
 - `@component` decorator
 
-[Unreleased]: https://github.com/gnaeus/knockout-decorators/compare/1.1.0...HEAD
+[Unreleased]: https://github.com/gnaeus/knockout-decorators/compare/1.1.1...HEAD
+[1.1.1]: https://github.com/gnaeus/knockout-decorators/compare/1.1.0...1.1.1
 [1.1.0]: https://github.com/gnaeus/knockout-decorators/compare/1.0.0...1.1.0
 [1.0.0]: https://github.com/gnaeus/knockout-decorators/compare/0.10.0...1.0.0
 [0.10.0]: https://github.com/gnaeus/knockout-decorators/compare/0.9.1...0.10.0
