@@ -20,9 +20,7 @@
       "es2015.symbol"
     ],
     "plugins": [
-      {
-        "name": "tslint-language-service"
-      }
+      { "name": "tslint-language-service" }
     ]
   },
   "exclude": [

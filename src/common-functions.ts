@@ -11,17 +11,17 @@ export let EXTENDERS_KEY: string | symbol = prefix + "extenders__";
 export let SUBSCRIPTIONS_KEY: string | symbol = prefix + "subscriptions__";
 
 if (typeof Symbol !== "undefined") {
-    PATCHED_KEY = Symbol(PATCHED_KEY);
-    EXTENDERS_KEY = Symbol(EXTENDERS_KEY);
-    SUBSCRIPTIONS_KEY = Symbol(SUBSCRIPTIONS_KEY);
+  PATCHED_KEY = Symbol(PATCHED_KEY);
+  EXTENDERS_KEY = Symbol(EXTENDERS_KEY);
+  SUBSCRIPTIONS_KEY = Symbol(SUBSCRIPTIONS_KEY);
 }
 
 // tslint:disable-next-line:variable-name
 export const ArrayPrototype = Array.prototype;
 
 export function defineProperty(instance: Object, key: any, descriptor: PropertyDescriptor) {
-    descriptor.configurable = true;
-    Object.defineProperty(instance, key, descriptor);
+  descriptor.configurable = true;
+  Object.defineProperty(instance, key, descriptor);
 }
 
 export const extendObject = ko.utils.extend;
