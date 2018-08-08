@@ -503,6 +503,12 @@ class MyViewModel {
   unwrap(key: string) {
     return unwrap(this, key);
   }
+  
+  // from TypeScript 2.1 you can use keyof
+  // to restrict to keys of the given type
+  unwrap(key: keyof MyViewModel){
+    return unwrap(this, key);
+  }
 }
 ```
 ```html
