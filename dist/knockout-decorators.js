@@ -115,12 +115,12 @@
      * Copyright (c) 2016-2017 Dmitry Panyushkin
      * Available under MIT license
      */
-    function defineObservableProperty(instance, key, value, deep) {
+    function defineObservableProperty(instance, key, value, deep, hiddenObservable) {
         var observable = applyExtenders(instance, key, ko.observable());
         var setter = observable;
         if (deep) {
             setter = function (newValue) {
-                observable(prepareDeepValue(newValue));
+                observable(prepareDeepValue(newValue, hiddenObservable));
             };
         }
         defineProperty(instance, key, {
@@ -128,9 +128,15 @@
             get: observable,
             set: setter,
         });
+        if (hiddenObservable) {
+            defineProperty(instance, "_" + key.toString(), {
+                enumerable: false,
+                value: observable
+            });
+        }
         setter(value);
     }
-    function prepareDeepValue(value) {
+    function prepareDeepValue(value, hiddenObservable) {
         if (typeof value === "object") {
             if (isArray(value) || value === null) {
                 // value is Array or null
@@ -141,18 +147,18 @@
                 var prototype = getPrototypeOf(value);
                 if (prototype === Object.prototype || prototype === null) {
                     // value is plain Object
-                    return prepareDeepObject(value);
+                    return prepareDeepObject(value, hiddenObservable);
                 }
             }
             else if (value.constructor === Object) {
                 // value is plain Object
-                return prepareDeepObject(value);
+                return prepareDeepObject(value, hiddenObservable);
             }
         }
         // value is primitive, function or class instance
         return value;
     }
-    function prepareDeepObject(instance) {
+    function prepareDeepObject(instance, hiddenObservable) {
         if (!hasOwnProperty(instance, PATCHED_KEY)) {
             // mark instance as ObservableObject
             defineProperty(instance, PATCHED_KEY, {
@@ -161,10 +167,10 @@
             // define deep observable properties
             objectForEach(instance, function (key, value) {
                 if (isArray(value)) {
-                    defineObservableArray(instance, key, value, true);
+                    defineObservableArray(instance, key, value, true, hiddenObservable);
                 }
                 else {
-                    defineObservableProperty(instance, key, value, true);
+                    defineObservableProperty(instance, key, value, true, hiddenObservable);
                 }
             });
         }
@@ -180,7 +186,7 @@
     var deepObservableArrayMethods = ["remove", "removeAll", "destroy", "destroyAll", "replace", "subscribe"];
     var allObservableArrayMethods = deepObservableArrayMethods.concat(["replace"]);
     var allMethods = allArrayMethods.concat(allObservableArrayMethods, ["mutate", "set"]);
-    function defineObservableArray(instance, key, value, deep) {
+    function defineObservableArray(instance, key, value, deep, hiddenObservable) {
         var obsArray = applyExtenders(instance, key, ko.observableArray());
         var insideObsArray = false;
         defineProperty(instance, key, {
@@ -188,6 +194,12 @@
             get: obsArray,
             set: setter,
         });
+        if (hiddenObservable) {
+            defineProperty(instance, "_" + key.toString(), {
+                enumerable: false,
+                value: obsArray
+            });
+        }
         setter(value);
         function setter(newValue) {
             var lastValue = obsArray.peek();
@@ -213,7 +225,7 @@
                     if (deep) {
                         // make all array items deep observable
                         for (var i = 0; i < newValue.length; ++i) {
-                            newValue[i] = prepareDeepValue(newValue[i]);
+                            newValue[i] = prepareDeepValue(newValue[i], hiddenObservable);
                         }
                     }
                     // mark instance as ObservableArray
@@ -259,7 +271,7 @@
                         }
                         var args = arraySlice(arguments);
                         for (var i = 0; i < args.length; ++i) {
-                            args[i] = prepareDeepValue(args[i]);
+                            args[i] = prepareDeepValue(args[i], hiddenObservable);
                         }
                         insideObsArray = true;
                         var result = obsArray.push.apply(obsArray, args);
@@ -274,7 +286,7 @@
                         }
                         var args = arraySlice(arguments);
                         for (var i = 0; i < args.length; ++i) {
-                            args[i] = prepareDeepValue(args[i]);
+                            args[i] = prepareDeepValue(args[i], hiddenObservable);
                         }
                         insideObsArray = true;
                         var result = obsArray.unshift.apply(obsArray, args);
@@ -297,13 +309,13 @@
                                 break;
                             }
                             case 3: {
-                                result = obsArray.splice(arguments[0], arguments[1], prepareDeepValue(arguments[2]));
+                                result = obsArray.splice(arguments[0], arguments[1], prepareDeepValue(arguments[2], hiddenObservable));
                                 break;
                             }
                             default: {
                                 var args = arraySlice(arguments);
                                 for (var i = 2; i < args.length; ++i) {
-                                    args[i] = prepareDeepValue(args[i]);
+                                    args[i] = prepareDeepValue(args[i], hiddenObservable);
                                 }
                                 result = obsArray.splice.apply(obsArray, arguments);
                                 break;
@@ -316,7 +328,7 @@
                 defineProperty(array, "replace", {
                     value: function (oldItem, newItem) {
                         insideObsArray = true;
-                        var result = obsArray.replace(oldItem, prepareDeepValue(newItem));
+                        var result = obsArray.replace(oldItem, prepareDeepValue(newItem, hiddenObservable));
                         insideObsArray = false;
                         return result;
                     },
@@ -328,7 +340,7 @@
                         obsArray.valueWillMutate();
                         mutator(nativeArray);
                         for (var i = 0; i < nativeArray.length; ++i) {
-                            nativeArray[i] = prepareDeepValue(nativeArray[i]);
+                            nativeArray[i] = prepareDeepValue(nativeArray[i], hiddenObservable);
                         }
                         // it is defined for ko.observableArray
                         obsArray.valueHasMutated();
@@ -336,7 +348,7 @@
                 });
                 defineProperty(array, "set", {
                     value: function (index, newItem) {
-                        return obsArray.splice(index, 1, prepareDeepValue(newItem))[0];
+                        return obsArray.splice(index, 1, prepareDeepValue(newItem, hiddenObservable))[0];
                     },
                 });
             }
@@ -366,8 +378,10 @@
     function observable(prototypeOrOptions, key) {
         observableArrayOption = false;
         deepObservableOption = false;
+        hiddenObservablePropertyOption = false;
         if (arguments.length === 1) {
             deepObservableOption = prototypeOrOptions.deep;
+            hiddenObservablePropertyOption = prototypeOrOptions.hiddenObservable;
             return observableDecorator;
         }
         return observableDecorator(prototypeOrOptions, key);
@@ -378,8 +392,10 @@
     function observableArray(prototypeOrOptions, key) {
         observableArrayOption = true;
         deepObservableOption = false;
+        hiddenObservablePropertyOption = false;
         if (arguments.length === 1) {
             deepObservableOption = prototypeOrOptions.deep;
+            hiddenObservablePropertyOption = prototypeOrOptions.hiddenObservable;
             return observableDecorator;
         }
         return observableDecorator(prototypeOrOptions, key);
@@ -387,19 +403,21 @@
     // observableDecorator options
     var observableArrayOption;
     var deepObservableOption;
+    var hiddenObservablePropertyOption;
     function observableDecorator(prototype, propKey) {
         var array = observableArrayOption;
         var deep = deepObservableOption;
+        var hiddenObservable = hiddenObservablePropertyOption;
         defineProperty(prototype, propKey, {
             get: function () {
                 throw new Error("@observable property '" + propKey.toString() + "' was not initialized");
             },
             set: function (value) {
                 if (array || isArray(value)) {
-                    defineObservableArray(this, propKey, value, deep);
+                    defineObservableArray(this, propKey, value, deep, hiddenObservable);
                 }
                 else {
-                    defineObservableProperty(this, propKey, value, deep);
+                    defineObservableProperty(this, propKey, value, deep, hiddenObservable);
                 }
             },
         });

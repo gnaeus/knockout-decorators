@@ -39,24 +39,24 @@
   },
   "homepage": "https://github.com/gnaeus/knockout-decorators#readme",
   "devDependencies": {
-    "@types/jest": "^22.2.3",
-    "@types/knockout": "^3.4.53",
-    "coveralls": "^3.0.0",
-    "deepmerge": "^2.1.0",
-    "jest": "^22.4.3",
-    "rollup": "^0.58.1",
-    "rollup-plugin-filesize": "^1.5.0",
-    "rollup-plugin-typescript2": "^0.13.0",
-    "rollup-plugin-uglify": "^3.0.0",
-    "shx": "^0.2.2",
-    "ts-jest": "^22.4.4",
-    "tslib": "^1.9.0",
-    "tslint": "^5.9.1",
-    "tslint-language-service": "^0.9.9",
-    "typescript": "^2.8.1"
+    "@types/jest": "22.2.3",
+    "@types/knockout": "3.4.53",
+    "coveralls": "3.0.0",
+    "deepmerge": "2.1.0",
+    "jest": "22.4.3",
+    "rollup": "0.58.1",
+    "rollup-plugin-filesize": "1.5.0",
+    "rollup-plugin-typescript2": "0.13.0",
+    "rollup-plugin-uglify": "3.0.0",
+    "shx": "0.2.2",
+    "ts-jest": "22.4.4",
+    "tslib": "1.9.0",
+    "tslint": "5.9.1",
+    "tslint-language-service": "0.9.9",
+    "typescript": "2.8.1"
   },
   "dependencies": {
-    "knockout": "^3.4.2"
+    "knockout": "3.4.2"
   },
   "jest": {
     "collectCoverage": true,

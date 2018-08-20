@@ -19,6 +19,7 @@ const allMethods = [...allArrayMethods, ...allObservableArrayMethods, "mutate", 
 
 export function defineObservableArray(
   instance: Object, key: string | symbol, value: any[], deep: boolean,
+  hiddenObservable: boolean
 ) {
   const obsArray = applyExtenders(instance, key, ko.observableArray()) as ObsArray;
 
@@ -29,6 +30,12 @@ export function defineObservableArray(
     get: obsArray,
     set: setter,
   });
+  if (hiddenObservable) {
+    defineProperty(instance, "_" + key.toString(), {
+      enumerable: false,
+      value: obsArray
+    });
+  }
 
   setter(value);
 
@@ -56,7 +63,7 @@ export function defineObservableArray(
         if (deep) {
           // make all array items deep observable
           for (let i = 0; i < newValue.length; ++i) {
-            newValue[i] = prepareDeepValue(newValue[i]);
+            newValue[i] = prepareDeepValue(newValue[i], hiddenObservable);
           }
         }
         // mark instance as ObservableArray
@@ -107,7 +114,7 @@ export function defineObservableArray(
           }
           const args = arraySlice(arguments);
           for (let i = 0; i < args.length; ++i) {
-            args[i] = prepareDeepValue(args[i]);
+            args[i] = prepareDeepValue(args[i], hiddenObservable);
           }
           insideObsArray = true;
           const result = obsArray.push.apply(obsArray, args);
@@ -123,7 +130,7 @@ export function defineObservableArray(
           }
           const args = arraySlice(arguments);
           for (let i = 0; i < args.length; ++i) {
-            args[i] = prepareDeepValue(args[i]);
+            args[i] = prepareDeepValue(args[i], hiddenObservable);
           }
           insideObsArray = true;
           const result = obsArray.unshift.apply(obsArray, args);
@@ -150,14 +157,14 @@ export function defineObservableArray(
             }
             case 3: {
               result = obsArray.splice(
-                arguments[0], arguments[1], prepareDeepValue(arguments[2]),
+                arguments[0], arguments[1], prepareDeepValue(arguments[2], hiddenObservable),
               );
               break;
             }
             default: {
               const args = arraySlice(arguments);
               for (let i = 2; i < args.length; ++i) {
-                args[i] = prepareDeepValue(args[i]);
+                args[i] = prepareDeepValue(args[i], hiddenObservable);
               }
               result = obsArray.splice.apply(obsArray, arguments);
               break;
@@ -172,7 +179,7 @@ export function defineObservableArray(
       defineProperty(array, "replace", {
         value(oldItem: any, newItem: any) {
           insideObsArray = true;
-          const result = obsArray.replace(oldItem, prepareDeepValue(newItem));
+          const result = obsArray.replace(oldItem, prepareDeepValue(newItem, hiddenObservable));
           insideObsArray = false;
           return result;
         },
@@ -185,7 +192,7 @@ export function defineObservableArray(
           (obsArray.valueWillMutate as Function)();
           mutator(nativeArray);
           for (let i = 0; i < nativeArray.length; ++i) {
-            nativeArray[i] = prepareDeepValue(nativeArray[i]);
+            nativeArray[i] = prepareDeepValue(nativeArray[i], hiddenObservable);
           }
           // it is defined for ko.observableArray
           (obsArray.valueHasMutated as Function)();
@@ -194,7 +201,7 @@ export function defineObservableArray(
 
       defineProperty(array, "set", {
         value(index: number, newItem: any) {
-          return obsArray.splice(index, 1, prepareDeepValue(newItem))[0];
+          return obsArray.splice(index, 1, prepareDeepValue(newItem, hiddenObservable))[0];
         },
       });
     } else {

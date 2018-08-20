@@ -16,7 +16,7 @@ import { applyExtenders, defineExtenders } from "./property-extenders";
  * Property decorator that creates hidden (shallow or deep) ko.observable with ES6 getter and setter for it
  * If initialized by Array then hidden ko.observableArray will be created
  */
-export function observable(options: { deep: boolean }): PropertyDecorator;
+export function observable(options: { deep: boolean, hiddenObservable: boolean }): PropertyDecorator;
 /**
  * Property decorator that creates hidden (shallow) ko.observable with ES6 getter and setter for it
  * If initialized by Array then hidden (shallow) ko.observableArray will be created
@@ -29,8 +29,10 @@ export function observable(prototype: Object, key: string | symbol): void;
 export function observable(prototypeOrOptions: any, key?: any) {
   observableArrayOption = false;
   deepObservableOption = false;
+  hiddenObservablePropertyOption = false;
   if (arguments.length === 1) {
     deepObservableOption = prototypeOrOptions.deep;
+    hiddenObservablePropertyOption = prototypeOrOptions.hiddenObservable;
     return observableDecorator;
   }
   return observableDecorator(prototypeOrOptions, key);
@@ -50,8 +52,10 @@ export function observableArray(prototype: Object, key: string | symbol): void;
 export function observableArray(prototypeOrOptions: any, key?: any) {
   observableArrayOption = true;
   deepObservableOption = false;
+  hiddenObservablePropertyOption = false;
   if (arguments.length === 1) {
     deepObservableOption = prototypeOrOptions.deep;
+    hiddenObservablePropertyOption = prototypeOrOptions.hiddenObservable;
     return observableDecorator;
   }
   return observableDecorator(prototypeOrOptions, key);
@@ -60,19 +64,21 @@ export function observableArray(prototypeOrOptions: any, key?: any) {
 // observableDecorator options
 let observableArrayOption: boolean;
 let deepObservableOption: boolean;
+let hiddenObservablePropertyOption: boolean;
 
 function observableDecorator(prototype: Object, propKey: string | symbol) {
   const array = observableArrayOption;
   const deep = deepObservableOption;
+  const hiddenObservable = hiddenObservablePropertyOption;
   defineProperty(prototype, propKey, {
     get() {
       throw new Error("@observable property '" + propKey.toString() + "' was not initialized");
     },
     set(this: Object, value: any) {
       if (array || isArray(value)) {
-        defineObservableArray(this, propKey, value, deep);
+        defineObservableArray(this, propKey, value, deep, hiddenObservable);
       } else {
-        defineObservableProperty(this, propKey, value, deep);
+        defineObservableProperty(this, propKey, value, deep, hiddenObservable);
       }
     },
   });

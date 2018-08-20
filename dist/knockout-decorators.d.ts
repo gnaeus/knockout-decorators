@@ -5,6 +5,7 @@
  */
 export declare function observable(options: {
     deep: boolean;
+    hiddenObservable: boolean;
 }): PropertyDecorator;
 /**
  * Property decorator that creates hidden (shallow) ko.observable with ES6 getter and setter for it
