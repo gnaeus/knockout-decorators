@@ -16,7 +16,7 @@ import { applyExtenders, defineExtenders } from "./property-extenders";
  * Property decorator that creates hidden (shallow or deep) ko.observable with ES6 getter and setter for it
  * If initialized by Array then hidden ko.observableArray will be created
  */
-export function observable(options: { deep: boolean, hiddenObservable: boolean }): PropertyDecorator;
+export function observable(options: { deep?: boolean, hiddenObservable?: boolean }): PropertyDecorator;
 /**
  * Property decorator that creates hidden (shallow) ko.observable with ES6 getter and setter for it
  * If initialized by Array then hidden (shallow) ko.observableArray will be created
@@ -41,7 +41,7 @@ export function observable(prototypeOrOptions: any, key?: any) {
 /**
  * Property decorator that creates hidden (shallow or deep) ko.observableArray with ES6 getter and setter for it
  */
-export function observableArray(options: { deep: boolean }): PropertyDecorator;
+export function observableArray(options: { deep?: boolean, hiddenObservable?: boolean }): PropertyDecorator;
 /**
  * Property decorator that creates hidden (shallow) ko.observableArray with ES6 getter and setter for it
  */
