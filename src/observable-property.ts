@@ -10,7 +10,7 @@ import { defineObservableArray } from "./observable-array";
 import { applyExtenders } from "./property-extenders";
 
 export function defineObservableProperty(
-  instance: Object, key: string | symbol, value: any, deep: boolean,
+  instance: Object, key: string | symbol, value: any, deep: boolean, expose: boolean,
 ) {
   const observable = applyExtenders(instance, key, ko.observable());
 
@@ -18,7 +18,7 @@ export function defineObservableProperty(
 
   if (deep) {
     setter = function (newValue: any) {
-      observable(prepareDeepValue(newValue));
+      observable(prepareDeepValue(newValue, expose));
     };
   }
 
@@ -27,11 +27,16 @@ export function defineObservableProperty(
     get: observable,
     set: setter,
   });
+  if (expose) {
+    defineProperty(instance, "_" + key.toString(), {
+      value: observable,
+    });
+  }
 
   setter(value);
 }
 
-export function prepareDeepValue(value: any) {
+export function prepareDeepValue(value: any, expose: boolean) {
   if (typeof value === "object") {
     if (isArray(value) || value === null) {
       // value is Array or null
@@ -41,18 +46,18 @@ export function prepareDeepValue(value: any) {
       const prototype = getPrototypeOf(value);
       if (prototype === Object.prototype || prototype === null) {
         // value is plain Object
-        return prepareDeepObject(value);
+        return prepareDeepObject(value, expose);
       }
     } else if (value.constructor === Object) {
       // value is plain Object
-      return prepareDeepObject(value);
+      return prepareDeepObject(value, expose);
     }
   }
   // value is primitive, function or class instance
   return value;
 }
 
-export function prepareDeepObject(instance: Object) {
+export function prepareDeepObject(instance: Object, expose: boolean) {
   if (!hasOwnProperty(instance, PATCHED_KEY)) {
     // mark instance as ObservableObject
     defineProperty(instance, PATCHED_KEY, {
@@ -61,9 +66,9 @@ export function prepareDeepObject(instance: Object) {
     // define deep observable properties
     objectForEach(instance, (key, value) => {
       if (isArray(value)) {
-        defineObservableArray(instance, key, value, true);
+        defineObservableArray(instance, key, value, true, expose);
       } else {
-        defineObservableProperty(instance, key, value, true);
+        defineObservableProperty(instance, key, value, true, expose);
       }
     });
   }
