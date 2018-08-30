@@ -28,7 +28,7 @@ export function defineObservableProperty(
     set: setter,
   });
   if (expose) {
-    defineProperty(instance, "_" + key.toString(), {
+    defineProperty(instance, "_" + String(key), {
       value: observable,
     });
   }

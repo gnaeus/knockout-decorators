@@ -52,7 +52,7 @@ export class ObservableArrayProxy<T> extends ArrayStub {
   _defineArrayIndexAccessors(length: number) {
     if (ObservableArrayProxy._maxLength < length) {
       for (let i = ObservableArrayProxy._maxLength; i < length; i++) {
-        defineProperty(ObservableArrayProxy.prototype, i.toString(), {
+        defineProperty(ObservableArrayProxy.prototype, String(i), {
           enumerable: true,
           get(this: ObservableArrayProxy<any>) {
             return this._observableArray()[i];

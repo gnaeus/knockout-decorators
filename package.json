@@ -81,6 +81,7 @@
     "transform": {
       "^.+\\.(js|ts)$": "ts-jest"
     },
-    "testRegex": "/test/.*(test|benchmark)\\.ts$"
+    "testRegex": "/test/.*(test|benchmark)\\.ts$",
+    "testURL": "http://localhost"
   }
 }

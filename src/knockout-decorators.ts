@@ -72,7 +72,7 @@ function observableDecorator(prototype: Object, propKey: string | symbol) {
   const expose = exposeObservableOption;
   defineProperty(prototype, propKey, {
     get() {
-      throw new Error("@observable property '" + propKey.toString() + "' was not initialized");
+      throw new Error("@observable property '" + String(propKey) + "' was not initialized");
     },
     set(this: Object, value: any) {
       if (array || isArray(value)) {
@@ -157,7 +157,7 @@ function computedDecorator(prototype: Object, propKey: string | symbol, desc: Pr
   const options = computedDecoratorOptions;
   const { get, set } = desc || (desc = getOwnPropertyDescriptor(prototype, propKey));
   if (!get) {
-    throw new Error("@computed property '" + propKey.toString() + "' has no getter");
+    throw new Error("@computed property '" + String(propKey) + "' has no getter");
   }
   desc.get = function (this: Object) {
     const koComputed = applyExtenders(this, propKey, ko.computed(get, this, options));
@@ -532,19 +532,20 @@ export function Disposable<T extends new (...args: any[]) => any>(
   return class extends Base {
     /** Dispose all subscriptions from this class */
     dispose() {
-      const subscriptions: KnockoutSubscription[] = this[SUBSCRIPTIONS_KEY];
+      const subscriptions: KnockoutSubscription[] = this[SUBSCRIPTIONS_KEY as any];
       if (subscriptions) {
         subscriptions.forEach((subscription) => {
           subscription.dispose();
         });
-        delete this[SUBSCRIPTIONS_KEY];
+        delete this[SUBSCRIPTIONS_KEY as any];
       }
     }
 
     /** Subscribe callback to `@observable` or `@computed` dependency changes or to some `@event` */
     subscribe() {
       const subscription: KnockoutSubscription = subscribe.apply(null, arguments);
-      const subscriptions: KnockoutSubscription[] = this[SUBSCRIPTIONS_KEY] || (this[SUBSCRIPTIONS_KEY] = []);
+      const subscriptions: KnockoutSubscription[] = this[SUBSCRIPTIONS_KEY as any] ||
+        (this[SUBSCRIPTIONS_KEY as any] = []);
       subscriptions.push(subscription);
       return subscription;
     }

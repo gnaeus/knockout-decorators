@@ -15,7 +15,7 @@ export function applyExtenders(
   target: KnockoutObservable<any> | KnockoutComputed<any>,
 ) {
   const dictionary = instance[EXTENDERS_KEY] as ExtendersDictionary;
-  const extenders = dictionary && dictionary[key];
+  const extenders = dictionary && dictionary[key as any];
   if (extenders) {
     extenders.forEach((extender) => {
       const koExtender = extender instanceof Function
@@ -42,7 +42,7 @@ export function defineExtenders(
     });
   }
   // get existing Extenders array or create new array
-  const currentExtenders = dictionary[key] || (dictionary[key] = []);
+  const currentExtenders = dictionary[key as any] || (dictionary[key as any] = []);
   // add new Extenders
   currentExtenders.push(extendersOrFactory);
 }
