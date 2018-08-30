@@ -54,7 +54,7 @@ class PersonView {
 Property decorator that creates hidden `ko.observable` with ES6 getter and setter for it<br>
 If initialized by Array then hidden `ko.observableArray` will be created (see [@observableArray](#knockout-decorators-observableArray))
 ```js
-@observable(options: { deep: boolean });
+@observable(options: { deep?: boolean, expose?: boolean });
 @observable;
 ```
 By default, shallow observable will be created
@@ -102,6 +102,19 @@ vm.deepObservable.array.push({
   lastName: "Lewis",          // make @observable
 });
 ```
+If `{ expose: true }` option is provided then hidden `ko.observable` will be
+exposed as non-enumerable property with same name prefixed by `_`.
+```js
+import { observable } from "knockout-decorators";
+
+class Model {
+  @observable({ expose: true })
+  field = 123;
+};
+
+const model = new Model();
+const hiddenObservable = model._field; // ko.observable
+```
 
 <br>
 
@@ -145,7 +158,7 @@ person.fullName = "  John  Smith  " // [console] ➜ "John Smith"
 #### <a name="knockout-decorators-observableArray"></a> @observableArray
 Property decorator that creates hidden `ko.observableArray` with ES6 getter and setter for it
 ```js
-@observableArray(options: { deep: boolean });
+@observableArray(options: { deep?: boolean, expose?: boolean });
 @observableArray;
 ```
 By default, shallow observableArray will be created
@@ -488,6 +501,30 @@ unwrap<T>(instance: Object, key: string | symbol): KnockoutObservable<T>;
 
 <a name="knockout-decorators-validation"></a>
 KnockoutValidation example
+
+Using `{ expose: true }`:
+```js
+import { observable, extend } from "knockout-decorators";
+
+class MyViewModel {
+  @extend({ required: "MyField is required" })
+  @observable({ expose: true })
+  myField = "";
+
+  checkMyField() {
+    alert("MyField is valid: " + this._myField.isValid());
+  }
+}
+```
+```html
+<div>
+  <input type="text" data-bind="value: myField"/>
+  <button data-bind="click: checkMyField">check</button>
+  <p data-bind="validationMessage: _myField"></p>
+</div>
+```
+
+Using `unwrap()`:
 ```js
 import { observable, extend, unwrap } from "knockout-decorators";
 
