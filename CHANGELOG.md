@@ -6,6 +6,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [1.2.0] 2018-08-30
+### Added
+ - `@observable({ expose: true })` option
+ - `@observableArray({ expose: true })` option
+
+With `{ expose: true }` flag hidden `ko.observable` can be accessed through
+non-enumerable property with same name prefixed by `_`.
+Thanks to @FlorianBruckner.
+
 ## [1.1.1] - 2018-04-20
 ### Fixed
  - Type Definitions

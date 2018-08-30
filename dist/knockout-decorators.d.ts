@@ -4,7 +4,8 @@
  * If initialized by Array then hidden ko.observableArray will be created
  */
 export declare function observable(options: {
-    deep: boolean;
+    deep?: boolean;
+    expose?: boolean;
 }): PropertyDecorator;
 /**
  * Property decorator that creates hidden (shallow) ko.observable with ES6 getter and setter for it
@@ -15,7 +16,8 @@ export declare function observable(prototype: Object, key: string | symbol): voi
  * Property decorator that creates hidden (shallow or deep) ko.observableArray with ES6 getter and setter for it
  */
 export declare function observableArray(options: {
-    deep: boolean;
+    deep?: boolean;
+    expose?: boolean;
 }): PropertyDecorator;
 /**
  * Property decorator that creates hidden (shallow) ko.observableArray with ES6 getter and setter for it

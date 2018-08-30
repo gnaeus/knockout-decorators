@@ -85,12 +85,12 @@ function defineExtenders(prototype, key, extendersOrFactory) {
  * Copyright (c) 2016-2017 Dmitry Panyushkin
  * Available under MIT license
  */
-function defineObservableProperty(instance, key, value, deep) {
+function defineObservableProperty(instance, key, value, deep, expose) {
     const observable$$1 = applyExtenders(instance, key, observable());
     let setter = observable$$1;
     if (deep) {
         setter = function (newValue) {
-            observable$$1(prepareDeepValue(newValue));
+            observable$$1(prepareDeepValue(newValue, expose));
         };
     }
     defineProperty(instance, key, {
@@ -98,9 +98,14 @@ function defineObservableProperty(instance, key, value, deep) {
         get: observable$$1,
         set: setter,
     });
+    if (expose) {
+        defineProperty(instance, "_" + String(key), {
+            value: observable$$1,
+        });
+    }
     setter(value);
 }
-function prepareDeepValue(value) {
+function prepareDeepValue(value, expose) {
     if (typeof value === "object") {
         if (isArray(value) || value === null) {
             // value is Array or null
@@ -111,18 +116,18 @@ function prepareDeepValue(value) {
             const prototype = getPrototypeOf(value);
             if (prototype === Object.prototype || prototype === null) {
                 // value is plain Object
-                return prepareDeepObject(value);
+                return prepareDeepObject(value, expose);
             }
         }
         else if (value.constructor === Object) {
             // value is plain Object
-            return prepareDeepObject(value);
+            return prepareDeepObject(value, expose);
         }
     }
     // value is primitive, function or class instance
     return value;
 }
-function prepareDeepObject(instance) {
+function prepareDeepObject(instance, expose) {
     if (!hasOwnProperty(instance, PATCHED_KEY)) {
         // mark instance as ObservableObject
         defineProperty(instance, PATCHED_KEY, {
@@ -131,10 +136,10 @@ function prepareDeepObject(instance) {
         // define deep observable properties
         objectForEach(instance, (key, value) => {
             if (isArray(value)) {
-                defineObservableArray(instance, key, value, true);
+                defineObservableArray(instance, key, value, true, expose);
             }
             else {
-                defineObservableProperty(instance, key, value, true);
+                defineObservableProperty(instance, key, value, true, expose);
             }
         });
     }
@@ -150,7 +155,7 @@ const allArrayMethods = [...deepArrayMethods, "push", "splice", "unshift"];
 const deepObservableArrayMethods = ["remove", "removeAll", "destroy", "destroyAll", "replace", "subscribe"];
 const allObservableArrayMethods = [...deepObservableArrayMethods, "replace"];
 const allMethods = [...allArrayMethods, ...allObservableArrayMethods, "mutate", "set"];
-function defineObservableArray(instance, key, value, deep) {
+function defineObservableArray(instance, key, value, deep, expose) {
     const obsArray = applyExtenders(instance, key, observableArray());
     let insideObsArray = false;
     defineProperty(instance, key, {
@@ -158,6 +163,11 @@ function defineObservableArray(instance, key, value, deep) {
         get: obsArray,
         set: setter,
     });
+    if (expose) {
+        defineProperty(instance, "_" + String(key), {
+            value: obsArray,
+        });
+    }
     setter(value);
     function setter(newValue) {
         const lastValue = obsArray.peek();
@@ -183,7 +193,7 @@ function defineObservableArray(instance, key, value, deep) {
                 if (deep) {
                     // make all array items deep observable
                     for (let i = 0; i < newValue.length; ++i) {
-                        newValue[i] = prepareDeepValue(newValue[i]);
+                        newValue[i] = prepareDeepValue(newValue[i], expose);
                     }
                 }
                 // mark instance as ObservableArray
@@ -229,7 +239,7 @@ function defineObservableArray(instance, key, value, deep) {
                     }
                     const args = arraySlice(arguments);
                     for (let i = 0; i < args.length; ++i) {
-                        args[i] = prepareDeepValue(args[i]);
+                        args[i] = prepareDeepValue(args[i], expose);
                     }
                     insideObsArray = true;
                     const result = obsArray.push.apply(obsArray, args);
@@ -244,7 +254,7 @@ function defineObservableArray(instance, key, value, deep) {
                     }
                     const args = arraySlice(arguments);
                     for (let i = 0; i < args.length; ++i) {
-                        args[i] = prepareDeepValue(args[i]);
+                        args[i] = prepareDeepValue(args[i], expose);
                     }
                     insideObsArray = true;
                     const result = obsArray.unshift.apply(obsArray, args);
@@ -267,13 +277,13 @@ function defineObservableArray(instance, key, value, deep) {
                             break;
                         }
                         case 3: {
-                            result = obsArray.splice(arguments[0], arguments[1], prepareDeepValue(arguments[2]));
+                            result = obsArray.splice(arguments[0], arguments[1], prepareDeepValue(arguments[2], expose));
                             break;
                         }
                         default: {
                             const args = arraySlice(arguments);
                             for (let i = 2; i < args.length; ++i) {
-                                args[i] = prepareDeepValue(args[i]);
+                                args[i] = prepareDeepValue(args[i], expose);
                             }
                             result = obsArray.splice.apply(obsArray, arguments);
                             break;
@@ -286,7 +296,7 @@ function defineObservableArray(instance, key, value, deep) {
             defineProperty(array, "replace", {
                 value(oldItem, newItem) {
                     insideObsArray = true;
-                    const result = obsArray.replace(oldItem, prepareDeepValue(newItem));
+                    const result = obsArray.replace(oldItem, prepareDeepValue(newItem, expose));
                     insideObsArray = false;
                     return result;
                 },
@@ -298,7 +308,7 @@ function defineObservableArray(instance, key, value, deep) {
                     obsArray.valueWillMutate();
                     mutator(nativeArray);
                     for (let i = 0; i < nativeArray.length; ++i) {
-                        nativeArray[i] = prepareDeepValue(nativeArray[i]);
+                        nativeArray[i] = prepareDeepValue(nativeArray[i], expose);
                     }
                     // it is defined for ko.observableArray
                     obsArray.valueHasMutated();
@@ -306,7 +316,7 @@ function defineObservableArray(instance, key, value, deep) {
             });
             defineProperty(array, "set", {
                 value(index, newItem) {
-                    return obsArray.splice(index, 1, prepareDeepValue(newItem))[0];
+                    return obsArray.splice(index, 1, prepareDeepValue(newItem, expose))[0];
                 },
             });
         }
@@ -341,8 +351,10 @@ function defineObservableArray(instance, key, value, deep) {
 function observable$1(prototypeOrOptions, key) {
     observableArrayOption = false;
     deepObservableOption = false;
+    exposeObservableOption = false;
     if (arguments.length === 1) {
         deepObservableOption = prototypeOrOptions.deep;
+        exposeObservableOption = prototypeOrOptions.expose;
         return observableDecorator;
     }
     return observableDecorator(prototypeOrOptions, key);
@@ -353,8 +365,10 @@ function observable$1(prototypeOrOptions, key) {
 function observableArray$1(prototypeOrOptions, key) {
     observableArrayOption = true;
     deepObservableOption = false;
+    exposeObservableOption = false;
     if (arguments.length === 1) {
         deepObservableOption = prototypeOrOptions.deep;
+        exposeObservableOption = prototypeOrOptions.expose;
         return observableDecorator;
     }
     return observableDecorator(prototypeOrOptions, key);
@@ -362,19 +376,21 @@ function observableArray$1(prototypeOrOptions, key) {
 // observableDecorator options
 let observableArrayOption;
 let deepObservableOption;
+let exposeObservableOption;
 function observableDecorator(prototype, propKey) {
     const array = observableArrayOption;
     const deep = deepObservableOption;
+    const expose = exposeObservableOption;
     defineProperty(prototype, propKey, {
         get() {
-            throw new Error("@observable property '" + propKey.toString() + "' was not initialized");
+            throw new Error("@observable property '" + String(propKey) + "' was not initialized");
         },
         set(value) {
             if (array || isArray(value)) {
-                defineObservableArray(this, propKey, value, deep);
+                defineObservableArray(this, propKey, value, deep, expose);
             }
             else {
-                defineObservableProperty(this, propKey, value, deep);
+                defineObservableProperty(this, propKey, value, deep, expose);
             }
         },
     });
@@ -400,7 +416,7 @@ function computedDecorator(prototype, propKey, desc) {
     const options = computedDecoratorOptions;
     const { get, set } = desc || (desc = getOwnPropertyDescriptor(prototype, propKey));
     if (!get) {
-        throw new Error("@computed property '" + propKey.toString() + "' has no getter");
+        throw new Error("@computed property '" + String(propKey) + "' has no getter");
     }
     desc.get = function () {
         const koComputed = applyExtenders(this, propKey, computed(get, this, options));
@@ -584,7 +600,8 @@ Base) {
         /** Subscribe callback to `@observable` or `@computed` dependency changes or to some `@event` */
         subscribe() {
             const subscription = subscribe.apply(null, arguments);
-            const subscriptions = this[SUBSCRIPTIONS_KEY] || (this[SUBSCRIPTIONS_KEY] = []);
+            const subscriptions = this[SUBSCRIPTIONS_KEY] ||
+                (this[SUBSCRIPTIONS_KEY] = []);
             subscriptions.push(subscription);
             return subscription;
         }
