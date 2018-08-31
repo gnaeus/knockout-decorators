@@ -1,7 +1,7 @@
 import { computed, components, utils, subscribable, observableArray, observable } from 'knockout';
 
 /**
- * Copyright (c) 2016-2017 Dmitry Panyushkin
+ * Copyright (c) 2016-2018 Dmitry Panyushkin
  * Available under MIT license
  */
 const prefix = "__ko_decorators_";
@@ -28,7 +28,7 @@ const hasOwnProperty = Function.prototype.call.bind(Object.prototype.hasOwnPrope
 const arraySlice = Function.prototype.call.bind(ArrayPrototype.slice);
 
 /**
- * Copyright (c) 2016-2017 Dmitry Panyushkin
+ * Copyright (c) 2016-2018 Dmitry Panyushkin
  * Available under MIT license
  */
 function defineEventProperty(instance, key) {
@@ -49,7 +49,7 @@ function defineEventProperty(instance, key) {
 }
 
 /**
- * Copyright (c) 2016-2017 Dmitry Panyushkin
+ * Copyright (c) 2016-2018 Dmitry Panyushkin
  * Available under MIT license
  */
 function applyExtenders(instance, key, target) {
@@ -82,7 +82,7 @@ function defineExtenders(prototype, key, extendersOrFactory) {
 }
 
 /**
- * Copyright (c) 2016-2017 Dmitry Panyushkin
+ * Copyright (c) 2016-2018 Dmitry Panyushkin
  * Available under MIT license
  */
 function defineObservableProperty(instance, key, value, deep, expose) {
@@ -147,7 +147,7 @@ function prepareDeepObject(instance, expose) {
 }
 
 /**
- * Copyright (c) 2016-2017 Dmitry Panyushkin
+ * Copyright (c) 2016-2018 Dmitry Panyushkin
  * Available under MIT license
  */
 const deepArrayMethods = ["pop", "reverse", "shift", "sort"];
@@ -340,9 +340,9 @@ function defineObservableArray(instance, key, value, deep, expose) {
 }
 
 /**
- * Copyright (c) 2016-2017 Dmitry Panyushkin
+ * Copyright (c) 2016-2018 Dmitry Panyushkin
  * Available under MIT license
- * Version: 1.0.1
+ * Version: 1.2.1
  */
 /**
  * Property decorator that creates hidden (shallow or deep) ko.observable with ES6 getter and setter for it
@@ -551,7 +551,7 @@ function subscribe(dependencyOrEvent, callback, options) {
             }
         }
         else {
-            const koComputed = computed(dependencyOrEvent);
+            const koComputed = computed(dependencyOrEvent).extend({ notify: "always" });
             subscription = koComputed.subscribe(handler, null, eventFunc);
             const originalDispose = subscription.dispose;
             // dispose hidden computed with subscription

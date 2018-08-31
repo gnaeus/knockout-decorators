@@ -1,7 +1,7 @@
 /**
- * Copyright (c) 2016-2017 Dmitry Panyushkin
+ * Copyright (c) 2016-2018 Dmitry Panyushkin
  * Available under MIT license
- * Version: 1.0.1
+ * Version: 1.2.1
  */
 import * as ko from "knockout";
 import {

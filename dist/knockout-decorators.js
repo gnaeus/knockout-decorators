@@ -31,7 +31,7 @@
     }
 
     /**
-     * Copyright (c) 2016-2017 Dmitry Panyushkin
+     * Copyright (c) 2016-2018 Dmitry Panyushkin
      * Available under MIT license
      */
     var prefix = "__ko_decorators_";
@@ -58,7 +58,7 @@
     var arraySlice = Function.prototype.call.bind(ArrayPrototype.slice);
 
     /**
-     * Copyright (c) 2016-2017 Dmitry Panyushkin
+     * Copyright (c) 2016-2018 Dmitry Panyushkin
      * Available under MIT license
      */
     function defineEventProperty(instance, key) {
@@ -79,7 +79,7 @@
     }
 
     /**
-     * Copyright (c) 2016-2017 Dmitry Panyushkin
+     * Copyright (c) 2016-2018 Dmitry Panyushkin
      * Available under MIT license
      */
     function applyExtenders(instance, key, target) {
@@ -112,7 +112,7 @@
     }
 
     /**
-     * Copyright (c) 2016-2017 Dmitry Panyushkin
+     * Copyright (c) 2016-2018 Dmitry Panyushkin
      * Available under MIT license
      */
     function defineObservableProperty(instance, key, value, deep, expose) {
@@ -177,7 +177,7 @@
     }
 
     /**
-     * Copyright (c) 2016-2017 Dmitry Panyushkin
+     * Copyright (c) 2016-2018 Dmitry Panyushkin
      * Available under MIT license
      */
     var deepArrayMethods = ["pop", "reverse", "shift", "sort"];
@@ -577,7 +577,7 @@
                 }
             }
             else {
-                var koComputed_1 = ko.computed(dependencyOrEvent);
+                var koComputed_1 = ko.computed(dependencyOrEvent).extend({ notify: "always" });
                 subscription_2 = koComputed_1.subscribe(handler, null, eventFunc);
                 var originalDispose_1 = subscription_2.dispose;
                 // dispose hidden computed with subscription
