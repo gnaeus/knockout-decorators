@@ -144,20 +144,62 @@ describe("subscribe utility function", () => {
     class ViewModel {
       @observable
       @extend({ notify: "always" })
-      field = 123;
+      observableField = 123;
+
+      @computed
+      @extend({ notify: "always" })
+      get computedField() {
+        return this.observableField;
+      }
     }
 
     const vm = new ViewModel();
 
-    let isSubscriptionFired = false;
+    let observableSubscriptionFired = false;
+    let computedSubscriptionFired = false;
 
-    subscribe(() => vm.field, () => {
-      isSubscriptionFired = true;
+    subscribe(() => vm.observableField, () => {
+      observableSubscriptionFired = true;
     });
 
-    vm.field = 123;
+    subscribe(() => vm.computedField, () => {
+      computedSubscriptionFired = true;
+    });
 
-    expect(isSubscriptionFired).toBeTruthy();
+    vm.observableField = 123;
+
+    expect(observableSubscriptionFired).toBeTruthy();
+    expect(computedSubscriptionFired).toBeTruthy();
+  });
+
+  it("should not run subscriptions without @extend({ notify: 'always' })", () => {
+    class ViewModel {
+      @observable
+      observableField = 123;
+
+      @computed
+      get computedField() {
+        return this.observableField;
+      }
+    }
+
+    const vm = new ViewModel();
+
+    let observableSubscriptionFired = false;
+    let computedSubscriptionFired = false;
+
+    subscribe(() => vm.observableField, () => {
+      observableSubscriptionFired = true;
+    });
+
+    subscribe(() => vm.computedField, () => {
+      computedSubscriptionFired = true;
+    });
+
+    vm.observableField = 123;
+
+    expect(observableSubscriptionFired).toBeFalsy();
+    expect(computedSubscriptionFired).toBeFalsy();
   });
 
   it("should throw when trying to subscribe to non-@observableArray with 'arrayChange' event", () => {
