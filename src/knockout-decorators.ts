@@ -416,7 +416,7 @@ export function subscribe(
         throw new Error("Can not subscribe to 'arrayChange' because dependency is not an 'observableArray'");
       }
     } else {
-      const koComputed = ko.computed(dependencyOrEvent as () => any);
+      const koComputed = ko.computed(dependencyOrEvent as () => any).extend({ notify: "always" });
 
       subscription = koComputed.subscribe(handler, null, eventFunc);
 

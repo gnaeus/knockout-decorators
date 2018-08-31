@@ -5,7 +5,7 @@
 Symbol = undefined as any;
 import * as ko from "knockout";
 import {
-  computed, observable, observableArray, ObservableArray, subscribe,
+  computed, observable, observableArray, ObservableArray, subscribe, extend,
 } from "../src/knockout-decorators";
 
 describe("subscribe utility function", () => {
@@ -138,6 +138,26 @@ describe("subscribe utility function", () => {
       { status: "added", value: 7, index: 2 },
       { status: "deleted", value: 5, index: 2 },
     ]);
+  });
+
+  it("should subscribe to decorated @observable with @extend({ notify: 'always' })", () => {
+    class ViewModel {
+      @observable
+      @extend({ notify: "always" })
+      field = 123;
+    }
+
+    const vm = new ViewModel();
+
+    let isSubscriptionFired = false;
+
+    subscribe(() => vm.field, () => {
+      isSubscriptionFired = true;
+    });
+
+    vm.field = 123;
+
+    expect(isSubscriptionFired).toBeTruthy();
   });
 
   it("should throw when trying to subscribe to non-@observableArray with 'arrayChange' event", () => {
