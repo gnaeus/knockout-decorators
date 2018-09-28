@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [1.2.2] 2018-09-28
+### Fixed
+ - "knockout" package moved to "peerDependencies" in `packege.json` #4
+
 ## [1.2.1] 2018-08-31
 ### Fixed
  - `subscribe()` now works with `@extend({ notify: "always" })` #7
@@ -122,7 +126,8 @@ class ViewModel {
 - `@subscribe` decorator
 - `@component` decorator
 
-[Unreleased]: https://github.com/gnaeus/knockout-decorators/compare/1.2.1...HEAD
+[Unreleased]: https://github.com/gnaeus/knockout-decorators/compare/1.2.2...HEAD
+[1.2.2]: https://github.com/gnaeus/knockout-decorators/compare/1.2.1...1.2.2
 [1.2.1]: https://github.com/gnaeus/knockout-decorators/compare/1.2.0...1.2.1
 [1.2.0]: https://github.com/gnaeus/knockout-decorators/compare/1.1.1...1.2.0
 [1.1.1]: https://github.com/gnaeus/knockout-decorators/compare/1.1.0...1.1.1
