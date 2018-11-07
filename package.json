@@ -39,18 +39,18 @@
   },
   "homepage": "https://github.com/gnaeus/knockout-decorators#readme",
   "devDependencies": {
-    "@types/jest": "^22.2.3",
+    "@types/jest": "^23.3.9",
     "@types/knockout": "^3.4.53",
-    "coveralls": "^3.0.0",
+    "coveralls": "^3.0.2",
     "deepmerge": "^2.1.0",
-    "jest": "^22.4.3",
+    "jest": "^23.6.0",
     "knockout": "^3.4.2",
     "rollup": "^0.58.1",
     "rollup-plugin-filesize": "^1.5.0",
     "rollup-plugin-typescript2": "^0.13.0",
     "rollup-plugin-uglify": "^3.0.0",
     "shx": "^0.2.2",
-    "ts-jest": "^22.4.4",
+    "ts-jest": "^23.10.4",
     "tslib": "^1.9.0",
     "tslint": "^5.9.1",
     "tslint-language-service": "^0.9.9",
@@ -71,8 +71,7 @@
     ],
     "globals": {
       "ts-jest": {
-        "skipBabel": true,
-        "tsConfigFile": "test/tsconfig.json"
+        "tsConfig": "test/tsconfig.json"
       }
     },
     "moduleFileExtensions": [
