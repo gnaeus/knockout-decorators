@@ -31,7 +31,7 @@ const es6 = {
         format: "es",
         sourcemap: true
     },
-    plugins: [typescriptPlugin("es6")]
+    plugins: [typescriptPlugin("es5")]
 };
 
 const umd = {
