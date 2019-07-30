@@ -99,9 +99,9 @@ export interface ObservableArray<T> extends Array<T> {
   destroyAll(): void;
   destroyAll(items: T[]): void;
 
-  subscribe(callback: (val: T[]) => void): KnockoutSubscription;
-  subscribe(callback: (val: T[]) => void, callbackTarget: any): KnockoutSubscription;
-  subscribe(callback: (val: any[]) => void, callbackTarget: any, event: string): KnockoutSubscription;
+  subscribe(callback: (val: T[]) => void): ko.Subscription;
+  subscribe(callback: (val: T[]) => void, callbackTarget: any): ko.Subscription;
+  subscribe(callback: (val: any[]) => void, callbackTarget: any, event: string): ko.Subscription;
 
   /**
    * Run mutator function that can write to array at some index (`array[index] = value;`)
@@ -319,7 +319,7 @@ export function event(prototype: Object, key: string | symbol) {
 }
 
 export type EventType = Function & {
-  subscribe(callback: Function): KnockoutSubscription;
+  subscribe(callback: Function): ko.Subscription;
 };
 
 /*---------------------------------------------------------------------------*/
@@ -331,7 +331,7 @@ export function subscribe<T>(
   dependencyOrEvent: () => T,
   callback: (value: T) => void,
   options?: { once?: boolean, event?: "change" | "beforeChange" },
-): KnockoutSubscription;
+): ko.Subscription;
 /**
  * Subscribe callback to `@observableArray` dependency "arrayChange" event
  */
@@ -343,7 +343,7 @@ export function subscribe<T>(
     index: number;
   }[]) => void,
   options: { once?: boolean, event: "arrayChange" },
-): KnockoutSubscription;
+): ko.Subscription;
 /**
  * Subscribe callback to some `@event` property
  */
@@ -351,7 +351,7 @@ export function subscribe<T>(
   event: (arg: T) => void,
   callback: (arg: T) => void,
   options?: { once?: boolean },
-): KnockoutSubscription;
+): ko.Subscription;
 /**
  * Subscribe callback to some `@event` property
  */
@@ -359,7 +359,7 @@ export function subscribe<T1, T2>(
   event: (arg1: T1, arg2: T2) => void,
   callback: (arg1: T1, arg2: T2) => void,
   options?: { once?: boolean },
-): KnockoutSubscription;
+): ko.Subscription;
 /**
  * Subscribe callback to some `@event` property
  */
@@ -367,7 +367,7 @@ export function subscribe<T1, T2, T3>(
   event: (arg1: T1, arg2: T2, arg3: T3, ...args: any[]) => void,
   callback: (arg1: T1, arg2: T2, arg3: T3, ...args: any[]) => void,
   options?: { once?: boolean },
-): KnockoutSubscription;
+): ko.Subscription;
 /**
  * Subscribe callback to `@observable` or `@computed` dependency changes or to some `@event`
  */
@@ -396,7 +396,7 @@ export function subscribe(
     const eventFunc = options && options.event || "change";
 
     let handler: (value: any) => void;
-    let subscription: KnockoutSubscription;
+    let subscription: ko.Subscription;
 
     if (once) {
       handler = function () {
@@ -422,7 +422,7 @@ export function subscribe(
 
       const originalDispose = subscription.dispose;
       // dispose hidden computed with subscription
-      subscription.dispose = function (this: KnockoutSubscription) {
+      subscription.dispose = function (this: ko.Subscription) {
         originalDispose.call(this);
         koComputed.dispose();
       };
@@ -440,7 +440,7 @@ export function unwrap(instance: Object, key: string | symbol): any;
 /**
  * Get internal ko.observable() for object property decodated by @observable
  */
-export function unwrap<T>(instance: Object, key: string | symbol): KnockoutObservable<T>;
+export function unwrap<T>(instance: Object, key: string | symbol): ko.Observable<T>;
 /**
  * Get internal ko.observable() for object property decodated by @observable
  */
@@ -467,7 +467,7 @@ export interface Disposable {
     dependencyOrEvent: () => T,
     callback: (value: T) => void,
     options?: { once?: boolean, event?: "change" | "beforeChange" },
-  ): KnockoutSubscription;
+  ): ko.Subscription;
   /** Subscribe callback to `@observableArray` dependency "arrayChange" event */
   subscribe<T>(
     dependency: () => T[],
@@ -477,30 +477,30 @@ export interface Disposable {
       index: number;
     }[]) => void,
     options: { once?: boolean, event: "arrayChange" },
-  ): KnockoutSubscription;
+  ): ko.Subscription;
   /** Subscribe callback to some `@event` property */
   subscribe<T>(
     event: (arg: T) => void,
     callback: (arg: T) => void,
     options?: { once?: boolean },
-  ): KnockoutSubscription;
+  ): ko.Subscription;
   /** Subscribe callback to some `@event` property */
   subscribe<T1, T2>(
     event: (arg1: T1, arg2: T2) => void,
     callback: (arg1: T1, arg2: T2) => void,
     options?: { once?: boolean },
-  ): KnockoutSubscription;
+  ): ko.Subscription;
   /** Subscribe callback to some `@event` property */
   subscribe<T1, T2, T3>(
     event: (arg1: T1, arg2: T2, arg3: T3, ...args: any[]) => void,
     callback: (arg1: T1, arg2: T2, arg3: T3, ...args: any[]) => void,
     options?: { once?: boolean },
-  ): KnockoutSubscription;
+  ): ko.Subscription;
 
   /** Get internal ko.observable() for class property decodated by `@observable` */
   unwrap(key: string | symbol): any;
   /** Get internal ko.observable() for class property decodated by `@observable` */
-  unwrap<T>(key: string | symbol): KnockoutObservable<T>;
+  unwrap<T>(key: string | symbol): ko.Observable<T>;
 }
 
 /**
@@ -532,7 +532,7 @@ export function Disposable<T extends new (...args: any[]) => any>(
   return class extends Base {
     /** Dispose all subscriptions from this class */
     dispose() {
-      const subscriptions: KnockoutSubscription[] = this[SUBSCRIPTIONS_KEY as any];
+      const subscriptions: ko.Subscription[] = this[SUBSCRIPTIONS_KEY as any];
       if (subscriptions) {
         subscriptions.forEach((subscription) => {
           subscription.dispose();
@@ -543,8 +543,8 @@ export function Disposable<T extends new (...args: any[]) => any>(
 
     /** Subscribe callback to `@observable` or `@computed` dependency changes or to some `@event` */
     subscribe() {
-      const subscription: KnockoutSubscription = subscribe.apply(null, arguments);
-      const subscriptions: KnockoutSubscription[] = this[SUBSCRIPTIONS_KEY as any] ||
+      const subscription: ko.Subscription = subscribe.apply(null, arguments);
+      const subscriptions: ko.Subscription[] = this[SUBSCRIPTIONS_KEY as any] ||
         (this[SUBSCRIPTIONS_KEY as any] = []);
       subscriptions.push(subscription);
       return subscription;

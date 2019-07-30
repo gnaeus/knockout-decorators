@@ -8,7 +8,7 @@ import { subscribe, unwrap } from "../../src/knockout-decorators";
 import { prepareDeepValue } from "../../src/observable-property";
 
 describe("deep ObservableArray", () => {
-  function makeProxy<T>(array: T[]): T[] & KnockoutObservableArray<T> {
+  function makeProxy<T>(array: T[]): T[] & ko.ObservableArray<T> {
     return new ObservableArrayProxy(
       ko.observableArray(array), prepareDeepValue as any,
     ) as any;

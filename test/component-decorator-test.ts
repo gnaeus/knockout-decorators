@@ -5,7 +5,7 @@
 import * as ko from "knockout";
 import { component } from "../src/knockout-decorators";
 
-interface ComponentConfig extends KnockoutComponentTypes.ComponentConfig {
+interface ComponentConfig extends ko.components.Config {
   synchronous?: boolean;
 }
 

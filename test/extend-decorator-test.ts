@@ -7,7 +7,7 @@ import * as ko from "knockout";
 import { computed, extend, observable, observableArray, subscribe } from "../src/knockout-decorators";
 
 describe("@extend decorator", () => {
-  ko.extenders["reverse"] = (target: KnockoutObservable<any>, options: "read" | "write") => {
+  ko.extenders["reverse"] = (target: ko.Observable<any>, options: "read" | "write") => {
     if (options === "read") {
       return ko.pureComputed({
         read: () => reverse(target()),
@@ -28,7 +28,7 @@ describe("@extend decorator", () => {
     }
   };
 
-  ko.extenders["upperCase"] = (target: KnockoutObservable<any>, options: "read" | "write") => {
+  ko.extenders["upperCase"] = (target: ko.Observable<any>, options: "read" | "write") => {
     if (options === "read") {
       return ko.pureComputed({
         read: () => String(target()).toUpperCase(),

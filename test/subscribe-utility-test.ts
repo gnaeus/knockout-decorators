@@ -119,7 +119,7 @@ describe("subscribe utility function", () => {
     }
 
     const vm = new ViewModel();
-    const changes: KnockoutArrayChange<number>[] = [];
+    const changes: ko.utils.ArrayChange<number>[] = [];
 
     subscribe(() => vm.array, (val) => {
       changes.push(...val);
@@ -241,7 +241,7 @@ describe("subscribe utility function", () => {
     }
 
     const vm = new ViewModel();
-    const changes: KnockoutArrayChange<number>[] = [];
+    const changes: ko.utils.ArrayChange<number>[] = [];
 
     subscribe(() => vm.array, (val) => {
       changes.push(...val);

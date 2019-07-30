@@ -13,13 +13,13 @@ export class ObservableArrayProxy<T> extends ArrayStub {
   static _maxLength = 0;
 
   /** @private */
-  _observableArray: KnockoutObservableArray<T>;
+  _observableArray: ko.ObservableArray<T>;
 
   /** @private */
   _preapreArrayItem: (item: T) => T;
 
   constructor(
-    observableArray: KnockoutObservableArray<T>,
+    observableArray: ko.ObservableArray<T>,
     preapreArrayItem?: (item: T) => T,
   ) {
     super();
