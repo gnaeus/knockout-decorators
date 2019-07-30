@@ -5,7 +5,7 @@
 Symbol = undefined as any;
 import * as ko from "knockout";
 import {
-  computed, observable, observableArray, ObservableArray, subscribe, extend,
+  computed, extend, observable, observableArray, ObservableArray, subscribe,
 } from "../src/knockout-decorators";
 
 describe("subscribe utility function", () => {
