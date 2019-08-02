@@ -40,7 +40,6 @@
   "homepage": "https://github.com/gnaeus/knockout-decorators#readme",
   "devDependencies": {
     "@types/jest": "^23.3.9",
-    "@types/knockout": "^3.4.53",
     "coveralls": "^3.0.2",
     "deepmerge": "^2.1.0",
     "jest": "^23.6.0",
@@ -57,7 +56,7 @@
     "typescript": "^2.8.1"
   },
   "peerDependencies": {
-    "knockout": "^3.4.2"
+    "knockout": "^3.5.0"
   },
   "jest": {
     "collectCoverage": true,

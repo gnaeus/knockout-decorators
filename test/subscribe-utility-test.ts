@@ -5,7 +5,7 @@
 Symbol = undefined as any;
 import * as ko from "knockout";
 import {
-  computed, observable, observableArray, ObservableArray, subscribe, extend,
+  computed, extend, observable, observableArray, ObservableArray, subscribe,
 } from "../src/knockout-decorators";
 
 describe("subscribe utility function", () => {
@@ -119,7 +119,7 @@ describe("subscribe utility function", () => {
     }
 
     const vm = new ViewModel();
-    const changes: KnockoutArrayChange<number>[] = [];
+    const changes: ko.utils.ArrayChange<number>[] = [];
 
     subscribe(() => vm.array, (val) => {
       changes.push(...val);
@@ -241,7 +241,7 @@ describe("subscribe utility function", () => {
     }
 
     const vm = new ViewModel();
-    const changes: KnockoutArrayChange<number>[] = [];
+    const changes: ko.utils.ArrayChange<number>[] = [];
 
     subscribe(() => vm.array, (val) => {
       changes.push(...val);

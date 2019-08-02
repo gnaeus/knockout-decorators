@@ -7,7 +7,7 @@ import { ArrayPrototype, arraySlice, defineProperty, hasOwnProperty, isArray, PA
 import { prepareDeepValue } from "./observable-property";
 import { applyExtenders } from "./property-extenders";
 
-type ObsArray = KnockoutObservableArray<any> & { [fnName: string]: Function };
+type ObsArray = ko.ObservableArray<any> & { [fnName: string]: Function };
 
 const deepArrayMethods = ["pop", "reverse", "shift", "sort"];
 const allArrayMethods = [...deepArrayMethods, "push", "splice", "unshift"];

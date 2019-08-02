@@ -369,8 +369,8 @@ describe("@observable({ deep: true }) decorator: initialized by array", () => {
     }
 
     const vm = new ViewModel();
-    const changesFirst: KnockoutArrayChange<number>[] = [];
-    const changesSecond: KnockoutArrayChange<number>[] = [];
+    const changesFirst: ko.utils.ArrayChange<number>[] = [];
+    const changesSecond: ko.utils.ArrayChange<number>[] = [];
 
     vm.first.subscribe((val) => { changesFirst.push(...val); }, null, "arrayChange");
     vm.second.subscribe((val) => { changesSecond.push(...val); }, null, "arrayChange");
@@ -457,8 +457,8 @@ describe("@observable({ deep: true }) decorator: initialized by array", () => {
     }
 
     const vm = new ViewModel();
-    const changesFirst: KnockoutArrayChange<number>[] = [];
-    const changesSecond: KnockoutArrayChange<number>[] = [];
+    const changesFirst: ko.utils.ArrayChange<number>[] = [];
+    const changesSecond: ko.utils.ArrayChange<number>[] = [];
 
     vm.arrayFirst.subscribe((val) => { changesFirst.push(...val); }, null, "arrayChange");
     vm.arraySecond.subscribe((val) => { changesSecond.push(...val); }, null, "arrayChange");
@@ -490,7 +490,7 @@ describe("@observable({ deep: true }) decorator: initialized by array", () => {
     }
 
     const vm = new ViewModel();
-    const changes: KnockoutArrayChange<number>[] = [];
+    const changes: ko.utils.ArrayChange<number>[] = [];
 
     vm.array.subscribe((val) => { changes.push(...val); }, null, "arrayChange");
 
@@ -512,7 +512,7 @@ describe("@observable({ deep: true }) decorator: initialized by array", () => {
     }
 
     const vm = new ViewModel();
-    const changes: KnockoutArrayChange<number>[] = [];
+    const changes: ko.utils.ArrayChange<number>[] = [];
 
     vm.array.subscribe((val) => { changes.push(...val); }, null, "arrayChange");
 

@@ -84,7 +84,7 @@ describe("unwrap utility function", () => {
     expect(instance.property).toBe("observable value");
   });
 
-  ko.extenders["required"] = (target: KnockoutObservable<any>) => {
+  ko.extenders["required"] = (target: ko.Observable<any>) => {
     const extendedObservable = ko.pureComputed({
       read: target,
       write: (value) => {

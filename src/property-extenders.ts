@@ -12,7 +12,7 @@ interface ExtendersDictionary {
 
 export function applyExtenders(
   instance: Object, key: string | symbol,
-  target: KnockoutObservable<any> | KnockoutComputed<any>,
+  target: ko.Observable<any> | ko.Computed<any>,
 ) {
   const dictionary = instance[EXTENDERS_KEY] as ExtendersDictionary;
   const extenders = dictionary && dictionary[key as any];

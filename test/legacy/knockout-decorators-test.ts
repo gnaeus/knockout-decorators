@@ -35,7 +35,7 @@ describe("legacy environments", () => {
   });
 
   describe("@autobind decorator", () => {
-    ko.extenders["reverse"] = (target: KnockoutObservable<any>) => {
+    ko.extenders["reverse"] = (target: ko.Observable<any>) => {
       return ko.pureComputed({
         read: target,
         write: (value: any) => target(value.split("").reverse().join("")),
