@@ -175,7 +175,7 @@ model.field = [4, 5, 6];                          // [console] ➜ [4, 5, 6]
 ```
 Functions from `ko.observableArray` (both Knockout-specific `remove`, `removeAll`, `destroy`, `destroyAll`, `replace`
 and redefined `Array.prototype` functions `pop`, `push`, `reverse`, `shift`, `sort`, `splice`, `unshift`)
-are also presents in decorated poperty.<br>
+are also presents in decorated property.<br>
 They works like if we invoke them on hidden `ko.observableArray`.
 
 And also decorated array has:
@@ -385,7 +385,7 @@ class Consumer {
       console.log("lambda:", arg1, arg2);
     });
     
-    // `subscription` type is `KnockoutSubscription`
+    // `subscription` type is `ko.Subscription`
     const subscription = producer.myEvent.subscribe(this.onEvent);
   }
   
@@ -413,7 +413,7 @@ subscribe<T>(
   dependency: () => T,
   callback: (value: T) => void,
   options?: { once?: boolean, event?: string }
-): KnockoutSubscription;
+): ko.Subscription;
 ```
 Or subscribe to some `@event` property
 ```js
@@ -421,16 +421,16 @@ subscribe<T1, T2, ...>(
   event: (arg1: T1, arg2: T2, ...) => void,
   callback: (arg1: T1, arg2: T2, ...) => void,
   options?: { once?: boolean }
-): KnockoutSubscription;
+): ko.Subscription;
 ```
 
 | Argument          | Default    | Description                                                         |
 |:------------------|:-----------|:--------------------------------------------------------------------|
-| dependencyOrEvent |            | (1) Function for getting observeble property (2) @event property    |
+| dependencyOrEvent |            | (1) Function for getting observable property (2) @event property    |
 | callback          |            | Callback that handle dependency changes or @event notifications     |
 | options           | `null`     | Options object                                                      |
 | options.once      | `false`    | If `true` then subscription will be disposed after first invocation |
-| optons.event      | `"change"` | Event name for passing to Knockout native `subscribe()`             |
+| options.event     | `"change"` | Event name for passing to Knockout native `subscribe()`             |
 
 Subscribe to `@observable` changes
 ```js
@@ -470,7 +470,7 @@ class ViewModel {
       console.log(arg);
     }, { once: true });
     
-    // `subscription` type is `KnockoutSubscription`
+    // `subscription` type is `ko.Subscription`
     const subscription = subscribe(this.myEvent, (arg) => {
       console.log(arg);
     });
@@ -491,7 +491,7 @@ Get hidden `ko.observable()` for property decodated by `@observable`
 or hidden `ko.pureComputed()` for property decodated by `@computed`
 ```js
 unwrap(instance: Object, key: string | symbol): any;
-unwrap<T>(instance: Object, key: string | symbol): KnockoutObservable<T>;
+unwrap<T>(instance: Object, key: string | symbol): ko.Observable<T>;
 ```
 
 | Argument | Default | Description                    |
@@ -565,9 +565,9 @@ or [TypeScript 2.2 docs](https://www.typescriptlang.org/docs/handbook/release-no
 ```js
 function Disposable(Base? /* optional */) {
   return class extends Base {
-    subscribe(...): KnockoutSubscription;
+    subscribe(...): ko.Subscription;
     dispose(): void;
-    unwrap(propName: string): KnockoutObservable;
+    unwrap(propName: string): ko.Observable;
   }
 }
 ```
@@ -600,7 +600,7 @@ class Derived extends Disposable(Base) {
   dispose() {
     // dispose all subscriptions that created by this.subscribe()
     super.dispose();
-    // unwrap and dispose hiddden Knockout computed
+    // unwrap and dispose hidden Knockout computed
     this.unwrap("upperCase").dispose();
   }
 }

@@ -6,13 +6,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
-## [1.2.3] 2019-15-01
+## [1.2.3] 2019-01-15
 ### Fixed
- - ESM-module compiled to es5 compatible code  #15
+ - ESM-module compiled to es5 compatible code #15
 
 ## [1.2.2] 2018-09-28
 ### Fixed
- - "knockout" package moved to "peerDependencies" in `packege.json` #4
+ - "knockout" package moved to "peerDependencies" in `package.json` #4
 
 ## [1.2.1] 2018-08-31
 ### Fixed
@@ -34,7 +34,7 @@ Thanks to @FlorianBruckner.
 
 ## [1.1.0] - 2018-04-19
 ### Added
- - ES6-module buld
+ - ES6-module build
 
 ## [1.0.0] - 2017-04-03
 ### Added
