@@ -1,5 +1,5 @@
+import { terser } from "rollup-plugin-terser";
 import typescript from "rollup-plugin-typescript2";
-import uglify from "rollup-plugin-uglify";
 import filesize from "rollup-plugin-filesize";
 import deepmerge from "deepmerge";
 import pkg from "./package.json";
@@ -12,7 +12,7 @@ const typescriptPlugin = target => typescript({
     include: ["src/**/*.ts"]
 });
 
-const uglifyPlugin = uglify({
+const terserPlugin = terser({
     mangle: {
         toplevel: true,
         properties: {
@@ -53,14 +53,14 @@ const es6Min = deepmerge(es6, {
     output: {
         file: es6.output.file.replace(".js", ".min.js")
     },
-    plugins: [uglifyPlugin, filesizePlugin]
+    plugins: [terserPlugin, filesizePlugin]
 });
 
 const umdMin = deepmerge(umd, {
     output: {
         file: umd.output.file.replace(".js", ".min.js")
     },
-    plugins: [uglifyPlugin, filesizePlugin]
+    plugins: [terserPlugin, filesizePlugin]
 });
 
 export default [es6, umd, es6Min, umdMin];

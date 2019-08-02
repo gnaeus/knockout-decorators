@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "strict": true,
+    "strictBindCallApply": false,
     "strictPropertyInitialization": false,
     "noImplicitReturns": true,
     "noUnusedParameters": true,

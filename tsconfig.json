@@ -2,6 +2,7 @@
   "compileOnSave": false,
   "compilerOptions": {
     "strict": true,
+    "strictBindCallApply": false,
     "strictPropertyInitialization": false,
     "noImplicitReturns": true,
     "noUnusedLocals": true,
