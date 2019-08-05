@@ -1,4 +1,4 @@
-import { computed, components, utils, subscribable, observableArray, observable } from 'knockout';
+import { utils, subscribable, observable as observable$1, observableArray as observableArray$1, computed as computed$1, components } from 'knockout';
 
 /*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
@@ -61,13 +61,13 @@ var arraySlice = Function.prototype.call.bind(ArrayPrototype.slice);
  * Available under MIT license
  */
 function defineEventProperty(instance, key) {
-    var subscribable$$1 = new subscribable();
+    var subscribable$1 = new subscribable();
     var event = function () {
         var eventArgs = arraySlice(arguments);
-        subscribable$$1.notifySubscribers(eventArgs);
+        subscribable$1.notifySubscribers(eventArgs);
     };
     event.subscribe = function (callback) {
-        return subscribable$$1.subscribe(function (eventArgs) {
+        return subscribable$1.subscribe(function (eventArgs) {
             callback.apply(null, eventArgs);
         });
     };
@@ -115,21 +115,21 @@ function defineExtenders(prototype, key, extendersOrFactory) {
  * Available under MIT license
  */
 function defineObservableProperty(instance, key, value, deep, expose) {
-    var observable$$1 = applyExtenders(instance, key, observable());
-    var setter = observable$$1;
+    var observable = applyExtenders(instance, key, observable$1());
+    var setter = observable;
     if (deep) {
         setter = function (newValue) {
-            observable$$1(prepareDeepValue(newValue, expose));
+            observable(prepareDeepValue(newValue, expose));
         };
     }
     defineProperty(instance, key, {
         enumerable: true,
-        get: observable$$1,
+        get: observable,
         set: setter,
     });
     if (expose) {
         defineProperty(instance, "_" + String(key), {
-            value: observable$$1,
+            value: observable,
         });
     }
     setter(value);
@@ -185,7 +185,7 @@ var deepObservableArrayMethods = ["remove", "removeAll", "destroy", "destroyAll"
 var allObservableArrayMethods = deepObservableArrayMethods.concat(["replace"]);
 var allMethods = allArrayMethods.concat(allObservableArrayMethods, ["mutate", "set"]);
 function defineObservableArray(instance, key, value, deep, expose) {
-    var obsArray = applyExtenders(instance, key, observableArray());
+    var obsArray = applyExtenders(instance, key, observableArray$1());
     var insideObsArray = false;
     defineProperty(instance, key, {
         enumerable: true,
@@ -372,7 +372,7 @@ function defineObservableArray(instance, key, value, deep, expose) {
  * Property decorator that creates hidden (shallow or deep) ko.observable with ES6 getter and setter for it
  * If initialized by Array then hidden (shallow or deep) ko.observableArray will be created
  */
-function observable$1(prototypeOrOptions, key) {
+function observable(prototypeOrOptions, key) {
     observableArrayOption = false;
     deepObservableOption = false;
     exposeObservableOption = false;
@@ -386,7 +386,7 @@ function observable$1(prototypeOrOptions, key) {
 /**
  * Property decorator that creates hidden (shallow or deep) ko.observableArray with ES6 getter and setter for it
  */
-function observableArray$1(prototypeOrOptions, key) {
+function observableArray(prototypeOrOptions, key) {
     observableArrayOption = true;
     deepObservableOption = false;
     exposeObservableOption = false;
@@ -426,7 +426,7 @@ function observableDecorator(prototype, propKey) {
  *
  * But we can still extend getter @computed by extenders like { rateLimit: 500 }
  */
-function computed$1(prototypeOrOptinos, key, propDesc) {
+function computed(prototypeOrOptinos, key, propDesc) {
     computedDecoratorOptions = { pure: true };
     if (arguments.length === 1) {
         computedDecoratorOptions = prototypeOrOptinos;
@@ -443,7 +443,7 @@ function computedDecorator(prototype, propKey, desc) {
         throw new Error("@computed property '" + String(propKey) + "' has no getter");
     }
     desc.get = function () {
-        var koComputed = applyExtenders(this, propKey, computed(get, this, options));
+        var koComputed = applyExtenders(this, propKey, computed$1(get, this, options));
         defineProperty(this, propKey, {
             get: koComputed,
             // tslint:disable-next-line:object-literal-shorthand
@@ -576,7 +576,7 @@ function subscribe(dependencyOrEvent, callback, options) {
             }
         }
         else {
-            var koComputed_1 = computed(dependencyOrEvent).extend({ notify: "always" });
+            var koComputed_1 = computed$1(dependencyOrEvent).extend({ notify: "always" });
             subscription_2 = koComputed_1.subscribe(handler, null, eventFunc);
             var originalDispose_1 = subscription_2.dispose;
             // dispose hidden computed with subscription
@@ -645,5 +645,5 @@ Base) {
     }(Base));
 }
 
-export { observable$1 as observable, observableArray$1 as observableArray, computed$1 as computed, extend, component, autobind, event, subscribe, unwrap, Disposable };
+export { Disposable, autobind, component, computed, event, extend, observable, observableArray, subscribe, unwrap };
 //# sourceMappingURL=knockout-decorators.esm.js.map

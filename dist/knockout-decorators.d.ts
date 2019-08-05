@@ -1,4 +1,9 @@
-/// <reference types="knockout" />
+/**
+ * Copyright (c) 2016-2018 Dmitry Panyushkin
+ * Available under MIT license
+ * Version: 2.0.0
+ */
+import * as ko from "knockout";
 /**
  * Property decorator that creates hidden (shallow or deep) ko.observable with ES6 getter and setter for it
  * If initialized by Array then hidden ko.observableArray will be created
@@ -33,9 +38,9 @@ export interface ObservableArray<T> extends Array<T> {
     destroy(destroyFunction: (item: T) => boolean): void;
     destroyAll(): void;
     destroyAll(items: T[]): void;
-    subscribe(callback: (val: T[]) => void): KnockoutSubscription;
-    subscribe(callback: (val: T[]) => void, callbackTarget: any): KnockoutSubscription;
-    subscribe(callback: (val: any[]) => void, callbackTarget: any, event: string): KnockoutSubscription;
+    subscribe(callback: (val: T[]) => void): ko.Subscription;
+    subscribe(callback: (val: T[]) => void, callbackTarget: any): ko.Subscription;
+    subscribe(callback: (val: any[]) => void, callbackTarget: any, event: string): ko.Subscription;
     /**
      * Run mutator function that can write to array at some index (`array[index] = value;`)
      * Then notify about observableArray changes
@@ -101,7 +106,7 @@ export declare function autobind(prototype: Object, key: string | symbol, desc?:
  */
 export declare function event(prototype: Object, key: string | symbol): void;
 export declare type EventType = Function & {
-    subscribe(callback: Function): KnockoutSubscription;
+    subscribe(callback: Function): ko.Subscription;
 };
 /**
  * Subscribe callback to `@observable` or `@computed` dependency changes or to some `@event` property
@@ -109,7 +114,7 @@ export declare type EventType = Function & {
 export declare function subscribe<T>(dependencyOrEvent: () => T, callback: (value: T) => void, options?: {
     once?: boolean;
     event?: "change" | "beforeChange";
-}): KnockoutSubscription;
+}): ko.Subscription;
 /**
  * Subscribe callback to `@observableArray` dependency "arrayChange" event
  */
@@ -120,25 +125,25 @@ export declare function subscribe<T>(dependency: () => T[], callback: (value: {
 }[]) => void, options: {
     once?: boolean;
     event: "arrayChange";
-}): KnockoutSubscription;
+}): ko.Subscription;
 /**
  * Subscribe callback to some `@event` property
  */
 export declare function subscribe<T>(event: (arg: T) => void, callback: (arg: T) => void, options?: {
     once?: boolean;
-}): KnockoutSubscription;
+}): ko.Subscription;
 /**
  * Subscribe callback to some `@event` property
  */
 export declare function subscribe<T1, T2>(event: (arg1: T1, arg2: T2) => void, callback: (arg1: T1, arg2: T2) => void, options?: {
     once?: boolean;
-}): KnockoutSubscription;
+}): ko.Subscription;
 /**
  * Subscribe callback to some `@event` property
  */
 export declare function subscribe<T1, T2, T3>(event: (arg1: T1, arg2: T2, arg3: T3, ...args: any[]) => void, callback: (arg1: T1, arg2: T2, arg3: T3, ...args: any[]) => void, options?: {
     once?: boolean;
-}): KnockoutSubscription;
+}): ko.Subscription;
 /**
  * Get internal ko.observable() for object property decodated by @observable
  */
@@ -146,7 +151,7 @@ export declare function unwrap(instance: Object, key: string | symbol): any;
 /**
  * Get internal ko.observable() for object property decodated by @observable
  */
-export declare function unwrap<T>(instance: Object, key: string | symbol): KnockoutObservable<T>;
+export declare function unwrap<T>(instance: Object, key: string | symbol): ko.Observable<T>;
 /**
  * Mixin which add `subscribe()` instance method and implement `dispose()` method,
  * that disposes all subscription created by `subscribe()`
@@ -158,7 +163,7 @@ export interface Disposable {
     subscribe<T>(dependencyOrEvent: () => T, callback: (value: T) => void, options?: {
         once?: boolean;
         event?: "change" | "beforeChange";
-    }): KnockoutSubscription;
+    }): ko.Subscription;
     /** Subscribe callback to `@observableArray` dependency "arrayChange" event */
     subscribe<T>(dependency: () => T[], callback: (value: {
         status: "added" | "deleted";
@@ -167,23 +172,23 @@ export interface Disposable {
     }[]) => void, options: {
         once?: boolean;
         event: "arrayChange";
-    }): KnockoutSubscription;
+    }): ko.Subscription;
     /** Subscribe callback to some `@event` property */
     subscribe<T>(event: (arg: T) => void, callback: (arg: T) => void, options?: {
         once?: boolean;
-    }): KnockoutSubscription;
+    }): ko.Subscription;
     /** Subscribe callback to some `@event` property */
     subscribe<T1, T2>(event: (arg1: T1, arg2: T2) => void, callback: (arg1: T1, arg2: T2) => void, options?: {
         once?: boolean;
-    }): KnockoutSubscription;
+    }): ko.Subscription;
     /** Subscribe callback to some `@event` property */
     subscribe<T1, T2, T3>(event: (arg1: T1, arg2: T2, arg3: T3, ...args: any[]) => void, callback: (arg1: T1, arg2: T2, arg3: T3, ...args: any[]) => void, options?: {
         once?: boolean;
-    }): KnockoutSubscription;
+    }): ko.Subscription;
     /** Get internal ko.observable() for class property decodated by `@observable` */
     unwrap(key: string | symbol): any;
     /** Get internal ko.observable() for class property decodated by `@observable` */
-    unwrap<T>(key: string | symbol): KnockoutObservable<T>;
+    unwrap<T>(key: string | symbol): ko.Observable<T>;
 }
 /**
  * Mixin which add `subscribe()` instance method and implement `dispose()` method,

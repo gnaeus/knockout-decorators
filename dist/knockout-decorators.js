@@ -1,8 +1,8 @@
 (function (global, factory) {
     typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('knockout')) :
     typeof define === 'function' && define.amd ? define(['exports', 'knockout'], factory) :
-    (factory((global.KnockoutDecorators = {}),global.ko));
-}(this, (function (exports,ko) { 'use strict';
+    (global = global || self, factory(global.KnockoutDecorators = {}, global.ko));
+}(this, function (exports, ko) { 'use strict';
 
     /*! *****************************************************************************
     Copyright (c) Microsoft Corporation. All rights reserved.
@@ -649,18 +649,18 @@
         }(Base));
     }
 
+    exports.Disposable = Disposable;
+    exports.autobind = autobind;
+    exports.component = component;
+    exports.computed = computed;
+    exports.event = event;
+    exports.extend = extend;
     exports.observable = observable;
     exports.observableArray = observableArray;
-    exports.computed = computed;
-    exports.extend = extend;
-    exports.component = component;
-    exports.autobind = autobind;
-    exports.event = event;
     exports.subscribe = subscribe;
     exports.unwrap = unwrap;
-    exports.Disposable = Disposable;
 
     Object.defineProperty(exports, '__esModule', { value: true });
 
-})));
+}));
 //# sourceMappingURL=knockout-decorators.js.map
